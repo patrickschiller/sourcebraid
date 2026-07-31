@@ -4,6 +4,8 @@
 
 [Read this documentation in English](README.md)
 
+![SourceBraid — Weave the web into Markdown.](assets/branding/sourcebraid-social-card.png)
+
 [SourceBraid](https://sourcebraid.com) speichert Artikel, wissenschaftliche Veröffentlichungen, Wiki-Seiten, GitHub Gists und PDF-Dokumente als dauerhaft lesbares Markdown in einem privaten GitHub-Repository. Metadaten landen im YAML-Frontmatter, relevante Bilder als lokale Repository-Assets und alle Einträge zusätzlich in einem durchsuchbaren Index.
 
 ## So funktioniert SourceBraid
