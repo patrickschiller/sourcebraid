@@ -1,0 +1,50 @@
+{
+  "name": "sourcebraid",
+  "version": "0.5.0+codex.20260731143000",
+  "description": "Capture, search, fetch, and safely manage a private SourceBraid Markdown archive from ChatGPT and Codex.",
+  "author": {
+    "name": "Patrick Schiller",
+    "url": "https://github.com/patrickschiller"
+  },
+  "homepage": "https://sourcebraid.com",
+  "repository": "https://github.com/patrickschiller/sourcebraid",
+  "license": "MIT",
+  "keywords": [
+    "markdown",
+    "github",
+    "archive",
+    "knowledge",
+    "chatgpt",
+    "codex"
+  ],
+  "skills": "./skills/",
+  "mcpServers": "./.mcp.json",
+  "interface": {
+    "displayName": "SourceBraid",
+    "shortDescription": "Search your private Markdown knowledge archive.",
+    "longDescription": "Search and fetch prepared Markdown sources from a private GitHub archive in ChatGPT or Codex, maintain an incremental local full-text index, and safely preview and delete clips.",
+    "developerName": "Patrick Schiller",
+    "category": "Productivity",
+    "capabilities": [
+      "Read",
+      "Interactive",
+      "Write"
+    ],
+    "websiteURL": "https://sourcebraid.com",
+    "privacyPolicyURL": "https://github.com/patrickschiller/sourcebraid/blob/main/PRIVACY.md",
+    "termsOfServiceURL": "https://github.com/patrickschiller/sourcebraid/blob/main/TERMS.md",
+    "defaultPrompt": [
+      "Search my SourceBraid archive for dynamic agents.",
+      "Find and summarize my saved sources about AI workflows.",
+      "Safely preview deletion of a saved SourceBraid source."
+    ],
+    "brandColor": "#166B68",
+    "composerIcon": "./assets/sourcebraid-icon.png",
+    "logo": "./assets/sourcebraid-icon.png",
+    "screenshots": [
+      "./assets/chrome-capture.png",
+      "./assets/private-markdown-archive.png",
+      "./assets/codex-search.png"
+    ]
+  }
+}

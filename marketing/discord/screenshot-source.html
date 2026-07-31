@@ -1,0 +1,1032 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>SourceBraid Discord screenshots</title>
+  <style>
+    * {
+      box-sizing: border-box;
+    }
+
+    :root {
+      font-family: Inter, ui-sans-serif, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      color: #eaf1ff;
+      background: #050914;
+    }
+
+    body {
+      margin: 0;
+      padding: 40px;
+      display: grid;
+      gap: 40px;
+      justify-content: center;
+      background:
+        radial-gradient(circle at 12% 0%, rgba(52, 112, 255, 0.2), transparent 26%),
+        #050914;
+    }
+
+    .shot {
+      position: relative;
+      width: 1200px;
+      height: 675px;
+      overflow: hidden;
+      isolation: isolate;
+      background:
+        radial-gradient(circle at 84% 12%, rgba(43, 210, 156, 0.12), transparent 25%),
+        linear-gradient(145deg, #08111f 0%, #0a1830 62%, #0b2033 100%);
+    }
+
+    .shot::before {
+      position: absolute;
+      inset: 0;
+      z-index: -2;
+      content: "";
+      opacity: 0.24;
+      background-image:
+        linear-gradient(rgba(255, 255, 255, 0.045) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(255, 255, 255, 0.045) 1px, transparent 1px);
+      background-size: 42px 42px;
+      mask-image: linear-gradient(to bottom, #000, transparent 86%);
+    }
+
+    .shot::after {
+      position: absolute;
+      z-index: -1;
+      width: 420px;
+      height: 420px;
+      border-radius: 50%;
+      content: "";
+      right: -170px;
+      bottom: -190px;
+      background: rgba(58, 222, 168, 0.1);
+      filter: blur(1px);
+    }
+
+    .brand {
+      position: absolute;
+      top: 34px;
+      left: 44px;
+      display: flex;
+      align-items: center;
+      gap: 11px;
+      color: #f5f8ff;
+      font-size: 18px;
+      font-weight: 750;
+      letter-spacing: -0.02em;
+    }
+
+    .brand-mark {
+      display: grid;
+      width: 30px;
+      height: 30px;
+      place-items: center;
+      border: 1px solid rgba(107, 231, 188, 0.54);
+      border-radius: 9px;
+      color: #a9f5d7;
+      background: rgba(24, 65, 67, 0.72);
+      font-weight: 800;
+    }
+
+    .eyebrow {
+      color: #75e4bb;
+      font-size: 12px;
+      font-weight: 750;
+      letter-spacing: 0.16em;
+      text-transform: uppercase;
+    }
+
+    .demo-label {
+      position: absolute;
+      right: 34px;
+      bottom: 26px;
+      padding: 7px 10px;
+      border: 1px solid rgba(255, 255, 255, 0.13);
+      border-radius: 999px;
+      color: rgba(229, 238, 255, 0.66);
+      background: rgba(4, 12, 24, 0.56);
+      font-size: 10px;
+      font-weight: 700;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+    }
+
+    .browser-window {
+      position: absolute;
+      left: 44px;
+      right: 44px;
+      top: 88px;
+      bottom: 40px;
+      overflow: hidden;
+      border: 1px solid rgba(155, 180, 220, 0.2);
+      border-radius: 18px;
+      background: #f4f6f9;
+      box-shadow: 0 34px 80px rgba(0, 0, 0, 0.38);
+    }
+
+    .browser-toolbar {
+      height: 48px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 0 16px;
+      border-bottom: 1px solid #dce2ea;
+      background: #edf1f6;
+    }
+
+    .traffic {
+      display: flex;
+      gap: 6px;
+    }
+
+    .traffic span {
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      background: #bcc6d3;
+    }
+
+    .address {
+      flex: 1;
+      height: 29px;
+      display: flex;
+      align-items: center;
+      padding: 0 12px;
+      border: 1px solid #d2d9e4;
+      border-radius: 8px;
+      color: #687385;
+      background: #fff;
+      font-size: 12px;
+    }
+
+    .browser-body {
+      height: calc(100% - 48px);
+      padding: 48px 420px 44px 70px;
+      color: #1b2433;
+      background:
+        linear-gradient(90deg, #fff 0%, #fff 66%, #f4f7fa 66%);
+    }
+
+    .article-kicker {
+      color: #187354;
+      font-size: 12px;
+      font-weight: 800;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+    }
+
+    .article-title {
+      max-width: 600px;
+      margin: 14px 0 16px;
+      font-family: Georgia, "Times New Roman", serif;
+      font-size: 46px;
+      line-height: 1.04;
+      letter-spacing: -0.035em;
+    }
+
+    .article-deck {
+      max-width: 590px;
+      margin: 0;
+      color: #5b6675;
+      font-family: Georgia, "Times New Roman", serif;
+      font-size: 18px;
+      line-height: 1.55;
+    }
+
+    .article-meta {
+      margin-top: 24px;
+      color: #7a8594;
+      font-size: 12px;
+    }
+
+    .article-rule {
+      width: 100%;
+      max-width: 570px;
+      height: 1px;
+      margin: 30px 0 24px;
+      background: #dce1e8;
+    }
+
+    .article-lines {
+      width: 100%;
+      max-width: 560px;
+      display: grid;
+      gap: 11px;
+    }
+
+    .article-lines span {
+      display: block;
+      height: 8px;
+      border-radius: 4px;
+      background: #e3e7ed;
+    }
+
+    .article-lines span:nth-child(2) {
+      width: 92%;
+    }
+
+    .article-lines span:nth-child(3) {
+      width: 84%;
+    }
+
+    .popup {
+      position: absolute;
+      top: 70px;
+      right: 52px;
+      width: 340px;
+      padding: 16px;
+      display: grid;
+      gap: 14px;
+      border: 1px solid #d8e0ea;
+      border-radius: 14px;
+      color: #172033;
+      background: #f8fafc;
+      box-shadow: 0 26px 64px rgba(14, 25, 45, 0.28);
+      font-size: 14px;
+    }
+
+    .popup-header {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) auto;
+      align-items: start;
+      gap: 12px;
+    }
+
+    .popup-title {
+      margin: 0;
+      color: #172033;
+      font-size: 16px;
+      font-weight: 760;
+    }
+
+    .popup-subtitle {
+      margin: 4px 0 0;
+      overflow: hidden;
+      color: #5c667a;
+      font-size: 12px;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .popup-gear {
+      display: grid;
+      width: 32px;
+      height: 32px;
+      place-items: center;
+      border-radius: 7px;
+      color: #5c667a;
+      font-size: 18px;
+    }
+
+    .popup-status {
+      min-height: 38px;
+      padding: 10px;
+      border: 1px solid #8ec7a1;
+      border-radius: 8px;
+      color: #21643a;
+      background: #f0fff5;
+      font-size: 13px;
+      line-height: 1.35;
+    }
+
+    .popup-label {
+      display: grid;
+      gap: 6px;
+      color: #344159;
+      font-weight: 650;
+    }
+
+    .popup-field {
+      min-height: 38px;
+      padding: 9px 10px;
+      border: 1px solid #c8d1df;
+      border-radius: 7px;
+      color: #172033;
+      background: #fff;
+      font-weight: 400;
+      line-height: 1.35;
+    }
+
+    .popup-field.note {
+      min-height: 70px;
+    }
+
+    .popup-actions {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+    }
+
+    .popup-button {
+      min-height: 40px;
+      display: grid;
+      place-items: center;
+      border-radius: 8px;
+      color: #fff;
+      background: #1f6feb;
+      font-weight: 750;
+    }
+
+    .popup-button.secondary {
+      border: 1px solid #c8d1df;
+      color: #243047;
+      background: #fff;
+    }
+
+    .repo-shell {
+      position: absolute;
+      left: 44px;
+      right: 44px;
+      top: 88px;
+      bottom: 40px;
+      overflow: hidden;
+      border: 1px solid #30363d;
+      border-radius: 18px;
+      color: #e6edf3;
+      background: #0d1117;
+      box-shadow: 0 34px 80px rgba(0, 0, 0, 0.42);
+    }
+
+    .repo-topbar {
+      height: 56px;
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      padding: 0 22px;
+      border-bottom: 1px solid #30363d;
+      background: #161b22;
+    }
+
+    .repo-lock {
+      color: #8b949e;
+      font-size: 16px;
+    }
+
+    .repo-name {
+      color: #58a6ff;
+      font-size: 15px;
+      font-weight: 650;
+    }
+
+    .repo-private {
+      padding: 3px 7px;
+      border: 1px solid #3d444d;
+      border-radius: 999px;
+      color: #8b949e;
+      font-size: 11px;
+      font-weight: 650;
+    }
+
+    .repo-branch {
+      margin-left: auto;
+      padding: 6px 11px;
+      border: 1px solid #3d444d;
+      border-radius: 7px;
+      color: #c9d1d9;
+      background: #21262d;
+      font-size: 12px;
+    }
+
+    .repo-content {
+      height: calc(100% - 56px);
+      display: grid;
+      grid-template-columns: 278px minmax(0, 1fr);
+    }
+
+    .repo-tree {
+      padding: 19px 15px;
+      border-right: 1px solid #30363d;
+      background: #0d1117;
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+      font-size: 12px;
+    }
+
+    .tree-head {
+      margin: 0 6px 15px;
+      color: #8b949e;
+      font-family: Inter, ui-sans-serif, system-ui, sans-serif;
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+    }
+
+    .tree-row {
+      padding: 7px 9px;
+      overflow: hidden;
+      border-radius: 6px;
+      color: #c9d1d9;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .tree-row.folder {
+      color: #8b949e;
+    }
+
+    .tree-row.selected {
+      color: #e6edf3;
+      background: #1f2d3d;
+    }
+
+    .repo-file {
+      min-width: 0;
+      display: grid;
+      grid-template-rows: 46px minmax(0, 1fr);
+    }
+
+    .file-header {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 0 20px;
+      border-bottom: 1px solid #30363d;
+      color: #8b949e;
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+      font-size: 12px;
+    }
+
+    .file-header strong {
+      overflow: hidden;
+      color: #e6edf3;
+      font-weight: 600;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .code-pane {
+      overflow: hidden;
+      padding: 16px 0;
+      background: #0d1117;
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+      font-size: 12px;
+      line-height: 1.55;
+    }
+
+    .code-line {
+      display: grid;
+      grid-template-columns: 46px minmax(0, 1fr);
+      min-height: 19px;
+    }
+
+    .ln {
+      padding-right: 13px;
+      color: #484f58;
+      text-align: right;
+      user-select: none;
+    }
+
+    .code {
+      overflow: hidden;
+      padding-right: 18px;
+      color: #c9d1d9;
+      text-overflow: ellipsis;
+      white-space: pre;
+    }
+
+    .yaml-key {
+      color: #79c0ff;
+    }
+
+    .yaml-value {
+      color: #a5d6ff;
+    }
+
+    .md-heading {
+      color: #ffdf8d;
+      font-weight: 650;
+    }
+
+    .md-link {
+      color: #58a6ff;
+    }
+
+    .codex-shell {
+      position: absolute;
+      left: 44px;
+      right: 44px;
+      top: 88px;
+      bottom: 40px;
+      overflow: hidden;
+      display: grid;
+      grid-template-columns: 210px minmax(0, 1fr);
+      border: 1px solid #313947;
+      border-radius: 18px;
+      color: #e8edf6;
+      background: #141820;
+      box-shadow: 0 34px 80px rgba(0, 0, 0, 0.42);
+    }
+
+    .codex-side {
+      padding: 18px 14px;
+      border-right: 1px solid #2b313c;
+      background: #10131a;
+    }
+
+    .codex-side-title {
+      padding: 0 8px 16px;
+      color: #f5f7fb;
+      font-size: 15px;
+      font-weight: 720;
+    }
+
+    .codex-nav {
+      display: grid;
+      gap: 4px;
+    }
+
+    .codex-nav-row {
+      padding: 9px 10px;
+      border-radius: 7px;
+      color: #8f99a8;
+      font-size: 12px;
+    }
+
+    .codex-nav-row.active {
+      color: #e7edf7;
+      background: #232a35;
+    }
+
+    .codex-plugin {
+      margin-top: 24px;
+      padding: 11px;
+      border: 1px solid #2f4850;
+      border-radius: 10px;
+      color: #bfe9db;
+      background: #13292a;
+      font-size: 11px;
+      line-height: 1.45;
+    }
+
+    .codex-main {
+      min-width: 0;
+      display: grid;
+      grid-template-rows: 54px minmax(0, 1fr);
+      background:
+        radial-gradient(circle at 88% 0%, rgba(64, 154, 134, 0.08), transparent 32%),
+        #151922;
+    }
+
+    .codex-toolbar {
+      display: flex;
+      align-items: center;
+      padding: 0 22px;
+      border-bottom: 1px solid #2b313c;
+      color: #aab4c4;
+      font-size: 12px;
+    }
+
+    .codex-toolbar strong {
+      color: #eef2f8;
+      font-weight: 650;
+    }
+
+    .codex-thread {
+      overflow: hidden;
+      padding: 26px 34px;
+    }
+
+    .user-prompt {
+      max-width: 690px;
+      margin-left: auto;
+      padding: 14px 17px;
+      border: 1px solid #36404e;
+      border-radius: 16px 16px 4px 16px;
+      color: #f0f4fa;
+      background: #252c37;
+      font-size: 14px;
+      line-height: 1.45;
+    }
+
+    .assistant-response {
+      max-width: 735px;
+      margin-top: 22px;
+      color: #dfe5ee;
+      font-size: 13px;
+      line-height: 1.5;
+    }
+
+    .assistant-response > p {
+      margin: 0 0 14px;
+    }
+
+    .source-card {
+      margin-top: 9px;
+      padding: 12px 14px;
+      border: 1px solid #303947;
+      border-radius: 10px;
+      background: #191e27;
+    }
+
+    .source-card-title {
+      color: #f0f4fa;
+      font-size: 13px;
+      font-weight: 680;
+    }
+
+    .source-card-meta {
+      margin-top: 4px;
+      color: #74d9b5;
+      font-size: 11px;
+    }
+
+    .source-card-copy {
+      margin-top: 6px;
+      color: #9ca8b8;
+      font-size: 11px;
+      line-height: 1.42;
+    }
+
+    .codex-footnote {
+      margin-top: 13px;
+      display: flex;
+      gap: 8px;
+      align-items: center;
+      color: #7f8a9a;
+      font-size: 10px;
+    }
+
+    .local-dot {
+      width: 7px;
+      height: 7px;
+      border-radius: 50%;
+      background: #49c992;
+      box-shadow: 0 0 0 3px rgba(73, 201, 146, 0.12);
+    }
+
+    .ios-copy {
+      position: absolute;
+      top: 164px;
+      left: 98px;
+      width: 410px;
+    }
+
+    .ios-copy h2 {
+      margin: 14px 0 18px;
+      color: #f5f8ff;
+      font-size: 44px;
+      line-height: 1.05;
+      letter-spacing: -0.04em;
+    }
+
+    .ios-copy p {
+      margin: 0;
+      color: #a9b7ca;
+      font-size: 17px;
+      line-height: 1.55;
+    }
+
+    .ios-list {
+      margin-top: 28px;
+      display: grid;
+      gap: 11px;
+      color: #d8e3f1;
+      font-size: 13px;
+    }
+
+    .ios-list span::before {
+      margin-right: 10px;
+      color: #72e0b7;
+      content: "✓";
+      font-weight: 800;
+    }
+
+    .iphone {
+      position: absolute;
+      top: 38px;
+      right: 106px;
+      width: 326px;
+      height: 598px;
+      padding: 10px;
+      border: 1px solid #4a5362;
+      border-radius: 48px;
+      background: #05070b;
+      box-shadow: 0 34px 80px rgba(0, 0, 0, 0.52);
+    }
+
+    .iphone::before {
+      position: absolute;
+      z-index: 3;
+      top: 17px;
+      left: 50%;
+      width: 94px;
+      height: 25px;
+      border-radius: 18px;
+      content: "";
+      transform: translateX(-50%);
+      background: #05070b;
+    }
+
+    .iphone-screen {
+      height: 100%;
+      overflow: hidden;
+      border-radius: 39px;
+      color: #121417;
+      background: #f2f2f7;
+    }
+
+    .ios-statusbar {
+      height: 36px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 20px;
+      color: #121417;
+      background: #f8f8fa;
+      font-size: 10px;
+      font-weight: 700;
+    }
+
+    .ios-nav {
+      height: 48px;
+      display: grid;
+      grid-template-columns: 56px minmax(0, 1fr) 48px;
+      align-items: center;
+      padding: 0 13px;
+      border-bottom: 1px solid #dedee3;
+      background: rgba(249, 249, 250, 0.95);
+      font-size: 12px;
+    }
+
+    .ios-nav-title {
+      text-align: center;
+      font-weight: 700;
+    }
+
+    .ios-link {
+      color: #1675e8;
+    }
+
+    .ios-form {
+      padding: 18px 12px 32px;
+      display: grid;
+      gap: 18px;
+    }
+
+    .ios-section {
+      overflow: hidden;
+      border-radius: 10px;
+      background: #fff;
+    }
+
+    .ios-section-label {
+      margin: 0 14px 7px;
+      color: #707078;
+      font-size: 10px;
+      letter-spacing: 0.02em;
+      text-transform: uppercase;
+    }
+
+    .ios-row {
+      min-height: 45px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 10px 13px;
+      font-size: 12px;
+      line-height: 1.25;
+    }
+
+    .ios-row + .ios-row {
+      border-top: 1px solid #e7e7eb;
+    }
+
+    .ios-row-label {
+      color: #73737a;
+    }
+
+    .ios-row-value {
+      min-width: 0;
+      margin-left: auto;
+      overflow: hidden;
+      color: #25252a;
+      text-align: right;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .ios-input {
+      color: #1c1c1f;
+    }
+
+    .ios-saved {
+      color: #24874f;
+      font-weight: 650;
+    }
+
+    .ios-saved::before {
+      display: inline-grid;
+      width: 18px;
+      height: 18px;
+      margin-right: 8px;
+      place-items: center;
+      border-radius: 50%;
+      color: #fff;
+      content: "✓";
+      background: #2cab63;
+      font-size: 11px;
+    }
+
+    .ios-home {
+      position: absolute;
+      bottom: 17px;
+      left: 50%;
+      z-index: 4;
+      width: 108px;
+      height: 4px;
+      border-radius: 999px;
+      transform: translateX(-50%);
+      background: #151515;
+    }
+
+    @media (max-width: 700px) {
+      body {
+        padding: 20px;
+        gap: 20px;
+        justify-content: start;
+      }
+
+      .shot {
+        margin-right: -600px;
+        margin-bottom: -337.5px;
+        transform: scale(0.5);
+        transform-origin: top left;
+      }
+    }
+  </style>
+</head>
+<body>
+  <section class="shot" id="shot-capture" aria-label="SourceBraid Chrome capture screenshot">
+    <div class="brand"><span class="brand-mark">S</span>SourceBraid</div>
+    <div class="browser-window">
+      <div class="browser-toolbar">
+        <div class="traffic"><span></span><span></span><span></span></div>
+        <div class="address">example.com/research/local-first-knowledge</div>
+      </div>
+      <div class="browser-body">
+        <div class="article-kicker">Research notes</div>
+        <h1 class="article-title">Building a durable, local-first knowledge archive</h1>
+        <p class="article-deck">A practical approach to keeping useful sources readable, searchable and under your own control.</p>
+        <div class="article-meta">Demo article · 8 min read</div>
+        <div class="article-rule"></div>
+        <div class="article-lines"><span></span><span></span><span></span></div>
+      </div>
+      <div class="popup">
+        <div class="popup-header">
+          <div>
+            <h2 class="popup-title">SourceBraid</h2>
+            <p class="popup-subtitle">Building a durable, local-first knowledge archive</p>
+          </div>
+          <div class="popup-gear">⚙</div>
+        </div>
+        <div class="popup-status">Ready to save clean Markdown and page assets.</div>
+        <div class="popup-label">Tags<div class="popup-field">knowledge, local-first, research</div></div>
+        <div class="popup-label">Notes<div class="popup-field note">Useful source for the open-source launch plan.</div></div>
+        <div class="popup-actions">
+          <div class="popup-button">Save to GitHub</div>
+          <div class="popup-button secondary">Download Fallback</div>
+        </div>
+      </div>
+    </div>
+    <div class="demo-label">Sanitized demo data</div>
+  </section>
+
+  <section class="shot" id="shot-markdown" aria-label="SourceBraid Markdown archive screenshot">
+    <div class="brand"><span class="brand-mark">S</span>SourceBraid <span class="eyebrow">Your archive</span></div>
+    <div class="repo-shell">
+      <div class="repo-topbar">
+        <span class="repo-lock">🔒</span>
+        <span class="repo-name">you / sourcebraid-private</span>
+        <span class="repo-private">Private</span>
+        <span class="repo-branch">main ▾</span>
+      </div>
+      <div class="repo-content">
+        <aside class="repo-tree">
+          <div class="tree-head">Files</div>
+          <div class="tree-row folder">▾ web-clips</div>
+          <div class="tree-row folder">&nbsp;&nbsp;▾ 2026 / 07</div>
+          <div class="tree-row selected">&nbsp;&nbsp;&nbsp;&nbsp;local-first-knowledge-a47c9e.md</div>
+          <div class="tree-row folder">&nbsp;&nbsp;&nbsp;&nbsp;▸ assets</div>
+          <div class="tree-row folder">&nbsp;&nbsp;▸ index</div>
+          <div class="tree-row">README.md</div>
+        </aside>
+        <div class="repo-file">
+          <div class="file-header">web-clips / 2026 / 07 / <strong>local-first-knowledge-a47c9e.md</strong></div>
+          <div class="code-pane">
+            <div class="code-line"><span class="ln">1</span><span class="code">---</span></div>
+            <div class="code-line"><span class="ln">2</span><span class="code"><span class="yaml-key">title:</span> <span class="yaml-value">"Building a durable, local-first knowledge archive"</span></span></div>
+            <div class="code-line"><span class="ln">3</span><span class="code"><span class="yaml-key">source:</span> <span class="yaml-value">"https://example.com/research/local-first-knowledge"</span></span></div>
+            <div class="code-line"><span class="ln">4</span><span class="code"><span class="yaml-key">captured:</span> <span class="yaml-value">"2026-07-31T09:18:00+02:00"</span></span></div>
+            <div class="code-line"><span class="ln">5</span><span class="code"><span class="yaml-key">tags:</span> <span class="yaml-value">[knowledge, local-first, research]</span></span></div>
+            <div class="code-line"><span class="ln">6</span><span class="code"><span class="yaml-key">capture_method:</span> <span class="yaml-value">native-markdown</span></span></div>
+            <div class="code-line"><span class="ln">7</span><span class="code"><span class="yaml-key">assets:</span> <span class="yaml-value">[assets/local-first-knowledge-a47c9e/01-cover.png]</span></span></div>
+            <div class="code-line"><span class="ln">8</span><span class="code">---</span></div>
+            <div class="code-line"><span class="ln">9</span><span class="code"></span></div>
+            <div class="code-line"><span class="ln">10</span><span class="code md-heading"># Building a durable, local-first knowledge archive</span></div>
+            <div class="code-line"><span class="ln">11</span><span class="code"></span></div>
+            <div class="code-line"><span class="ln">12</span><span class="code">A durable knowledge archive should remain readable without the original app.</span></div>
+            <div class="code-line"><span class="ln">13</span><span class="code">SourceBraid stores the source as Markdown, keeps relevant images beside it,</span></div>
+            <div class="code-line"><span class="ln">14</span><span class="code">and records each change in Git history.</span></div>
+            <div class="code-line"><span class="ln">15</span><span class="code"></span></div>
+            <div class="code-line"><span class="ln">16</span><span class="code md-heading">## Notes</span></div>
+            <div class="code-line"><span class="ln">17</span><span class="code"></span></div>
+            <div class="code-line"><span class="ln">18</span><span class="code">Useful source for the open-source launch plan.</span></div>
+            <div class="code-line"><span class="ln">19</span><span class="code"></span></div>
+            <div class="code-line"><span class="ln">20</span><span class="code md-link">![Cover](assets/local-first-knowledge-a47c9e/01-cover.png)</span></div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="demo-label">Sanitized demo data</div>
+  </section>
+
+  <section class="shot" id="shot-codex" aria-label="SourceBraid Codex plugin screenshot">
+    <div class="brand"><span class="brand-mark">S</span>SourceBraid <span class="eyebrow">Codex plugin</span></div>
+    <div class="codex-shell">
+      <aside class="codex-side">
+        <div class="codex-side-title">Codex</div>
+        <div class="codex-nav">
+          <div class="codex-nav-row">＋ New task</div>
+          <div class="codex-nav-row active">Search SourceBraid archive</div>
+          <div class="codex-nav-row">Open-source release</div>
+          <div class="codex-nav-row">PDF conversion</div>
+        </div>
+        <div class="codex-plugin">● SourceBraid connected<br>Local full-text index ready</div>
+      </aside>
+      <main class="codex-main">
+        <div class="codex-toolbar"><strong>Search SourceBraid archive</strong></div>
+        <div class="codex-thread">
+          <div class="user-prompt">Search my SourceBraid archive for sources about local-first knowledge tools.</div>
+          <div class="assistant-response">
+            <p>I found three matching sources in the local SourceBraid index. The strongest match is:</p>
+            <div class="source-card">
+              <div class="source-card-title">Building a durable, local-first knowledge archive</div>
+              <div class="source-card-meta">knowledge · local-first · research</div>
+              <div class="source-card-copy">A practical approach to keeping useful sources readable, searchable and under your own control.</div>
+            </div>
+            <div class="source-card">
+              <div class="source-card-title">Portable notes without a hosted database</div>
+              <div class="source-card-meta">markdown · ownership</div>
+              <div class="source-card-copy">Explains why plain files and version history make long-lived research collections easier to migrate.</div>
+            </div>
+            <div class="source-card">
+              <div class="source-card-title">Incremental full-text search over Git archives</div>
+              <div class="source-card-meta">search · sqlite · git</div>
+              <div class="source-card-copy">Describes updating a local FTS index by comparing remote Git blob identifiers.</div>
+            </div>
+            <div class="codex-footnote"><span class="local-dot"></span>Searched locally · no archive contents sent to a SourceBraid server</div>
+          </div>
+        </div>
+      </main>
+    </div>
+    <div class="demo-label">Sanitized demo data</div>
+  </section>
+
+  <section class="shot" id="shot-ios" aria-label="SourceBraid iOS Share Extension screenshot">
+    <div class="brand"><span class="brand-mark">S</span>SourceBraid <span class="eyebrow">iOS Share Extension</span></div>
+    <div class="ios-copy">
+      <div class="eyebrow">Capture from anywhere</div>
+      <h2>Share it.<br>Keep it as Markdown.</h2>
+      <p>Save URLs, readable Safari pages, selected text and PDFs into the same private GitHub archive.</p>
+      <div class="ios-list">
+        <span>Title, tags and notes before saving</span>
+        <span>GitHub token protected by iOS Keychain</span>
+        <span>Same archive format as the Chrome extension</span>
+      </div>
+    </div>
+    <div class="iphone">
+      <div class="iphone-screen">
+        <div class="ios-statusbar"><span>09:18</span><span>●●●  Wi-Fi  100%</span></div>
+        <div class="ios-nav">
+          <span class="ios-link">Cancel</span>
+          <span class="ios-nav-title">Save to SourceBraid</span>
+          <span class="ios-link" style="text-align:right">Save</span>
+        </div>
+        <div class="ios-form">
+          <div>
+            <div class="ios-section">
+              <div class="ios-row ios-input">Building a durable, local-first knowledge archive</div>
+              <div class="ios-row">
+                <span class="ios-row-label">Source</span>
+                <span class="ios-row-value">example.com · Markdown</span>
+              </div>
+            </div>
+          </div>
+          <div>
+            <div class="ios-section-label">Organize</div>
+            <div class="ios-section">
+              <div class="ios-row ios-input">knowledge, local-first, research</div>
+              <div class="ios-row ios-input">Useful source for the OSS launch.</div>
+            </div>
+          </div>
+          <div class="ios-section">
+            <div class="ios-row ios-saved">Saved to SourceBraid</div>
+          </div>
+        </div>
+      </div>
+      <div class="ios-home"></div>
+    </div>
+    <div class="demo-label">Sanitized demo data</div>
+  </section>
+</body>
+</html>
