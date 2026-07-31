@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "SourceBraid",
-  "version": "0.7.0",
+  "version": "0.7.1",
   "description": "Keep articles, papers, wikis, gists, and PDFs as clean Markdown in your own GitHub repository.",
   "homepage_url": "https://sourcebraid.com",
   "permissions": [
