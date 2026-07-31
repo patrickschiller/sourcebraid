@@ -1,100 +1,136 @@
 # SourceBraid
 
-**Weave the web into Markdown.**
+**SourceBraid — Weave the web into Markdown.**
 
-[SourceBraid](https://sourcebraid.com) speichert Artikel, wissenschaftliche Veröffentlichungen, Wiki-Seiten, GitHub Gists und PDF-Dokumente als dauerhaft lesbares Markdown in einem privaten GitHub-Repository. Metadaten landen im YAML-Frontmatter, relevante Bilder als lokale Repository-Assets und alle Einträge zusätzlich in einem durchsuchbaren Index.
+[Deutsche Dokumentation](README.de.md)
 
-## So funktioniert SourceBraid
+[SourceBraid](https://sourcebraid.com) saves articles, research papers, wiki
+pages, GitHub Gists, and PDF documents as durable Markdown in a private GitHub
+repository. Metadata lives in YAML frontmatter, relevant images become local
+repository assets, and every source is added to a searchable index.
 
-SourceBraid besteht aus Capture-Clients, dem GitHub-Repository als dauerhafter Datenquelle und einem universellen ChatGPT-/Codex-Plugin für Suche und Verwaltung. Es gibt keinen zentralen SourceBraid-Server: Die Chrome-Erweiterung beziehungsweise die iOS-App liest die Quelle, bereitet sie auf und schreibt das Ergebnis direkt in das konfigurierte Repository. Der lokale SQLite-Index ist nur ein jederzeit neu aufbaubarer Such-Cache; maßgeblich bleiben immer die Markdown-Dateien und die Git-Historie auf GitHub.
+SourceBraid does more than bookmark URLs. It prepares each source using the
+richest trustworthy representation available, keeps its provenance, and leaves
+you with ordinary files and Git history that remain useful without SourceBraid.
+
+## How SourceBraid works
+
+SourceBraid combines capture clients, a private GitHub repository as the durable
+source of truth, and a universal ChatGPT/Codex plugin for retrieval and archive
+management. There is no central SourceBraid content server. The Chrome extension
+or iOS app reads and prepares a selected source, then writes the result directly
+to the repository configured by the user.
+
+The local SQLite index is only a rebuildable search cache. Markdown files and
+Git history remain authoritative.
 
 ```mermaid
 flowchart TD
-    A["Webseite, Wiki, Gist, arXiv oder PDF"] --> B{"Capture-Client"}
-    B -->|Chrome| C["Browser-Erweiterung"]
-    B -->|iOS| D["App und Share Extension"]
-    C --> E["Passenden Extraktionsadapter wählen"]
+    A["Web page, wiki, Gist, arXiv paper, or PDF"] --> B{"Capture client"}
+    B -->|Chrome| C["Browser extension"]
+    B -->|iOS| D["App and Share Extension"]
+    C --> E["Select the best extraction adapter"]
     D --> E
-    E --> F["Inhalt normalisieren, Frontmatter erzeugen und Bilder übernehmen"]
-    F --> G{"PDF-Konvertierung erforderlich?"}
-    G -->|Nein| H["Markdown, Assets und URL-Hash-Shard speichern"]
-    G -->|Ja| I["PDF, Platzhalter und Metadaten speichern"]
-    I --> J["GitHub Action konvertiert mit Docling"]
+    E --> F["Normalize content, create frontmatter, and save images"]
+    F --> G{"PDF conversion required?"}
+    G -->|No| H["Store Markdown, assets, and URL-hash metadata shard"]
+    G -->|Yes| I["Store PDF, placeholder, and metadata"]
+    I --> J["GitHub Action converts the PDF with Docling"]
     J --> H
-    H --> K["Privates GitHub-Repository als Source of Truth"]
-    K --> L{"Lokaler Suchindex vorhanden?"}
-    L -->|Nein| M["Einmaliger Index-Build"]
-    L -->|Ja| N["Remote-Head und Git-Blob-SHAs vergleichen"]
-    N -->|Geändert| O["Nur geänderte oder neue Dateien laden"]
-    N -->|Unverändert| P["Vorhandenen Index verwenden"]
-    M --> Q["SQLite-Index mit FTS5"]
+    H --> K["Private GitHub repository as source of truth"]
+    K --> L{"Local search index available?"}
+    L -->|No| M["One-time index build"]
+    L -->|Yes| N["Compare remote head and Git blob SHAs"]
+    N -->|Changed| O["Download only new or changed files"]
+    N -->|Unchanged| P["Use the existing index"]
+    M --> Q["SQLite index with FTS5"]
     O --> Q
     P --> Q
-    Q --> R["ChatGPT oder Codex: suchen, abrufen, auflisten oder sicher löschen"]
+    Q --> R["ChatGPT or Codex: search, fetch, list, or safely delete"]
 ```
 
-Der Ablauf im Einzelnen:
+The workflow in detail:
 
-1. **Erfassen:** Eine Person startet SourceBraid auf der geöffneten Seite oder teilt einen Inhalt aus iOS. Tags und eigene Notizen können bereits beim Speichern ergänzt werden.
-2. **Extrahieren:** SourceBraid wählt den hochwertigsten verfügbaren Adapter. Strukturierte Quellen wie arXiv, Azure DevOps, Gists oder native Markdown-Endpunkte haben Vorrang vor der allgemeinen DOM-Auslese.
-3. **Aufbereiten:** Der Inhalt wird in portables Markdown umgewandelt. SourceBraid ergänzt YAML-Frontmatter, macht relative Quell-Links eindeutig und speichert relevante Bilder neben dem Dokument, damit der Clip auch ohne die ursprüngliche Webseite lesbar bleibt.
-4. **Versioniert speichern:** Dokument, Assets und Metadateneintrag werden über die GitHub Contents API geschrieben. Der Metadateneintrag landet anhand des URL-Hashes in einem von bis zu 256 JSONL-Shards. Git-Commits machen jede Änderung nachvollziehbar und wiederherstellbar.
-5. **PDFs nachbearbeiten:** Falls keine geeignete HTML-Fassung existiert, bleibt das Original-PDF im Repository. Eine GitHub Action erzeugt mit Docling das endgültige Markdown, extrahiert Abbildungen und ersetzt den zunächst angelegten Platzhalter.
-6. **Indexieren:** Beim ersten Einsatz baut das Codex-Plugin aus dem Repository einen lokalen SQLite-FTS5-Index auf. Spätere Aktualisierungen vergleichen den gespeicherten Commit und die Git-Blob-SHAs; dadurch werden nur neue, geänderte oder gelöschte Dateien verarbeitet.
-7. **Verwenden:** ChatGPT oder Codex durchsucht normalerweise den lokalen Index, kann Treffer vollständig abrufen und unterstützt eine abgesicherte Löschung mit Vorschau und ausdrücklicher Bestätigung. Ist GitHub vorübergehend nicht erreichbar, bleibt der zuletzt synchronisierte Index lesbar.
+1. **Capture:** Open SourceBraid on the current page or share content from iOS.
+   Add tags and personal notes before saving.
+2. **Extract:** SourceBraid selects the strongest available adapter. Structured
+   sources such as arXiv, Azure DevOps, Gists, and native Markdown take priority
+   over generic DOM extraction.
+3. **Prepare:** Content becomes portable Markdown. SourceBraid adds YAML
+   frontmatter, resolves relative links, and stores relevant images next to the
+   document so the clip remains readable without the original page.
+4. **Commit:** Documents, assets, and metadata are written through the GitHub
+   Contents API. Metadata is partitioned into up to 256 JSONL shards by URL hash.
+   Normal Git commits make every change inspectable and recoverable.
+5. **Finish PDFs:** When no suitable HTML representation exists, the original
+   PDF remains in the repository. A GitHub Action uses Docling to create the
+   final Markdown, extract figures, and replace the pending placeholder.
+6. **Index:** On first use, the plugin builds a local SQLite FTS5 index. Later
+   updates compare the stored commit and Git blob SHAs, processing only new,
+   changed, or deleted files.
+7. **Use:** ChatGPT or Codex searches the local index, fetches complete sources,
+   and supports guarded deletion with a preview and exact confirmation. If
+   GitHub is temporarily unavailable, the last synchronized index remains
+   readable.
 
-Die Trennung zwischen GitHub-Archiv und lokalem Such-Cache ist für größere Sammlungen entscheidend: Auch bei vielen Tausend Dokumenten muss eine normale Suche nicht alle Markdown-Dateien nacheinander öffnen. Ein vollständiger Durchlauf ist nur für den ersten Aufbau, einen ausdrücklich angeforderten Rebuild oder eine Reparatur nach beschädigtem Index nötig.
+Keeping the GitHub archive separate from the local search cache matters for
+large collections: a normal query does not need to reopen thousands of Markdown
+files. A full pass is needed only for the first build, an explicit rebuild, or
+index repair.
 
-## Unterstützte Formate und Konvertierung
+## Supported sources and conversion
 
-| Quelle oder Format | Bevorzugte Extraktion | Ergebnis in Markdown | Bilder und Anlagen | Fallback |
+| Source or format | Preferred extraction | Markdown result | Images and attachments | Fallback |
 | --- | --- | --- | --- | --- |
-| **arXiv-Paper** | Experimentelle arXiv-HTML-Version des vollständigen Papers | Gliederung, Fließtext, Tabellen, Zitate und LaTeX-Formeln; Autoren, arXiv-ID/-Version, DOI, Fachgebiete und Journalreferenz im Frontmatter | Abbildungen werden in den Asset-Ordner kopiert und relativ verlinkt | Wenn kein arXiv-HTML verfügbar ist: PDF im Hintergrund laden und mit Docling konvertieren |
-| **PDF über HTTP(S) oder lokale Datei** | Original-PDF plus asynchroner Docling-Workflow in GitHub Actions | Lesereihenfolge, Tabellen, OCR-Text und referenzierte Abbildungen; zunächst Status `pending`, danach fertiges Markdown | Original bleibt als `source.pdf` erhalten; extrahierte Abbildungen liegen daneben | Lokale PDFs benötigen in Chrome **Zugriff auf Datei-URLs zulassen**; passwortgeschützte oder nur per angemeldeter Web-Sitzung erreichbare PDFs werden nicht unterstützt |
-| **Azure DevOps Wiki** | Authentifizierte Wiki-REST-API liefert das Quell-Markdown | Azure-Makros werden bereinigt, Mermaid bleibt als `mermaid`-Codeblock erhalten, interne Wiki-Links werden absolut | Geschützte Attachments werden über den noch geöffneten, angemeldeten Tab geladen und lokal abgelegt | Gerenderter `.markdown-content`-Bereich, falls die API nicht erreichbar ist |
-| **GitHub Gist** | GitHub Gist API, bei privaten Gists mit dem konfigurierten Token | Einzelne Markdown-Datei direkt; mehrere Dateien als Abschnitte; Quellcode in sprachlich markierten Codeblöcken | Öffentliche Bilder direkt, geschützte GitHub-Bilder über den angemeldeten Gist-Tab | Die Revision einer revisionsspezifischen URL bleibt erhalten |
-| **Natives Markdown** | HTTP-Antwort auf `Accept: text/markdown`, z. B. bei Hashnode oder entsprechend konfigurierten Cloudflare-Seiten | Quell-Frontmatter und doppeltes H1 werden entfernt; relative Links werden absolut | Relevante Bilder werden lokal gespeichert und relativ verlinkt | Danach greifen die spezifischen APIs oder die DOM-Extraktion |
-| **WordPress** | WordPress-REST-Endpunkt aus den Seitenmetadaten | Artikelinhalt wird aus der strukturierten API-Antwort konvertiert | Relevante Artikelbilder werden lokal gespeichert | Sichtbarer Seiteninhalt |
-| **Forem / DEV** | Forem API mit Quell-Markdown | Markdown wird normalisiert und ohne Seiten-Chrome gespeichert | Relevante Bilder werden lokal gespeichert | Sichtbarer Seiteninhalt |
-| **Ghost** | Konfigurierte Ghost Content API | Strukturierter Post-Inhalt; die kanonische URL wird vor der Übernahme geprüft | Relevante Bilder werden lokal gespeichert | Sichtbarer Seiteninhalt |
-| **Blogger** | Blogger API anhand erkannter Blog- und Post-IDs | Strukturierter Artikelinhalt | Relevante Bilder werden lokal gespeichert | Sichtbarer Seiteninhalt |
-| **JSON Feed, RSS oder Atom** | Im HTML angekündigter Feed | Vollständiger Feed-Inhalt, sofern vorhanden | Relevante Bilder werden lokal gespeichert | Sichtbarer Seiteninhalt |
-| **Allgemeine HTML-Seite** | Sichtbarer DOM, bevorzugt `article`, `main` oder `[role="main"]` | Überschriften, Absätze, Links, Listen, Zitate, Codeblöcke und Tabellen | Inhaltlich relevante Bilder werden lokal gespeichert | `body` als letzte Rückfallstufe |
+| **arXiv paper** | Experimental full-paper arXiv HTML | Sections, prose, tables, citations, and LaTeX formulas; authors, arXiv ID/version, DOI, categories, and journal reference in frontmatter | Figures are copied into the asset folder and linked relatively | Download the PDF and convert it with Docling |
+| **Remote or local PDF** | Original PDF plus asynchronous Docling workflow in GitHub Actions | Reading order, tables, OCR text, and referenced figures; starts as `pending`, then becomes finished Markdown | The original remains as `source.pdf`; extracted figures sit beside it | Local PDFs require Chrome's **Allow access to file URLs** setting; encrypted or session-only PDFs are unsupported |
+| **Azure DevOps Wiki** | Authenticated Wiki REST API returns source Markdown | Azure macros are normalized, Mermaid remains a `mermaid` code block, internal wiki links become absolute | Protected attachments are loaded through the still-authenticated source tab | Rendered `.markdown-content` area |
+| **GitHub Gist** | GitHub Gist API, with the configured token for private Gists | A single Markdown file directly; multiple files as sections; source code in language-tagged fences | Public images directly, protected GitHub images through the signed-in Gist tab | Revision-specific URLs keep their revision |
+| **Native Markdown** | HTTP response to `Accept: text/markdown` | Source frontmatter and duplicate H1 removed; relative links made absolute | Relevant images are stored locally and linked relatively | Continue through dedicated APIs, then DOM extraction |
+| **WordPress** | WordPress REST endpoint discovered from page metadata | Article content converted from structured API data | Relevant article images stored locally | Visible page content |
+| **Forem / DEV** | Forem API with source Markdown | Normalized Markdown without site chrome | Relevant images stored locally | Visible page content |
+| **Ghost** | Configured Ghost Content API | Structured post content with canonical URL validation | Relevant images stored locally | Visible page content |
+| **Blogger** | Blogger API using detected blog and post IDs | Structured article content | Relevant images stored locally | Visible page content |
+| **JSON Feed, RSS, or Atom** | Feed announced by the HTML page | Full feed content when available | Relevant images stored locally | Visible page content |
+| **Generic HTML page** | Visible DOM, preferring `article`, `main`, or `[role="main"]` | Headings, paragraphs, links, lists, quotes, code, and tables | Content-relevant images stored locally | `body` as the final fallback |
 
-### Reihenfolge der Erkennung
+### Detection order
 
-SourceBraid verwendet immer die inhaltlich hochwertigste verfügbare Quelle. Bei HTML-Seiten werden die Adapter in dieser Reihenfolge geprüft:
+SourceBraid always uses the strongest available content source. For HTML pages,
+adapters run in this order:
 
-1. arXiv-HTML
+1. arXiv HTML
 2. Azure DevOps Wiki
 3. GitHub Gist
-4. natives Markdown
+4. Native Markdown
 5. WordPress REST
 6. Forem / DEV API
 7. Ghost Content API
 8. Blogger API
-9. JSON Feed, RSS oder Atom
-10. sichtbarer DOM
+9. JSON Feed, RSS, or Atom
+10. Visible DOM
 
-Die erste passende und validierte Quelle gewinnt. Anschließend normalisiert SourceBraid das Markdown, lädt Bilder herunter, schreibt das YAML-Frontmatter und aktualisiert den Index.
+The first matching, validated source wins. SourceBraid then normalizes the
+Markdown, downloads images, writes YAML frontmatter, and updates the index.
 
-## Ablagestruktur
+## Archive layout
 
-Markdown-Dateien werden über die GitHub Contents API gespeichert:
-
-```text
-web-clips/YYYY/MM/YYYY-MM-DD-domain-titel-urlhash.md
-```
-
-Die zugehörigen Assets liegen unter:
+Markdown files are stored through the GitHub Contents API:
 
 ```text
-web-clips/YYYY/MM/assets/YYYY-MM-DD-domain-titel-urlhash/
+web-clips/YYYY/MM/YYYY-MM-DD-domain-title-urlhash.md
 ```
 
-Links auf gespeicherte Bilder werden im Markdown relativ zu diesem Asset-Ordner geschrieben. Für PDFs liegt dort zusätzlich das Original als `source.pdf`.
+Related assets live under:
 
-SourceBraid pflegt außerdem einen nach URL-Hash geshardeten Metadatenindex:
+```text
+web-clips/YYYY/MM/assets/YYYY-MM-DD-domain-title-urlhash/
+```
+
+Markdown image references are relative to this asset directory. PDF sources
+also retain the original as `source.pdf`.
+
+SourceBraid maintains a URL-hash-sharded metadata index:
 
 ```text
 web-clips/index/00.jsonl
@@ -102,94 +138,131 @@ web-clips/index/00.jsonl
 web-clips/index/ff.jsonl
 ```
 
-Dieselbe URL landet immer im selben Shard. Dadurch muss beim Speichern nicht der Metadatenbestand aller Clips neu geschrieben werden. Bestehende Archive mit `web-clips/index.jsonl` bleiben kompatibel und können über das Codex-Plugin atomar migriert werden. Jede Indexzeile enthält unter anderem Titel, Quell-URL, Repository-Pfad, Ablagedatum, optionale Veröffentlichungs- und Änderungsdaten, Tags, Quellentyp, Extraktionsmethode, Erfassungszeitpunkt und gespeicherte Bildpfade. `date` und der Pfad `YYYY/MM` verwenden das lokale Ablagedatum; das Veröffentlichungsdatum der Quelle bleibt separat als `published` erhalten.
+The same URL always maps to the same shard, avoiding a rewrite of the entire
+metadata collection on each capture. Existing archives with
+`web-clips/index.jsonl` remain compatible and can be migrated atomically through
+the plugin. Each entry includes title, canonical URL, repository path, capture
+date, optional publication and modification dates, tags, source type,
+extraction method, capture timestamp, and saved image paths.
 
-## Wissenschaftliche Quellen
+## Research papers and PDFs
 
-### arXiv direkt als Markdown
+### arXiv directly to Markdown
 
-Eine arXiv-Abstract-Seite wie `https://arxiv.org/abs/2311.02462` kann direkt gespeichert werden. SourceBraid lädt bevorzugt die experimentelle HTML-Ausgabe des vollständigen Papers, konvertiert sie in Markdown und übernimmt wissenschaftliche Metadaten. Das PDF muss dafür weder manuell heruntergeladen noch in Chrome geöffnet werden.
+An arXiv abstract page such as `https://arxiv.org/abs/2311.02462` can be saved
+directly. SourceBraid prefers the experimental HTML version of the full paper,
+converts it to Markdown, and keeps research metadata. The PDF does not need to
+be downloaded or opened manually.
 
-Existiert keine HTML-Ausgabe, lädt die Erweiterung das PDF im Hintergrund in das Repository. Der Docling-Workflow übernimmt danach automatisch die Konvertierung.
+If no HTML version exists, the extension uploads the PDF in the background and
+the Docling workflow converts it automatically.
 
-### Allgemeine PDFs
+### General PDFs
 
-SourceBraid unterstützt sowohl PDF-URLs über HTTP(S) als auch lokale, in Chrome geöffnete `.pdf`-Dateien. Für lokale Dateien muss unter `chrome://extensions` in den Details von SourceBraid einmalig **Zugriff auf Datei-URLs zulassen** aktiviert sein. Ist die Berechtigung nicht gesetzt, zeigt die Erweiterung eine konkrete Anleitung an und legt keinen leeren HTML-Clip an.
+SourceBraid accepts remote HTTP(S) PDFs and local `.pdf` files opened in Chrome.
+For local files, enable **Allow access to file URLs** in SourceBraid's extension
+details at `chrome://extensions`. Without that permission, the extension shows
+a concrete instruction instead of producing an empty HTML clip.
 
-Ein PDF-Tab wird zunächst so abgelegt:
+A PDF capture initially stores:
 
 ```text
 web-clips/YYYY/MM/assets/CLIP-SLUG/source.pdf
 ```
 
-Die Erweiterung erstellt vorab einen ausstehenden Markdown-Eintrag und einen Indexdatensatz. Der abschließende PDF-Commit startet `.github/workflows/convert-pdfs.yml`. Der Workflow:
+The extension creates a pending Markdown entry and metadata record. The final
+PDF commit starts `.github/workflows/convert-pdfs.yml`, which:
 
-1. installiert Docling auf einem GitHub-Runner,
-2. extrahiert Lesereihenfolge, Tabellen, OCR-Text und Abbildungen,
-3. ersetzt das ausstehende Markdown unter Beibehaltung von Notizen und Frontmatter,
-4. markiert den passenden Indexeintrag als abgeschlossen und
-5. behält das Original-PDF neben den extrahierten Assets.
+1. installs Docling on a GitHub runner;
+2. extracts reading order, tables, OCR text, and figures;
+3. replaces the pending Markdown while preserving notes and frontmatter;
+4. marks the matching metadata entry as complete; and
+5. retains the original PDF beside extracted assets.
 
-GitHub Actions benötigt Schreibzugriff auf Repository-Inhalte. Der Workflow hat ein Zeitlimit von 45 Minuten; einzelne PDFs sind wegen der Browser- und GitHub-API-Speichergrenzen auf 25 MB begrenzt. Eine erneute Konvertierung ist unter **Actions → Convert PDFs to Markdown → Run workflow** möglich.
+GitHub Actions needs write access to repository contents. The workflow has a
+45-minute timeout, and individual PDFs are limited to 25 MB by browser and
+GitHub API constraints. Rerun a conversion under **Actions → Convert PDFs to
+Markdown → Run workflow**.
 
-Wenn während einer laufenden Konvertierung weitere Clips auf demselben Branch gespeichert werden, aktualisiert der Workflow seinen Branch vor dem Push erneut und wiederholt einen abgelehnten Push bis zu fünfmal. Dadurch gehen parallele Stowmark-Uploads nicht durch einen kurzzeitigen Git-Ref-Konflikt verloren.
+If another clip is saved to the same branch during conversion, the workflow
+refreshes its branch and retries a rejected push up to five times. Concurrent
+SourceBraid uploads are therefore not lost to a temporary Git ref race.
 
-## Wikis und Gists mit Bildern
+## Wikis and Gists with images
 
 ### Azure DevOps Wiki
 
-SourceBraid ruft das Quell-Markdown über die authentifizierte Azure-DevOps-Wiki-API ab. Falls dies nicht möglich ist, wird ausschließlich der gerenderte Bereich `.markdown-content` konvertiert – nicht Navigation, Kopfzeile oder sonstige Azure-DevOps-Oberfläche.
+SourceBraid reads source Markdown through the authenticated Azure DevOps Wiki
+API. If that fails, it converts only the rendered `.markdown-content` area —
+not navigation, headers, or unrelated Azure DevOps UI.
 
-Da Attachment-URLs die angemeldete Browser-Sitzung benötigen können, lädt SourceBraid die Bilder nacheinander über den geöffneten Quell-Tab, speichert sie im Asset-Ordner und ersetzt die URLs durch relative Repository-Pfade. Der Quell-Tab muss deshalb bis zum Abschluss des Speicherns geöffnet bleiben. Im Frontmatter werden Organisation, Projekt, Wiki-ID, Seiten-ID, Seitenpfad und – soweit verfügbar – Revision festgehalten.
+Protected attachment URLs may need the browser's signed-in session, so
+SourceBraid loads images sequentially through the open source tab, stores them
+in the asset folder, and rewrites links to relative repository paths. Keep the
+source tab open until capture completes.
 
 ### GitHub Gists
 
-Bei einem Gist wird eine einzelne Markdown-Datei direkt als Dokumentinhalt gespeichert. Mehrdatei-Gists werden zu einem Dokument mit einem Abschnitt je Dateiname zusammengeführt; Nicht-Markdown-Dateien bleiben als sprachlich markierte Codeblöcke erhalten.
+A one-file Markdown Gist becomes the document body directly. Multi-file Gists
+become one document with a section per filename; non-Markdown files remain in
+language-tagged code fences.
 
-Öffentliche Gists funktionieren anonym. Für private Gists verwendet SourceBraid zusätzlich den konfigurierten GitHub-Token, sofern dieser Leserechte für Gists besitzt. GitHub-gehostete Benutzerbilder können über den weiterhin geöffneten, angemeldeten Gist-Tab geladen werden.
+Public Gists work anonymously. For private Gists, SourceBraid uses the configured
+GitHub token when it has Gist read permission. Signed-in GitHub image assets can
+be loaded through the still-open Gist tab.
 
-## Installation und Verwendung
+## Chrome installation
 
-1. `chrome://extensions` öffnen.
-2. **Entwicklermodus** aktivieren.
-3. **Entpackte Erweiterung laden** auswählen.
-4. Diesen Ordner auswählen.
-5. Eine unterstützte Quelle öffnen und auf das **SourceBraid**-Symbol klicken.
-6. GitHub-Repository konfigurieren, optional Tags oder Notizen ergänzen und **Save to GitHub** wählen.
+1. Open `chrome://extensions`.
+2. Enable **Developer mode**.
+3. Select **Load unpacked**.
+4. Choose this repository folder.
+5. Open a supported source and select the **SourceBraid** icon.
+6. Configure the private GitHub repository, optionally add tags or notes, and
+   choose **Save to GitHub**.
 
-Nach der ersten Einrichtung bleiben die GitHub-Einstellungen hinter dem Einstellungssymbol im Popup verborgen. Scheitert nur der GitHub-Upload nach einer erfolgreichen Extraktion, steht im Popup **Download Fallback** zur Verfügung.
+After setup, GitHub settings stay collapsed behind the settings icon. If only
+the GitHub upload fails after successful extraction, the popup offers a
+**Download Fallback**.
 
-## GitHub-Token
+## GitHub token
 
-Empfohlen wird ein Fine-grained Personal Access Token, der auf genau ein privates Repository beschränkt ist:
+Use a fine-grained personal access token restricted to exactly one private
+repository:
 
 ```text
 Contents: Read and write
 Workflows: Read and write
 ```
 
-`Workflows` ist nur für die PDF-Unterstützung erforderlich. Beim ersten PDF-Upload installiert SourceBraid den mitgelieferten Docling-Workflow, das Konvertierungsskript und die Requirements-Datei, sofern diese Pfade noch nicht existieren. Bestehende Dateien werden nicht überschrieben. Der Token wird lokal im Chrome-Erweiterungsspeicher abgelegt.
+`Workflows` is needed only for PDF support. On the first PDF upload, SourceBraid
+installs the bundled Docling workflow, conversion script, and requirements file
+when those paths do not already exist. Existing files are never overwritten.
+The token is stored locally in Chrome extension storage.
 
-Optionale API-Einstellungen:
+Optional API configuration:
 
-- Ghost Content API: Basis-URL, zum Beispiel `https://example.com/ghost/api/content`, plus browsergeeigneter Content-API-Key
-- Blogger: optionaler Google API Key; öffentliche Posts benötigen kein OAuth, anonyme API-Aufrufe normalerweise aber einen Key für das Kontingent
+- Ghost Content API: base URL plus a browser-safe Content API key
+- Blogger: optional Google API key for anonymous public API quota
 
-## SourceBraid in ChatGPT und Codex
+## SourceBraid in ChatGPT and Codex
 
-Über **Export Plugin Config** kann die Datei `sourcebraid-config.json` heruntergeladen werden. Für das SourceBraid-Codex-Plugin wird sie hier abgelegt:
+**Export Plugin Config** downloads `sourcebraid-config.json`. Store it at:
 
 ```text
 ~/.config/sourcebraid/config.json
 ```
 
-Alternativ lässt sich das Plugin im Terminal konfigurieren:
+Or configure the plugin in a terminal:
 
 ```bash
-python3 codex-plugin/sourcebraid/scripts/sourcebraid.py config --repo-slug OWNER/REPO --branch main --root-folder web-clips
+python3 codex-plugin/sourcebraid/scripts/sourcebraid.py config \
+  --repo-slug OWNER/REPO --branch main --root-folder web-clips
 ```
 
-Das versionierte Plugin liegt unter `codex-plugin/sourcebraid`. Es verwendet einen lokalen SQLite-FTS5-Index, lädt bei Aktualisierungen nur anhand der Git-Blob-SHAs geänderte Dateien und unterstützt Suche, Abruf sowie eine abgesicherte Löschvorschau:
+The versioned plugin lives under `codex-plugin/sourcebraid`. It uses a local
+SQLite FTS5 index, downloads only files whose Git blob SHAs changed, and
+supports search, fetch, listing, and guarded deletion previews:
 
 ```bash
 python3 codex-plugin/sourcebraid/scripts/sourcebraid.py index build
@@ -197,44 +270,58 @@ python3 codex-plugin/sourcebraid/scripts/sourcebraid.py index update --max-age 9
 python3 codex-plugin/sourcebraid/scripts/sourcebraid.py index verify
 python3 codex-plugin/sourcebraid/scripts/sourcebraid.py search "dynamic agents" --tag ai
 python3 codex-plugin/sourcebraid/scripts/sourcebraid.py list "dynamic agents" --refresh
-python3 codex-plugin/sourcebraid/scripts/sourcebraid.py plan-delete --path "web-clips/2026/07/example.md" --json
+python3 codex-plugin/sourcebraid/scripts/sourcebraid.py plan-delete \
+  --path "web-clips/2026/07/example.md" --json
 ```
 
-Der Index liegt pro Repository und Branch unter `~/.cache/sourcebraid/.../search.sqlite3` und wird nicht in Git gespeichert. Eine Suche prüft höchstens alle 15 Minuten, ob sich der Remote-Head geändert hat; bei einem Netzfehler bleibt der lokale Index nutzbar. `search --scan` steht als ausdrücklicher `rg`-Fallback zur Verfügung.
+The index is stored per repository and branch under
+`~/.cache/sourcebraid/.../search.sqlite3` and is never committed. Search checks
+for a changed remote head at most every 15 minutes; when GitHub is unavailable,
+the local index remains usable. `search --scan` is an explicit `rg` diagnostic
+fallback.
 
-Neue Captures schreiben Metadaten in stabile URL-Hash-Shards wie `web-clips/index/47.jsonl`, damit nicht mehr bei jedem Speichern eine globale `index.jsonl` umgeschrieben wird. Bestehende Archive bleiben lesbar. Die einmalige Migration wird zuerst angezeigt und anschließend mit dem unveränderten Head bestätigt:
+New captures write stable URL-hash shards such as
+`web-clips/index/47.jsonl`. Legacy archives remain readable. Preview and confirm
+the one-time migration against an unchanged branch head:
 
 ```bash
 python3 codex-plugin/sourcebraid/scripts/sourcebraid.py index plan-shards --json
-python3 codex-plugin/sourcebraid/scripts/sourcebraid.py index migrate-shards --expected-head HEAD_SHA --confirm-head HEAD_SHA --json
+python3 codex-plugin/sourcebraid/scripts/sourcebraid.py index migrate-shards \
+  --expected-head HEAD_SHA --confirm-head HEAD_SHA --json
 ```
 
-Vor einer Löschung zeigt das Plugin exakt das betroffene Markdown, die Indexänderung und zugehörige Assets und verlangt eine erneute ausdrückliche Bestätigung. Die Änderung wird als normaler, nicht erzwungener Git-Commit gespeichert und bleibt damit über die Git-Historie wiederherstellbar.
+Before deletion, the plugin shows the exact Markdown file, metadata change, and
+owned assets, then requires explicit confirmation. It writes a normal,
+non-forced Git commit, so repository history remains recoverable.
 
-Das Plugin enthält zusätzlich einen lokalen MCP-Server mit den standardisierten
-Werkzeugen `search` und `fetch`, damit dieselbe Installation in ChatGPT und
-Codex verwendet werden kann. Hinweise zur lokalen Installation und zum späteren
-öffentlichen HTTPS-Endpunkt stehen in
-[`docs/CHATGPT_PLUGIN.md`](docs/CHATGPT_PLUGIN.md).
-
-## Android-Roadmap
-
-Die Android-Share-App ist bewusst noch nicht Teil der ersten Veröffentlichung.
-Nach dem Feedback aus der OpenAI-Community wird anhand der Nachfrage und
-möglicher Mitwirkender entschieden, ob sie als nächster nativer Client gebaut
-wird.
-
-## Mitwirken und Lizenz
-
-SourceBraid wird vollständig unter der [MIT-Lizenz](LICENSE) veröffentlicht.
-Hinweise für Beiträge stehen in [CONTRIBUTING.md](CONTRIBUTING.md);
-[Datenschutz](PRIVACY.md) und [Nutzungsbedingungen](TERMS.md) dokumentieren den
-lokalen, benutzergesteuerten Datenfluss.
+The plugin also includes a local MCP server with standard `search` and `fetch`
+tools, enabling the same installation in ChatGPT and Codex. See
+[`docs/CHATGPT_PLUGIN.md`](docs/CHATGPT_PLUGIN.md) for local setup and the future
+public HTTPS endpoint.
 
 ## iOS
 
-Die native iOS-App und Share Extension liegen unter [`ios/`](ios/README.md). Nach einmaliger Einrichtung von Repository und Token können URLs, ausgewählter Text, Safari-Artikel, PDFs und andere Dateien über das Teilen-Menü im konfigurierten privaten Archiv-Repository gespeichert werden.
+The native iOS app and Share Extension live under [`ios/`](ios/README.md).
+After one-time repository and token setup, URLs, selected text, Safari articles,
+PDFs, and other files can be sent to the configured private archive through the
+system share sheet.
 
-## Technische Hinweise
+## Android roadmap
 
-Die Chrome-Erweiterung benötigt keinen Build-Schritt und bündelt keine Drittanbieter-Runtime. Docling läuft ausschließlich in der GitHub Action des Ziel-Repositorys. Die HTML-Konvertierung erfolgt lokal in der Erweiterung; API- und Bildzugriffe nutzen je nach Quelle entweder normale HTTP-Anfragen oder die vorhandene angemeldete Browser-Sitzung.
+Android is intentionally not part of the first release. Feedback from the
+OpenAI community will determine whether an Android share target becomes the
+next native client and which contributors or testers can help shape it.
+
+## Contributing and license
+
+SourceBraid is fully open source under the [MIT License](LICENSE). See
+[CONTRIBUTING.md](CONTRIBUTING.md) for contribution guidance. The
+[privacy notice](PRIVACY.md) and [terms](TERMS.md) document the local,
+user-controlled data flow.
+
+## Technical notes
+
+The Chrome extension has no build step and bundles no third-party runtime.
+Docling runs only inside the target repository's GitHub Action. HTML conversion
+happens locally in the extension; API and image requests use either ordinary
+HTTP or the browser's existing authenticated session, depending on the source.
