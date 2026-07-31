@@ -248,6 +248,7 @@ function downloadMarkdown(message, sendResponse) {
 
 async function saveToGitHub(settings, clip) {
   validateGitHubSave(settings, clip);
+  await ensureGitHubRepository(settings);
 
   const indexPath = Core.buildIndexPath({ rootFolder: settings.rootFolder, url: clip.indexEntry?.url });
   const existingIndex = await getContent(settings, indexPath);
@@ -286,6 +287,7 @@ async function saveToGitHub(settings, clip) {
 
 async function savePdfToGitHub(settings, pdf) {
   validatePdfSave(settings, pdf);
+  await ensureGitHubRepository(settings);
   await ensurePdfWorkflow(settings);
 
   const source = Core.parsePdfSourceUrl(pdf.url);
@@ -788,6 +790,19 @@ function githubContentsUrl(settings, path, query) {
   const encodedPath = path.split("/").map(encodeURIComponent).join("/");
   const base = `https://api.github.com/repos/${encodeURIComponent(settings.owner)}/${encodeURIComponent(settings.repo)}/contents/${encodedPath}`;
   return query ? `${base}?${query}` : base;
+}
+
+async function ensureGitHubRepository(settings) {
+  const repository = `${settings.owner}/${settings.repo}`;
+  const url = `https://api.github.com/repos/${encodeURIComponent(settings.owner)}/${encodeURIComponent(settings.repo)}`;
+  const response = await githubFetch(settings, url, { method: "GET" });
+
+  if (response.status === 404) {
+    throw new Error(`GitHub repository ${repository} was not found or the token cannot access it.`);
+  }
+  if (!response.ok) {
+    throw new Error(await githubError(response, `Could not access GitHub repository ${repository}`));
+  }
 }
 
 function githubFetch(settings, url, options = {}) {

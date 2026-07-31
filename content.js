@@ -73,6 +73,10 @@ async function captureMarkdown(options) {
   }
 
   if (!article) {
+    article = tryGoogleDeepMindBlog(metadata);
+  }
+
+  if (!article) {
     article = await trySyndicationFeeds(metadata);
   }
 
@@ -763,6 +767,66 @@ async function tryBloggerApi(metadata, settings) {
   } catch (_error) {
     return null;
   }
+}
+
+function tryGoogleDeepMindBlog(metadata) {
+  let url;
+  try {
+    url = new URL(metadata.pageUrl);
+  } catch (_error) {
+    return null;
+  }
+  if (url.hostname.toLowerCase() !== "deepmind.google" || !url.pathname.startsWith("/blog/")) {
+    return null;
+  }
+
+  const main = document.querySelector("main");
+  if (!main) {
+    return null;
+  }
+
+  const content = document.createElement("div");
+  for (const section of Array.from(main.children)) {
+    if (section.tagName?.toLowerCase() !== "section") {
+      continue;
+    }
+
+    const heading = cleanText(section.querySelector("h1, h2, h3")?.textContent || "");
+    if (/^related posts$/i.test(heading)) {
+      break;
+    }
+    if (section.matches(".section-cover") || section.querySelector("h1")) {
+      continue;
+    }
+
+    const clone = section.cloneNode(true);
+    clone.querySelectorAll([
+      "script",
+      "style",
+      "nav",
+      "aside",
+      "form",
+      "iframe",
+      "noscript",
+      "svg",
+      "button",
+      "[aria-label='Share']"
+    ].join(",")).forEach((node) => node.remove());
+    if (cleanText(clone.textContent).length >= 40 || clone.querySelector("img, video")) {
+      content.append(clone);
+    }
+  }
+
+  if (cleanText(content.textContent).length < 500) {
+    return null;
+  }
+
+  return {
+    ...metadata,
+    captureMethod: "google-deepmind-dom",
+    maxImages: 30,
+    html: content.innerHTML
+  };
 }
 
 async function trySyndicationFeeds(metadata) {

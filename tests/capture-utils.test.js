@@ -1,5 +1,8 @@
 const assert = require("node:assert/strict");
+const fs = require("node:fs");
+const path = require("node:path");
 const test = require("node:test");
+const vm = require("node:vm");
 
 const Core = require("../capture-utils.js");
 
@@ -204,4 +207,92 @@ test("buildDocument emits wiki and gist metadata", () => {
   assert.match(markdown, /wiki_page_id: "42"/);
   assert.match(markdown, /wiki_path: "\/Docs\/Page"/);
   assert.match(markdown, /gist_files: \["README\.md", "example\.js"\]/);
+});
+
+test("GitHub saves reject an unavailable target repository before reading archive paths", async () => {
+  const requests = [];
+  const context = {
+    TextEncoder,
+    URL,
+    chrome: { runtime: { onMessage: { addListener() {} } } },
+    fetch: async (url) => {
+      requests.push(url);
+      return {
+        ok: false,
+        status: 404,
+        statusText: "Not Found",
+        async json() { return { message: "Not Found" }; }
+      };
+    },
+    globalThis: null,
+    importScripts() {}
+  };
+  context.globalThis = context;
+  context.SourceBraidCore = Core;
+  vm.runInNewContext(fs.readFileSync(path.join(__dirname, "..", "background.js"), "utf8"), context);
+
+  await assert.rejects(
+    context.ensureGitHubRepository({ owner: "missing-owner", repo: "missing-repo", token: "test-token" }),
+    /GitHub repository missing-owner\/missing-repo was not found or the token cannot access it\./
+  );
+  assert.deepEqual(requests, ["https://api.github.com/repos/missing-owner/missing-repo"]);
+});
+
+test("DeepMind blog capture excludes cover and related-post cards", () => {
+  function section({ heading = "", text = "", classes = "", media = false } = {}) {
+    const clone = {
+      textContent: text,
+      outerHTML: `<section>${text}</section>`,
+      querySelector(selector) { return selector === "img, video" && media ? {} : null; },
+      querySelectorAll() { return []; }
+    };
+    return {
+      tagName: "SECTION",
+      textContent: text,
+      matches(selector) { return selector === ".section-cover" && classes.includes("section-cover"); },
+      querySelector(selector) {
+        if (selector === "h1, h2, h3" && heading) return { textContent: heading };
+        if (selector === "h1" && classes.includes("has-h1")) return {};
+        return null;
+      },
+      cloneNode() { return { ...clone }; }
+    };
+  }
+
+  const content = {
+    nodes: [],
+    append(node) { this.nodes.push(node); },
+    get textContent() { return this.nodes.map((node) => node.textContent).join(" "); },
+    get innerHTML() { return this.nodes.map((node) => node.outerHTML).join(""); }
+  };
+  const articleText = "Article paragraph. ".repeat(40);
+  const context = {
+    URL,
+    Node: { TEXT_NODE: 3, ELEMENT_NODE: 1 },
+    chrome: { runtime: { onMessage: { addListener() {} } } },
+    document: {
+      querySelector(selector) {
+        return selector === "main" ? {
+          children: [
+            section({ heading: "Example", text: "Cover", classes: "section-cover has-h1" }),
+            section({ text: articleText }),
+            section({ heading: "Related posts", text: "Related card" })
+          ]
+        } : null;
+      },
+      createElement() { return content; }
+    },
+    globalThis: null
+  };
+  context.globalThis = context;
+  context.SourceBraidCore = Core;
+  vm.runInNewContext(fs.readFileSync(path.join(__dirname, "..", "content.js"), "utf8"), context);
+
+  const result = context.tryGoogleDeepMindBlog({
+    pageUrl: "https://deepmind.google/blog/example/",
+    title: "Example"
+  });
+  assert.equal(result.captureMethod, "google-deepmind-dom");
+  assert.match(result.html, /Article paragraph/);
+  assert.doesNotMatch(result.html, /Cover|Related card/);
 });
