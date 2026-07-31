@@ -1,0 +1,4 @@
+interface:
+  display_name: "Delete SourceBraid Clips"
+  short_description: "Safely preview and delete saved clips"
+  default_prompt: "Use $sourcebraid-delete to list and safely delete a saved SourceBraid clip."
