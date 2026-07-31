@@ -231,9 +231,12 @@ wird.
 ## Mitwirken und Lizenz
 
 SourceBraid wird vollständig unter der [MIT-Lizenz](LICENSE) veröffentlicht.
-Hinweise für Beiträge stehen in [CONTRIBUTING.md](CONTRIBUTING.md);
-[Datenschutz](PRIVACY.md) und [Nutzungsbedingungen](TERMS.md) dokumentieren den
-lokalen, benutzergesteuerten Datenfluss.
+Hinweise für Beiträge und den DCO-Sign-off stehen in
+[CONTRIBUTING.md](CONTRIBUTING.md). Der
+[Verhaltenskodex](CODE_OF_CONDUCT.md) regelt die Zusammenarbeit, die
+[Security Policy](SECURITY.md) die vertrauliche Meldung von Schwachstellen.
+[Datenschutz](PRIVACY.md), [Nutzungsbedingungen](TERMS.md) und der
+[Hinweis](NOTICE) dokumentieren Datenfluss und Lizenzgrenzen.
 
 ## iOS
 
