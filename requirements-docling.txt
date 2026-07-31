@@ -1,0 +1,2 @@
+# Managed by SourceBraid PDF support.
+docling>=2.0,<3.0

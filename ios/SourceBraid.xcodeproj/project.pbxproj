@@ -1,0 +1,640 @@
+// !$*UTF8*$!
+{
+	archiveVersion = 1;
+	classes = {
+	};
+	objectVersion = 71;
+	objects = {
+
+/* Begin PBXBuildFile section */
+		B00000000000000000000001 /* SourceBraidApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = F00000000000000000000001 /* SourceBraidApp.swift */; };
+		B00000000000000000000002 /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = F00000000000000000000002 /* ContentView.swift */; };
+		B00000000000000000000003 /* SettingsViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = F00000000000000000000003 /* SettingsViewModel.swift */; };
+		B00000000000000000000004 /* SourceBraidEnvironment.swift in Sources */ = {isa = PBXBuildFile; fileRef = F00000000000000000000004 /* SourceBraidEnvironment.swift */; };
+		B00000000000000000000005 /* SourceBraidConfiguration.swift in Sources */ = {isa = PBXBuildFile; fileRef = F00000000000000000000005 /* SourceBraidConfiguration.swift */; };
+		B00000000000000000000006 /* KeychainStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = F00000000000000000000006 /* KeychainStore.swift */; };
+		B00000000000000000000007 /* RecentCaptureStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = F00000000000000000000007 /* RecentCaptureStore.swift */; };
+		B00000000000000000000008 /* ClipBuilder.swift in Sources */ = {isa = PBXBuildFile; fileRef = F00000000000000000000008 /* ClipBuilder.swift */; };
+		B00000000000000000000009 /* GitHubClient.swift in Sources */ = {isa = PBXBuildFile; fileRef = F00000000000000000000009 /* GitHubClient.swift */; };
+		B00000000000000000000010 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = F00000000000000000000010 /* Assets.xcassets */; };
+		B00000000000000000000011 /* Security.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = F00000000000000000000030 /* Security.framework */; };
+		B00000000000000000000012 /* SourceBraidShare.appex in Embed App Extensions */ = {isa = PBXBuildFile; fileRef = F00000000000000000000021 /* SourceBraidShare.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
+		B00000000000000000000013 /* PrivacyInfo.xcprivacy in Resources */ = {isa = PBXBuildFile; fileRef = F00000000000000000000013 /* PrivacyInfo.xcprivacy */; };
+		B00000000000000000000101 /* ShareViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = F00000000000000000000101 /* ShareViewController.swift */; };
+		B00000000000000000000102 /* ShareRootView.swift in Sources */ = {isa = PBXBuildFile; fileRef = F00000000000000000000102 /* ShareRootView.swift */; };
+		B00000000000000000000103 /* ShareViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = F00000000000000000000103 /* ShareViewModel.swift */; };
+		B00000000000000000000104 /* ShareInputResolver.swift in Sources */ = {isa = PBXBuildFile; fileRef = F00000000000000000000104 /* ShareInputResolver.swift */; };
+		B00000000000000000000105 /* SourceBraidEnvironment.swift in Sources */ = {isa = PBXBuildFile; fileRef = F00000000000000000000004 /* SourceBraidEnvironment.swift */; };
+		B00000000000000000000106 /* SourceBraidConfiguration.swift in Sources */ = {isa = PBXBuildFile; fileRef = F00000000000000000000005 /* SourceBraidConfiguration.swift */; };
+		B00000000000000000000107 /* KeychainStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = F00000000000000000000006 /* KeychainStore.swift */; };
+		B00000000000000000000108 /* RecentCaptureStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = F00000000000000000000007 /* RecentCaptureStore.swift */; };
+		B00000000000000000000109 /* ClipBuilder.swift in Sources */ = {isa = PBXBuildFile; fileRef = F00000000000000000000008 /* ClipBuilder.swift */; };
+		B00000000000000000000110 /* GitHubClient.swift in Sources */ = {isa = PBXBuildFile; fileRef = F00000000000000000000009 /* GitHubClient.swift */; };
+		B00000000000000000000111 /* SharePreprocessing.js in Resources */ = {isa = PBXBuildFile; fileRef = F00000000000000000000105 /* SharePreprocessing.js */; };
+		B00000000000000000000112 /* Security.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = F00000000000000000000030 /* Security.framework */; };
+		B00000000000000000000113 /* PrivacyInfo.xcprivacy in Resources */ = {isa = PBXBuildFile; fileRef = F00000000000000000000108 /* PrivacyInfo.xcprivacy */; };
+		B00000000000000000000114 /* WebPageCapture.swift in Sources */ = {isa = PBXBuildFile; fileRef = F00000000000000000000109 /* WebPageCapture.swift */; };
+		B00000000000000000000115 /* WebPageCapture.js in Resources */ = {isa = PBXBuildFile; fileRef = F00000000000000000000110 /* WebPageCapture.js */; };
+		B00000000000000000000201 /* ClipBuilderTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = F00000000000000000000201 /* ClipBuilderTests.swift */; };
+		B00000000000000000000202 /* SourceBraidConfiguration.swift in Sources */ = {isa = PBXBuildFile; fileRef = F00000000000000000000005 /* SourceBraidConfiguration.swift */; };
+		B00000000000000000000203 /* ClipBuilder.swift in Sources */ = {isa = PBXBuildFile; fileRef = F00000000000000000000008 /* ClipBuilder.swift */; };
+		B00000000000000000000204 /* XCTest.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = F00000000000000000000031 /* XCTest.framework */; };
+		B00000000000000000000205 /* SourceBraidEnvironment.swift in Sources */ = {isa = PBXBuildFile; fileRef = F00000000000000000000004 /* SourceBraidEnvironment.swift */; };
+/* End PBXBuildFile section */
+
+/* Begin PBXContainerItemProxy section */
+		A00000000000000000000040 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = A00000000000000000000001 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = A00000000000000000000200;
+			remoteInfo = SourceBraidShare;
+		};
+/* End PBXContainerItemProxy section */
+
+/* Begin PBXCopyFilesBuildPhase section */
+		A00000000000000000000104 /* Embed App Extensions */ = {
+			isa = PBXCopyFilesBuildPhase;
+			buildActionMask = 2147483647;
+			dstPath = "";
+			dstSubfolderSpec = 13;
+			files = (
+				B00000000000000000000012 /* SourceBraidShare.appex in Embed App Extensions */,
+			);
+			name = "Embed App Extensions";
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXCopyFilesBuildPhase section */
+
+/* Begin PBXFileReference section */
+		F00000000000000000000001 /* SourceBraidApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SourceBraidApp.swift; sourceTree = "<group>"; };
+		F00000000000000000000002 /* ContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentView.swift; sourceTree = "<group>"; };
+		F00000000000000000000003 /* SettingsViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsViewModel.swift; sourceTree = "<group>"; };
+		F00000000000000000000004 /* SourceBraidEnvironment.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SourceBraidEnvironment.swift; sourceTree = "<group>"; };
+		F00000000000000000000005 /* SourceBraidConfiguration.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SourceBraidConfiguration.swift; sourceTree = "<group>"; };
+		F00000000000000000000006 /* KeychainStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = KeychainStore.swift; sourceTree = "<group>"; };
+		F00000000000000000000007 /* RecentCaptureStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RecentCaptureStore.swift; sourceTree = "<group>"; };
+		F00000000000000000000008 /* ClipBuilder.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ClipBuilder.swift; sourceTree = "<group>"; };
+		F00000000000000000000009 /* GitHubClient.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GitHubClient.swift; sourceTree = "<group>"; };
+		F00000000000000000000010 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
+		F00000000000000000000011 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
+		F00000000000000000000012 /* SourceBraid.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = SourceBraid.entitlements; sourceTree = "<group>"; };
+		F00000000000000000000013 /* PrivacyInfo.xcprivacy */ = {isa = PBXFileReference; lastKnownFileType = text.xml; path = PrivacyInfo.xcprivacy; sourceTree = "<group>"; };
+		F00000000000000000000020 /* SourceBraid.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = SourceBraid.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		F00000000000000000000021 /* SourceBraidShare.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; includeInIndex = 0; path = SourceBraidShare.appex; sourceTree = BUILT_PRODUCTS_DIR; };
+		F00000000000000000000022 /* SourceBraidTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = SourceBraidTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+		F00000000000000000000030 /* Security.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Security.framework; path = System/Library/Frameworks/Security.framework; sourceTree = SDKROOT; };
+		F00000000000000000000031 /* XCTest.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = XCTest.framework; path = System/Library/Frameworks/XCTest.framework; sourceTree = SDKROOT; };
+		F00000000000000000000101 /* ShareViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ShareViewController.swift; sourceTree = "<group>"; };
+		F00000000000000000000102 /* ShareRootView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ShareRootView.swift; sourceTree = "<group>"; };
+		F00000000000000000000103 /* ShareViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ShareViewModel.swift; sourceTree = "<group>"; };
+		F00000000000000000000104 /* ShareInputResolver.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ShareInputResolver.swift; sourceTree = "<group>"; };
+		F00000000000000000000105 /* SharePreprocessing.js */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.javascript; path = SharePreprocessing.js; sourceTree = "<group>"; };
+		F00000000000000000000106 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
+		F00000000000000000000107 /* SourceBraidShare.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = SourceBraidShare.entitlements; sourceTree = "<group>"; };
+		F00000000000000000000108 /* PrivacyInfo.xcprivacy */ = {isa = PBXFileReference; lastKnownFileType = text.xml; path = PrivacyInfo.xcprivacy; sourceTree = "<group>"; };
+		F00000000000000000000109 /* WebPageCapture.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WebPageCapture.swift; sourceTree = "<group>"; };
+		F00000000000000000000110 /* WebPageCapture.js */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.javascript; path = WebPageCapture.js; sourceTree = "<group>"; };
+		F00000000000000000000201 /* ClipBuilderTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ClipBuilderTests.swift; sourceTree = "<group>"; };
+/* End PBXFileReference section */
+
+/* Begin PBXFrameworksBuildPhase section */
+		A00000000000000000000102 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				B00000000000000000000011 /* Security.framework in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		A00000000000000000000202 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				B00000000000000000000112 /* Security.framework in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		A00000000000000000000302 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				B00000000000000000000204 /* XCTest.framework in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXFrameworksBuildPhase section */
+
+/* Begin PBXGroup section */
+		A00000000000000000000002 = {
+			isa = PBXGroup;
+			children = (
+				A00000000000000000000010 /* SourceBraid */,
+				A00000000000000000000020 /* SourceBraidShare */,
+				A00000000000000000000030 /* SourceBraidTests */,
+				A00000000000000000000004 /* Frameworks */,
+				A00000000000000000000003 /* Products */,
+			);
+			sourceTree = "<group>";
+		};
+		A00000000000000000000003 /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				F00000000000000000000020 /* SourceBraid.app */,
+				F00000000000000000000021 /* SourceBraidShare.appex */,
+				F00000000000000000000022 /* SourceBraidTests.xctest */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
+		A00000000000000000000004 /* Frameworks */ = {
+			isa = PBXGroup;
+			children = (
+				F00000000000000000000030 /* Security.framework */,
+				F00000000000000000000031 /* XCTest.framework */,
+			);
+			name = Frameworks;
+			sourceTree = "<group>";
+		};
+		A00000000000000000000010 /* SourceBraid */ = {
+			isa = PBXGroup;
+			children = (
+				A00000000000000000000011 /* App */,
+				A00000000000000000000012 /* Shared */,
+				A00000000000000000000013 /* Resources */,
+			);
+			path = SourceBraid;
+			sourceTree = "<group>";
+		};
+		A00000000000000000000011 /* App */ = {
+			isa = PBXGroup;
+			children = (
+				F00000000000000000000001 /* SourceBraidApp.swift */,
+				F00000000000000000000002 /* ContentView.swift */,
+				F00000000000000000000003 /* SettingsViewModel.swift */,
+			);
+			path = App;
+			sourceTree = "<group>";
+		};
+		A00000000000000000000012 /* Shared */ = {
+			isa = PBXGroup;
+			children = (
+				F00000000000000000000004 /* SourceBraidEnvironment.swift */,
+				F00000000000000000000005 /* SourceBraidConfiguration.swift */,
+				F00000000000000000000006 /* KeychainStore.swift */,
+				F00000000000000000000007 /* RecentCaptureStore.swift */,
+				F00000000000000000000008 /* ClipBuilder.swift */,
+				F00000000000000000000009 /* GitHubClient.swift */,
+			);
+			path = Shared;
+			sourceTree = "<group>";
+		};
+		A00000000000000000000013 /* Resources */ = {
+			isa = PBXGroup;
+			children = (
+				F00000000000000000000010 /* Assets.xcassets */,
+				F00000000000000000000011 /* Info.plist */,
+				F00000000000000000000012 /* SourceBraid.entitlements */,
+				F00000000000000000000013 /* PrivacyInfo.xcprivacy */,
+			);
+			path = Resources;
+			sourceTree = "<group>";
+		};
+		A00000000000000000000020 /* SourceBraidShare */ = {
+			isa = PBXGroup;
+			children = (
+				F00000000000000000000101 /* ShareViewController.swift */,
+				F00000000000000000000102 /* ShareRootView.swift */,
+				F00000000000000000000103 /* ShareViewModel.swift */,
+				F00000000000000000000104 /* ShareInputResolver.swift */,
+				F00000000000000000000109 /* WebPageCapture.swift */,
+				F00000000000000000000110 /* WebPageCapture.js */,
+				F00000000000000000000105 /* SharePreprocessing.js */,
+				F00000000000000000000106 /* Info.plist */,
+				F00000000000000000000107 /* SourceBraidShare.entitlements */,
+				F00000000000000000000108 /* PrivacyInfo.xcprivacy */,
+			);
+			path = SourceBraidShare;
+			sourceTree = "<group>";
+		};
+		A00000000000000000000030 /* SourceBraidTests */ = {
+			isa = PBXGroup;
+			children = (
+				F00000000000000000000201 /* ClipBuilderTests.swift */,
+			);
+			path = SourceBraidTests;
+			sourceTree = "<group>";
+		};
+/* End PBXGroup section */
+
+/* Begin PBXNativeTarget section */
+		A00000000000000000000100 /* SourceBraid */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = A00000000000000000000110 /* Build configuration list for PBXNativeTarget "SourceBraid" */;
+			buildPhases = (
+				A00000000000000000000101 /* Sources */,
+				A00000000000000000000102 /* Frameworks */,
+				A00000000000000000000103 /* Resources */,
+				A00000000000000000000104 /* Embed App Extensions */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				A00000000000000000000041 /* PBXTargetDependency */,
+			);
+			name = SourceBraid;
+			productName = SourceBraid;
+			productReference = F00000000000000000000020 /* SourceBraid.app */;
+			productType = "com.apple.product-type.application";
+		};
+		A00000000000000000000200 /* SourceBraidShare */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = A00000000000000000000210 /* Build configuration list for PBXNativeTarget "SourceBraidShare" */;
+			buildPhases = (
+				A00000000000000000000201 /* Sources */,
+				A00000000000000000000202 /* Frameworks */,
+				A00000000000000000000203 /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = SourceBraidShare;
+			productName = SourceBraidShare;
+			productReference = F00000000000000000000021 /* SourceBraidShare.appex */;
+			productType = "com.apple.product-type.app-extension";
+		};
+		A00000000000000000000300 /* SourceBraidTests */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = A00000000000000000000310 /* Build configuration list for PBXNativeTarget "SourceBraidTests" */;
+			buildPhases = (
+				A00000000000000000000301 /* Sources */,
+				A00000000000000000000302 /* Frameworks */,
+				A00000000000000000000303 /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = SourceBraidTests;
+			productName = SourceBraidTests;
+			productReference = F00000000000000000000022 /* SourceBraidTests.xctest */;
+			productType = "com.apple.product-type.bundle.unit-test";
+		};
+/* End PBXNativeTarget section */
+
+/* Begin PBXProject section */
+		A00000000000000000000001 /* Project object */ = {
+			isa = PBXProject;
+			attributes = {
+				BuildIndependentTargetsInParallel = 1;
+				LastSwiftUpdateCheck = 2700;
+				LastUpgradeCheck = 2700;
+				TargetAttributes = {
+					A00000000000000000000100 = {
+						CreatedOnToolsVersion = 27.0;
+					};
+					A00000000000000000000200 = {
+						CreatedOnToolsVersion = 27.0;
+					};
+					A00000000000000000000300 = {
+						CreatedOnToolsVersion = 27.0;
+					};
+				};
+			};
+			buildConfigurationList = A00000000000000000000050 /* Build configuration list for PBXProject "SourceBraid" */;
+			compatibilityVersion = "Xcode 16.0";
+			developmentRegion = en;
+			hasScannedForEncodings = 0;
+			knownRegions = (
+				en,
+				Base,
+			);
+			mainGroup = A00000000000000000000002;
+			productRefGroup = A00000000000000000000003 /* Products */;
+			projectDirPath = "";
+			projectRoot = "";
+			targets = (
+				A00000000000000000000100 /* SourceBraid */,
+				A00000000000000000000200 /* SourceBraidShare */,
+				A00000000000000000000300 /* SourceBraidTests */,
+			);
+		};
+/* End PBXProject section */
+
+/* Begin PBXResourcesBuildPhase section */
+		A00000000000000000000103 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				B00000000000000000000010 /* Assets.xcassets in Resources */,
+				B00000000000000000000013 /* PrivacyInfo.xcprivacy in Resources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		A00000000000000000000203 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				B00000000000000000000111 /* SharePreprocessing.js in Resources */,
+				B00000000000000000000115 /* WebPageCapture.js in Resources */,
+				B00000000000000000000113 /* PrivacyInfo.xcprivacy in Resources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		A00000000000000000000303 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXResourcesBuildPhase section */
+
+/* Begin PBXSourcesBuildPhase section */
+		A00000000000000000000101 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				B00000000000000000000001 /* SourceBraidApp.swift in Sources */,
+				B00000000000000000000002 /* ContentView.swift in Sources */,
+				B00000000000000000000003 /* SettingsViewModel.swift in Sources */,
+				B00000000000000000000004 /* SourceBraidEnvironment.swift in Sources */,
+				B00000000000000000000005 /* SourceBraidConfiguration.swift in Sources */,
+				B00000000000000000000006 /* KeychainStore.swift in Sources */,
+				B00000000000000000000007 /* RecentCaptureStore.swift in Sources */,
+				B00000000000000000000008 /* ClipBuilder.swift in Sources */,
+				B00000000000000000000009 /* GitHubClient.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		A00000000000000000000201 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				B00000000000000000000101 /* ShareViewController.swift in Sources */,
+				B00000000000000000000102 /* ShareRootView.swift in Sources */,
+				B00000000000000000000103 /* ShareViewModel.swift in Sources */,
+				B00000000000000000000104 /* ShareInputResolver.swift in Sources */,
+				B00000000000000000000114 /* WebPageCapture.swift in Sources */,
+				B00000000000000000000105 /* SourceBraidEnvironment.swift in Sources */,
+				B00000000000000000000106 /* SourceBraidConfiguration.swift in Sources */,
+				B00000000000000000000107 /* KeychainStore.swift in Sources */,
+				B00000000000000000000108 /* RecentCaptureStore.swift in Sources */,
+				B00000000000000000000109 /* ClipBuilder.swift in Sources */,
+				B00000000000000000000110 /* GitHubClient.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		A00000000000000000000301 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				B00000000000000000000201 /* ClipBuilderTests.swift in Sources */,
+				B00000000000000000000202 /* SourceBraidConfiguration.swift in Sources */,
+				B00000000000000000000203 /* ClipBuilder.swift in Sources */,
+				B00000000000000000000205 /* SourceBraidEnvironment.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXSourcesBuildPhase section */
+
+/* Begin PBXTargetDependency section */
+		A00000000000000000000041 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = A00000000000000000000200 /* SourceBraidShare */;
+			targetProxy = A00000000000000000000040 /* PBXContainerItemProxy */;
+		};
+/* End PBXTargetDependency section */
+
+/* Begin XCBuildConfiguration section */
+		A00000000000000000000051 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				DEBUG_INFORMATION_FORMAT = dwarf;
+				ENABLE_TESTABILITY = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu17;
+				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
+				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
+				ONLY_ACTIVE_ARCH = YES;
+				SDKROOT = iphoneos;
+				SWIFT_ACTIVE_COMPILATION_CONDITIONS = "DEBUG $(inherited)";
+				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
+			};
+			name = Debug;
+		};
+		A00000000000000000000052 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				ENABLE_NS_ASSERTIONS = NO;
+				GCC_C_LANGUAGE_STANDARD = gnu17;
+				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
+				MTL_ENABLE_DEBUG_INFO = NO;
+				SDKROOT = iphoneos;
+				SWIFT_COMPILATION_MODE = wholemodule;
+				SWIFT_OPTIMIZATION_LEVEL = "-O";
+				VALIDATE_PRODUCT = YES;
+			};
+			name = Release;
+		};
+		A00000000000000000000111 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CODE_SIGN_ENTITLEMENTS = SourceBraid/Resources/SourceBraid.entitlements;
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 4;
+				DEVELOPMENT_TEAM = H76K2HQUFB;
+				ENABLE_PREVIEWS = YES;
+				GENERATE_INFOPLIST_FILE = NO;
+				INFOPLIST_FILE = SourceBraid/Resources/Info.plist;
+				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.productivity";
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
+				MARKETING_VERSION = 0.2.0;
+				PRODUCT_BUNDLE_IDENTIFIER = de.patrickschiller.sourcebraid;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
+				SUPPORTS_MACCATALYST = NO;
+				SUPPORTS_XR_DESIGNED_FOR_IPHONE_IPAD = NO;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Debug;
+		};
+		A00000000000000000000112 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CODE_SIGN_ENTITLEMENTS = SourceBraid/Resources/SourceBraid.entitlements;
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 4;
+				DEVELOPMENT_TEAM = H76K2HQUFB;
+				GENERATE_INFOPLIST_FILE = NO;
+				INFOPLIST_FILE = SourceBraid/Resources/Info.plist;
+				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.productivity";
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
+				MARKETING_VERSION = 0.2.0;
+				PRODUCT_BUNDLE_IDENTIFIER = de.patrickschiller.sourcebraid;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
+				SUPPORTS_MACCATALYST = NO;
+				SUPPORTS_XR_DESIGNED_FOR_IPHONE_IPAD = NO;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Release;
+		};
+		A00000000000000000000211 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				APPLICATION_EXTENSION_API_ONLY = YES;
+				CODE_SIGN_ENTITLEMENTS = SourceBraidShare/SourceBraidShare.entitlements;
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 4;
+				DEVELOPMENT_TEAM = H76K2HQUFB;
+				GENERATE_INFOPLIST_FILE = NO;
+				INFOPLIST_FILE = SourceBraidShare/Info.plist;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/../../Frameworks",
+				);
+				MARKETING_VERSION = 0.2.0;
+				PRODUCT_BUNDLE_IDENTIFIER = de.patrickschiller.sourcebraid.share;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SKIP_INSTALL = YES;
+				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
+				SUPPORTS_MACCATALYST = NO;
+				SUPPORTS_XR_DESIGNED_FOR_IPHONE_IPAD = NO;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Debug;
+		};
+		A00000000000000000000212 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				APPLICATION_EXTENSION_API_ONLY = YES;
+				CODE_SIGN_ENTITLEMENTS = SourceBraidShare/SourceBraidShare.entitlements;
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 4;
+				DEVELOPMENT_TEAM = H76K2HQUFB;
+				GENERATE_INFOPLIST_FILE = NO;
+				INFOPLIST_FILE = SourceBraidShare/Info.plist;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/../../Frameworks",
+				);
+				MARKETING_VERSION = 0.2.0;
+				PRODUCT_BUNDLE_IDENTIFIER = de.patrickschiller.sourcebraid.share;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SKIP_INSTALL = YES;
+				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
+				SUPPORTS_MACCATALYST = NO;
+				SUPPORTS_XR_DESIGNED_FOR_IPHONE_IPAD = NO;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Release;
+		};
+		A00000000000000000000311 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "";
+				CODE_SIGNING_ALLOWED = NO;
+				GENERATE_INFOPLIST_FILE = YES;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@loader_path/Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = de.patrickschiller.sourcebraid.tests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SUPPORTED_PLATFORMS = iphonesimulator;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				TEST_HOST = "";
+			};
+			name = Debug;
+		};
+		A00000000000000000000312 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "";
+				CODE_SIGNING_ALLOWED = NO;
+				GENERATE_INFOPLIST_FILE = YES;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@loader_path/Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = de.patrickschiller.sourcebraid.tests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SUPPORTED_PLATFORMS = iphonesimulator;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				TEST_HOST = "";
+			};
+			name = Release;
+		};
+/* End XCBuildConfiguration section */
+
+/* Begin XCConfigurationList section */
+		A00000000000000000000050 /* Build configuration list for PBXProject "SourceBraid" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				A00000000000000000000051 /* Debug */,
+				A00000000000000000000052 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		A00000000000000000000110 /* Build configuration list for PBXNativeTarget "SourceBraid" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				A00000000000000000000111 /* Debug */,
+				A00000000000000000000112 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		A00000000000000000000210 /* Build configuration list for PBXNativeTarget "SourceBraidShare" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				A00000000000000000000211 /* Debug */,
+				A00000000000000000000212 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		A00000000000000000000310 /* Build configuration list for PBXNativeTarget "SourceBraidTests" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				A00000000000000000000311 /* Debug */,
+				A00000000000000000000312 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+/* End XCConfigurationList section */
+	};
+	rootObject = A00000000000000000000001 /* Project object */;
+}

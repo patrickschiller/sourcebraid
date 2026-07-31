@@ -1,0 +1,11 @@
+.DS_Store
+__pycache__/
+*.py[cod]
+xcuserdata/
+*.xcuserstate
+
+# Release archives are published separately.
+dist/*.zip
+
+# Personal archives belong in a separate private repository.
+web-clips/

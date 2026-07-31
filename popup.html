@@ -1,0 +1,100 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>SourceBraid</title>
+    <link rel="stylesheet" href="popup.css">
+  </head>
+  <body>
+    <main>
+      <header>
+        <div class="header-copy">
+          <h1>SourceBraid</h1>
+          <p id="page-title">Current tab</p>
+        </div>
+        <button
+          id="settings-toggle"
+          class="icon-button"
+          type="button"
+          aria-label="GitHub settings"
+          aria-controls="settings"
+          aria-expanded="false"
+          title="GitHub settings"
+        ><span aria-hidden="true">&#9881;</span></button>
+      </header>
+
+      <section class="status" id="status">Ready to capture this page.</section>
+
+      <section class="settings" id="settings" aria-label="GitHub repository settings" hidden>
+        <h2>GitHub repository</h2>
+
+        <div class="settings-grid">
+          <label>
+            <span>Owner or org</span>
+            <input id="owner" type="text" autocomplete="off" placeholder="octocat">
+          </label>
+
+          <label>
+            <span>Repository</span>
+            <input id="repo" type="text" autocomplete="off" placeholder="sourcebraid-private">
+          </label>
+
+          <label>
+            <span>Branch</span>
+            <input id="branch" type="text" autocomplete="off" placeholder="main">
+          </label>
+
+          <label>
+            <span>Root folder</span>
+            <input id="root-folder" type="text" autocomplete="off" placeholder="web-clips">
+          </label>
+        </div>
+
+        <label>
+          <span>Fine-grained PAT</span>
+          <input id="token" type="password" autocomplete="off" placeholder="github_pat_...">
+        </label>
+
+        <h2>Optional source APIs</h2>
+
+        <label>
+          <span>Ghost Content API URL</span>
+          <input id="ghost-api-url" type="url" autocomplete="off" placeholder="https://example.com/ghost/api/content">
+        </label>
+
+        <label>
+          <span>Ghost Content API key</span>
+          <input id="ghost-api-key" type="password" autocomplete="off" placeholder="Browser-safe content key">
+        </label>
+
+        <label>
+          <span>Blogger API key</span>
+          <input id="blogger-api-key" type="password" autocomplete="off" placeholder="Optional Google API key">
+        </label>
+
+        <div class="settings-actions">
+          <button id="save-settings" class="secondary" type="button">Save Settings</button>
+          <button id="export-sourcebraid-config" class="secondary" type="button">Export Plugin Config</button>
+        </div>
+      </section>
+
+      <label>
+        <span>Tags</span>
+        <input id="tags" type="text" placeholder="ai, architecture, reading">
+      </label>
+
+      <label>
+        <span>Notes</span>
+        <textarea id="notes" rows="3" placeholder="Optional context for future searches"></textarea>
+      </label>
+
+      <div class="actions">
+        <button id="save" type="button">Save to GitHub</button>
+        <button id="download" class="secondary" type="button">Download Fallback</button>
+      </div>
+    </main>
+    <script src="capture-utils.js"></script>
+    <script src="popup.js"></script>
+  </body>
+</html>

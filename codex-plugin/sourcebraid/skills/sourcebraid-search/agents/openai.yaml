@@ -1,0 +1,4 @@
+interface:
+  display_name: "SourceBraid Search"
+  short_description: "Search your private SourceBraid archive"
+  default_prompt: "Use $sourcebraid-search to find sources in my private archive."

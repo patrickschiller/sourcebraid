@@ -1,0 +1,10 @@
+{
+  "mcpServers": {
+    "sourcebraid": {
+      "command": "python3",
+      "args": [
+        "./scripts/sourcebraid_mcp.py"
+      ]
+    }
+  }
+}

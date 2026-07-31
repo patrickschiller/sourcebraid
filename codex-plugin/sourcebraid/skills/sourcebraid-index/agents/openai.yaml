@@ -1,0 +1,4 @@
+interface:
+  display_name: "SourceBraid Index"
+  short_description: "Build and maintain the SourceBraid search index"
+  default_prompt: "Use $sourcebraid-index to update and verify my local SourceBraid search index."
