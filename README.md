@@ -4,6 +4,8 @@
 
 [Deutsche Dokumentation](README.de.md)
 
+![SourceBraid — Weave the web into Markdown.](assets/branding/sourcebraid-social-card.png)
+
 [SourceBraid](https://sourcebraid.com) saves articles, research papers, wiki
 pages, GitHub Gists, and PDF documents as durable Markdown in a private GitHub
 repository. Metadata lives in YAML frontmatter, relevant images become local
