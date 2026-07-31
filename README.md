@@ -93,6 +93,7 @@ index repair.
 | **Forem / DEV** | Forem API with source Markdown | Normalized Markdown without site chrome | Relevant images stored locally | Visible page content |
 | **Ghost** | Configured Ghost Content API | Structured post content with canonical URL validation | Relevant images stored locally | Visible page content |
 | **Blogger** | Blogger API using detected blog and post IDs | Structured article content | Relevant images stored locally | Visible page content |
+| **Google DeepMind blog** | Article sections from the page DOM | Full post without the cover controls or related-post cards | Article images stored locally | Generic visible-page extraction |
 | **JSON Feed, RSS, or Atom** | Feed announced by the HTML page | Full feed content when available | Relevant images stored locally | Visible page content |
 | **Generic HTML page** | Visible DOM, preferring `article`, `main`, or `[role="main"]` | Headings, paragraphs, links, lists, quotes, code, and tables | Content-relevant images stored locally | `body` as the final fallback |
 
@@ -109,8 +110,9 @@ adapters run in this order:
 6. Forem / DEV API
 7. Ghost Content API
 8. Blogger API
-9. JSON Feed, RSS, or Atom
-10. Visible DOM
+9. Google DeepMind blog DOM
+10. JSON Feed, RSS, or Atom
+11. Visible DOM
 
 The first matching, validated source wins. SourceBraid then normalizes the
 Markdown, downloads images, writes YAML frontmatter, and updates the index.
@@ -225,7 +227,9 @@ be loaded through the still-open Gist tab.
 
 After setup, GitHub settings stay collapsed behind the settings icon. If only
 the GitHub upload fails after successful extraction, the popup offers a
-**Download Fallback**.
+**Download Fallback**. Before an upload starts, SourceBraid verifies that the
+configured repository exists and is accessible to the token; the popup reports
+an explicit error when GitHub returns `404 Not Found`.
 
 ## GitHub token
 
