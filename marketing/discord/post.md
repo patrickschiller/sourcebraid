@@ -1,6 +1,8 @@
 # Discord post for `#use-cases`
 
-**SourceBraid — would you help shape a complete open-source release?**
+**SourceBraid — Weave the web into Markdown.**
+
+Would you help shape a complete open-source release?
 
 I’m preparing SourceBraid, a user-owned pipeline that turns useful web sources into durable Markdown in your own private GitHub repository — then makes that archive searchable from ChatGPT and Codex.
 
