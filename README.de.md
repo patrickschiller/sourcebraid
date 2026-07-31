@@ -62,6 +62,7 @@ Die Trennung zwischen GitHub-Archiv und lokalem Such-Cache ist für größere Sa
 | **Forem / DEV** | Forem API mit Quell-Markdown | Markdown wird normalisiert und ohne Seiten-Chrome gespeichert | Relevante Bilder werden lokal gespeichert | Sichtbarer Seiteninhalt |
 | **Ghost** | Konfigurierte Ghost Content API | Strukturierter Post-Inhalt; die kanonische URL wird vor der Übernahme geprüft | Relevante Bilder werden lokal gespeichert | Sichtbarer Seiteninhalt |
 | **Blogger** | Blogger API anhand erkannter Blog- und Post-IDs | Strukturierter Artikelinhalt | Relevante Bilder werden lokal gespeichert | Sichtbarer Seiteninhalt |
+| **Google-DeepMind-Blog** | Artikelsektionen aus dem Seiten-DOM | Vollständiger Beitrag ohne Cover-Bedienelemente und Karten verwandter Beiträge | Artikelbilder werden lokal gespeichert | Allgemeine Extraktion des sichtbaren Seiteninhalts |
 | **JSON Feed, RSS oder Atom** | Im HTML angekündigter Feed | Vollständiger Feed-Inhalt, sofern vorhanden | Relevante Bilder werden lokal gespeichert | Sichtbarer Seiteninhalt |
 | **Allgemeine HTML-Seite** | Sichtbarer DOM, bevorzugt `article`, `main` oder `[role="main"]` | Überschriften, Absätze, Links, Listen, Zitate, Codeblöcke und Tabellen | Inhaltlich relevante Bilder werden lokal gespeichert | `body` als letzte Rückfallstufe |
 
@@ -77,8 +78,9 @@ SourceBraid verwendet immer die inhaltlich hochwertigste verfügbare Quelle. Bei
 6. Forem / DEV API
 7. Ghost Content API
 8. Blogger API
-9. JSON Feed, RSS oder Atom
-10. sichtbarer DOM
+9. Google-DeepMind-Blog-DOM
+10. JSON Feed, RSS oder Atom
+11. sichtbarer DOM
 
 Die erste passende und validierte Quelle gewinnt. Anschließend normalisiert SourceBraid das Markdown, lädt Bilder herunter, schreibt das YAML-Frontmatter und aktualisiert den Index.
 
@@ -161,7 +163,7 @@ Bei einem Gist wird eine einzelne Markdown-Datei direkt als Dokumentinhalt gespe
 5. Eine unterstützte Quelle öffnen und auf das **SourceBraid**-Symbol klicken.
 6. GitHub-Repository konfigurieren, optional Tags oder Notizen ergänzen und **Save to GitHub** wählen.
 
-Nach der ersten Einrichtung bleiben die GitHub-Einstellungen hinter dem Einstellungssymbol im Popup verborgen. Scheitert nur der GitHub-Upload nach einer erfolgreichen Extraktion, steht im Popup **Download Fallback** zur Verfügung.
+Nach der ersten Einrichtung bleiben die GitHub-Einstellungen hinter dem Einstellungssymbol im Popup verborgen. Scheitert nur der GitHub-Upload nach einer erfolgreichen Extraktion, steht im Popup **Download Fallback** zur Verfügung. Vor dem Upload prüft SourceBraid, ob das konfigurierte Repository existiert und für den Token erreichbar ist; bei `404 Not Found` zeigt das Popup einen eindeutigen Fehler an.
 
 ## GitHub-Token
 
