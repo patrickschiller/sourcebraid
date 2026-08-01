@@ -176,8 +176,33 @@
     return candidates.sort(function (left, right) { return rootScore(right) - rootScore(left); })[0];
   }
 
-  var root = chooseRoot();
-  if (!root) return JSON.stringify({ title: document.title || "", url: location.href, markdown: "" });
+  function chooseGoogleDeepMindRoot() {
+    if (location.hostname.toLowerCase() !== "deepmind.google" || location.pathname.indexOf("/blog/") !== 0) {
+      return null;
+    }
+    var main = document.querySelector("main");
+    if (!main) return null;
+
+    var content = document.createElement("div");
+    Array.from(main.children).some(function (section) {
+      if (section.tagName !== "SECTION") return false;
+      var heading = cleanText((section.querySelector("h1, h2, h3") || {}).textContent || "");
+      if (/^related posts$/i.test(heading)) return true;
+      if (section.matches(".section-cover") || section.querySelector("h1")) return false;
+      var clone = section.cloneNode(true);
+      clone.querySelectorAll([
+        "script", "style", "nav", "aside", "form", "iframe", "noscript", "svg", "button", "[aria-label='Share']"
+      ].join(",")).forEach(function (node) { node.remove(); });
+      if (cleanText(clone.textContent).length >= 40 || clone.querySelector("img, video")) content.appendChild(clone);
+      return false;
+    });
+    return cleanText(content.textContent).length >= 500 ? content : null;
+  }
+
+  var specializedRoot = chooseGoogleDeepMindRoot();
+  var root = specializedRoot || chooseRoot();
+  var captureMethod = specializedRoot ? "google-deepmind-dom" : "dom-readable";
+  if (!root) return JSON.stringify({ title: document.title || "", url: location.href, markdown: "", captureMethod: captureMethod });
 
   var clone = root.cloneNode(true);
   clone.querySelectorAll([
@@ -198,6 +223,7 @@
   return JSON.stringify({
     title: title,
     url: location.href,
-    markdown: markdown
+    markdown: markdown,
+    captureMethod: captureMethod
   });
 })();

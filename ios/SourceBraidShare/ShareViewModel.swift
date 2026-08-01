@@ -83,7 +83,7 @@ final class ShareViewModel: ObservableObject {
                     let result = try await capture.capture(url: url)
                     input.articleText = result.markdown
                     input.articleContentFormat = "markdown"
-                    input.articleCaptureMethod = "ios-share-web"
+                    input.articleCaptureMethod = result.captureMethod
                     if input.suggestedTitle.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
                         input.suggestedTitle = result.title
                     }

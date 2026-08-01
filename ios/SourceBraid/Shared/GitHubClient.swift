@@ -14,6 +14,13 @@ struct GitHubClient {
     }
 
     func save(_ draft: CaptureDraft) async throws {
+        if draft.indexEntry.captureMethod == "pdf-docling-pending", let attachment = draft.attachment {
+            // The PDF push triggers the conversion workflow, so its metadata must exist first.
+            try await putReplacing(path: draft.path, data: Data(draft.markdown.utf8), message: "Queue PDF SourceBraid capture: \(draft.title)")
+            try await updateIndex(with: draft.indexEntry)
+            try await putReplacing(path: attachment.path, data: attachment.data, message: "Queue SourceBraid PDF: \(draft.title)")
+            return
+        }
         if let attachment = draft.attachment {
             try await putReplacing(path: attachment.path, data: attachment.data, message: "Save SourceBraid attachment: \(draft.title)")
         }

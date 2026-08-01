@@ -23,7 +23,7 @@
     <key>ITSAppUsesNonExemptEncryption</key>
     <false/>
     <key>SourceBraidKeychainAccessGroup</key>
-    <string>$(AppIdentifierPrefix)de.patrickschiller.sourcebraid.shared</string>
+    <string>$(AppIdentifierPrefix)de.patrickschiller.stowmark.shared</string>
     <key>UILaunchScreen</key>
     <dict/>
     <key>UISupportedInterfaceOrientations</key>
