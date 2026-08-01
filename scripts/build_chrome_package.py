@@ -12,8 +12,17 @@ import zipfile
 from pathlib import Path, PurePosixPath
 
 
-PACKAGE_FILES = (
+EXTENSION_DIRECTORY = PurePosixPath("chrome-extension/sourcebraid")
+
+PDF_SUPPORT_FILES = (
     ".github/workflows/convert-pdfs.yml",
+    "requirements-docling.txt",
+    "scripts/convert_pdfs.py",
+    "scripts/push_with_retry.py",
+)
+
+PACKAGE_FILES = (
+    *PDF_SUPPORT_FILES,
     "background.js",
     "capture-utils.js",
     "content.js",
@@ -25,9 +34,6 @@ PACKAGE_FILES = (
     "popup.css",
     "popup.html",
     "popup.js",
-    "requirements-docling.txt",
-    "scripts/convert_pdfs.py",
-    "scripts/push_with_retry.py",
 )
 
 VERSION_PATTERN = re.compile(r"^(?:0|[1-9]\d*)(?:\.(?:0|[1-9]\d*)){0,3}$")
@@ -38,7 +44,7 @@ class PackageError(RuntimeError):
 
 
 def validated_manifest(repository_root: Path) -> dict[str, object]:
-    manifest_path = repository_root / "manifest.json"
+    manifest_path = repository_root.joinpath(*EXTENSION_DIRECTORY.parts, "manifest.json")
     try:
         manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
     except (OSError, json.JSONDecodeError) as error:
@@ -57,11 +63,12 @@ def validated_manifest(repository_root: Path) -> dict[str, object]:
 
 def validated_package_files(repository_root: Path) -> list[tuple[Path, str]]:
     files: list[tuple[Path, str]] = []
+    extension_root = repository_root.joinpath(*EXTENSION_DIRECTORY.parts)
     for archive_name in PACKAGE_FILES:
         relative = PurePosixPath(archive_name)
         if relative.is_absolute() or ".." in relative.parts:
             raise PackageError(f"unsafe package path: {archive_name}")
-        source = repository_root.joinpath(*relative.parts)
+        source = extension_root.joinpath(*relative.parts)
         if source.is_symlink():
             raise PackageError(f"refusing to package symlink: {archive_name}")
         if not source.is_file():
@@ -106,7 +113,10 @@ def parser() -> argparse.ArgumentParser:
         "--repository-root",
         type=Path,
         default=Path(__file__).resolve().parents[1],
-        help="SourceBraid repository root (defaults to the parent of scripts/).",
+        help=(
+            "SourceBraid repository root containing chrome-extension/sourcebraid "
+            "(defaults to the parent of scripts/)."
+        ),
     )
     result.add_argument(
         "--output",
