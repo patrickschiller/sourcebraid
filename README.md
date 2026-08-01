@@ -220,7 +220,7 @@ be loaded through the still-open Gist tab.
 1. Open `chrome://extensions`.
 2. Enable **Developer mode**.
 3. Select **Load unpacked**.
-4. Choose this repository folder.
+4. Choose [`chrome-extension/sourcebraid`](chrome-extension/sourcebraid).
 5. Open a supported source and select the **SourceBraid** icon.
 6. Configure the private GitHub repository, optionally add tags or notes, and
    choose **Save to GitHub**.
@@ -331,7 +331,9 @@ the local, user-controlled data flow and licensing boundaries.
 
 ## Technical notes
 
-The Chrome extension has no build step and bundles no third-party runtime.
-Docling runs only inside the target repository's GitHub Action. HTML conversion
-happens locally in the extension; API and image requests use either ordinary
-HTTP or the browser's existing authenticated session, depending on the source.
+The Chrome extension source lives under
+[`chrome-extension/sourcebraid`](chrome-extension/sourcebraid). It has no build
+step and bundles no third-party runtime. Docling runs only inside the target
+repository's GitHub Action. HTML conversion happens locally in the extension;
+API and image requests use either ordinary HTTP or the browser's existing
+authenticated session, depending on the source.

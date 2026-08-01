@@ -159,7 +159,7 @@ Bei einem Gist wird eine einzelne Markdown-Datei direkt als Dokumentinhalt gespe
 1. `chrome://extensions` öffnen.
 2. **Entwicklermodus** aktivieren.
 3. **Entpackte Erweiterung laden** auswählen.
-4. Diesen Ordner auswählen.
+4. [`chrome-extension/sourcebraid`](chrome-extension/sourcebraid) auswählen.
 5. Eine unterstützte Quelle öffnen und auf das **SourceBraid**-Symbol klicken.
 6. GitHub-Repository konfigurieren, optional Tags oder Notizen ergänzen und **Save to GitHub** wählen.
 
@@ -248,4 +248,10 @@ Die native iOS-App und Share Extension liegen unter [`ios/`](ios/README.md). Nac
 
 ## Technische Hinweise
 
-Die Chrome-Erweiterung benötigt keinen Build-Schritt und bündelt keine Drittanbieter-Runtime. Docling läuft ausschließlich in der GitHub Action des Ziel-Repositorys. Die HTML-Konvertierung erfolgt lokal in der Erweiterung; API- und Bildzugriffe nutzen je nach Quelle entweder normale HTTP-Anfragen oder die vorhandene angemeldete Browser-Sitzung.
+Der Quellcode der Chrome-Erweiterung liegt unter
+[`chrome-extension/sourcebraid`](chrome-extension/sourcebraid). Die Erweiterung
+benötigt keinen Build-Schritt und bündelt keine Drittanbieter-Runtime. Docling
+läuft ausschließlich in der GitHub Action des Ziel-Repositorys. Die
+HTML-Konvertierung erfolgt lokal in der Erweiterung; API- und Bildzugriffe
+nutzen je nach Quelle entweder normale HTTP-Anfragen oder die vorhandene
+angemeldete Browser-Sitzung.

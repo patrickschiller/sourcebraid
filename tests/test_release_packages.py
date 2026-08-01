@@ -31,12 +31,13 @@ class ChromePackageTests(unittest.TestCase):
     def test_build_uses_only_the_explicit_allowlist(self):
         with tempfile.TemporaryDirectory() as directory:
             root = Path(directory)
+            extension_root = root.joinpath(*chrome_package.EXTENSION_DIRECTORY.parts)
             manifest = {"manifest_version": 3, "name": "SourceBraid", "version": "1.2.3"}
             for relative in chrome_package.PACKAGE_FILES:
-                target = root / relative
+                target = extension_root / relative
                 target.parent.mkdir(parents=True, exist_ok=True)
                 target.write_bytes(b"fixture")
-            (root / "manifest.json").write_text(json.dumps(manifest), encoding="utf-8")
+            (extension_root / "manifest.json").write_text(json.dumps(manifest), encoding="utf-8")
             (root / "web-clips" / "private.md").parent.mkdir(parents=True)
             (root / "web-clips" / "private.md").write_text("secret", encoding="utf-8")
             output = root / "dist" / "sourcebraid.zip"
@@ -52,19 +53,30 @@ class ChromePackageTests(unittest.TestCase):
     def test_symlink_is_rejected(self):
         with tempfile.TemporaryDirectory() as directory:
             root = Path(directory)
+            extension_root = root.joinpath(*chrome_package.EXTENSION_DIRECTORY.parts)
             for relative in chrome_package.PACKAGE_FILES:
-                target = root / relative
+                target = extension_root / relative
                 target.parent.mkdir(parents=True, exist_ok=True)
                 target.write_bytes(b"fixture")
-            (root / "manifest.json").write_text(
+            (extension_root / "manifest.json").write_text(
                 json.dumps({"manifest_version": 3, "name": "SourceBraid", "version": "1.0.0"}),
                 encoding="utf-8",
             )
-            (root / "content.js").unlink()
-            (root / "content.js").symlink_to(root / "background.js")
+            (extension_root / "content.js").unlink()
+            (extension_root / "content.js").symlink_to(extension_root / "background.js")
 
             with self.assertRaises(chrome_package.PackageError):
                 chrome_package.validated_package_files(root)
+
+    def test_bundled_pdf_support_matches_the_canonical_files(self):
+        extension_root = REPOSITORY_ROOT.joinpath(*chrome_package.EXTENSION_DIRECTORY.parts)
+
+        for relative in chrome_package.PDF_SUPPORT_FILES:
+            with self.subTest(path=relative):
+                self.assertEqual(
+                    (extension_root / relative).read_bytes(),
+                    (REPOSITORY_ROOT / relative).read_bytes(),
+                )
 
 
 class PluginPackageTests(unittest.TestCase):
