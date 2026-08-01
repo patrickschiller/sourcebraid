@@ -45,16 +45,22 @@ struct SourceBraidIndexEntry: Encodable {
     let captureMethod: String
     let sourceType: String
     let contentFormat: String
+    let conversionStatus: String?
+    let converter: String?
     let capturedAt: String
     let attachmentPath: String?
+    let pdfPath: String?
 
     enum CodingKeys: String, CodingKey {
         case title, url, path, date, tags, source
         case captureMethod = "capture_method"
         case sourceType = "source_type"
         case contentFormat = "content_format"
+        case conversionStatus = "conversion_status"
+        case converter
         case capturedAt = "captured_at"
         case attachmentPath = "attachment_path"
+        case pdfPath = "pdf_path"
     }
 }
 
@@ -90,11 +96,16 @@ enum ClipBuilder {
         let captureMethod: String
         let sourceType: String
         let contentFormat: String
+        let queuesPDFConversion = input.fileData != nil && input.mimeType == "application/pdf"
 
-        if input.fileData != nil {
+        if queuesPDFConversion {
+            captureMethod = "pdf-docling-pending"
+            sourceType = "pdf"
+            contentFormat = "pdf"
+        } else if input.fileData != nil {
             captureMethod = "ios-share-file"
             sourceType = "document"
-            contentFormat = input.mimeType == "application/pdf" ? "pdf" : "file"
+            contentFormat = "file"
         } else if !input.articleText.trimmed.isEmpty {
             captureMethod = input.articleCaptureMethod ?? "ios-share-safari"
             sourceType = "article"
@@ -113,7 +124,8 @@ enum ClipBuilder {
         if let data = input.fileData {
             let ext = safeFileExtension(input.filename, mimeType: input.mimeType)
             let clipSlug = path.split(separator: "/").last.map(String.init)?.replacingOccurrences(of: ".md", with: "") ?? "document"
-            let attachmentPath = "\(normalizedConfiguration.rootFolder)/\(captureDate.prefix(4))/\(captureDate.dropFirst(5).prefix(2))/assets/\(clipSlug)/original.\(ext)"
+            let attachmentName = queuesPDFConversion ? "source.pdf" : "original.\(ext)"
+            let attachmentPath = "\(normalizedConfiguration.rootFolder)/\(captureDate.prefix(4))/\(captureDate.dropFirst(5).prefix(2))/assets/\(clipSlug)/\(attachmentName)"
             attachment = CaptureAttachment(path: attachmentPath, data: data)
         } else {
             attachment = nil
@@ -129,6 +141,7 @@ enum ClipBuilder {
             captureMethod: captureMethod,
             sourceType: sourceType,
             contentFormat: contentFormat,
+            queuesPDFConversion: queuesPDFConversion,
             tags: tags,
             notes: notes,
             attachmentPath: attachment?.path,
@@ -144,8 +157,11 @@ enum ClipBuilder {
             captureMethod: captureMethod,
             sourceType: sourceType,
             contentFormat: contentFormat,
+            conversionStatus: queuesPDFConversion ? "pending" : nil,
+            converter: queuesPDFConversion ? "docling" : nil,
             capturedAt: capturedAt,
-            attachmentPath: attachment?.path
+            attachmentPath: queuesPDFConversion ? nil : attachment?.path,
+            pdfPath: queuesPDFConversion ? attachment?.path : nil
         )
         return CaptureDraft(title: title, path: path, markdown: markdown, indexEntry: entry, attachment: attachment)
     }
@@ -168,6 +184,7 @@ enum ClipBuilder {
         captureMethod: String,
         sourceType: String,
         contentFormat: String,
+        queuesPDFConversion: Bool,
         tags: [String],
         notes: String,
         attachmentPath: String?,
@@ -184,7 +201,11 @@ enum ClipBuilder {
             "source_type: \(yamlQuote(sourceType))",
             "content_format: \(yamlQuote(contentFormat))"
         ]
-        if let attachmentPath {
+        if queuesPDFConversion, let attachmentPath {
+            lines.append("conversion_status: \(yamlQuote("pending"))")
+            lines.append("converter: \(yamlQuote("docling"))")
+            lines.append("pdf_path: \(yamlQuote(attachmentPath))")
+        } else if let attachmentPath {
             lines.append("attachment_path: \(yamlQuote(attachmentPath))")
         }
         if !tags.isEmpty {
@@ -208,7 +229,9 @@ enum ClipBuilder {
         if let url = input.url {
             lines.append(contentsOf: ["[Open original source](\(url.absoluteString))", ""])
         }
-        if let attachmentPath {
+        if queuesPDFConversion {
+            lines.append(contentsOf: ["> The original PDF has been uploaded. GitHub Actions will replace this placeholder with Docling Markdown.", ""])
+        } else if let attachmentPath {
             lines.append(contentsOf: ["[Open saved attachment](\(relativePath(from: markdownPath, to: attachmentPath)))", ""])
         }
 

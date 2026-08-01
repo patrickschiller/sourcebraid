@@ -56,9 +56,16 @@ final class ClipBuilderTests: XCTestCase {
         )
 
         XCTAssertEqual(draft.attachment?.data, Data("pdf".utf8))
-        XCTAssertEqual(draft.attachment?.path.split(separator: ".").last, "pdf")
-        XCTAssertTrue(draft.markdown.contains("[Open saved attachment](assets/"))
+        XCTAssertTrue(draft.attachment?.path.hasSuffix("/source.pdf") == true)
+        XCTAssertTrue(draft.markdown.contains("capture_method: \"pdf-docling-pending\""))
         XCTAssertTrue(draft.markdown.contains("content_format: \"pdf\""))
+        XCTAssertTrue(draft.markdown.contains("conversion_status: \"pending\""))
+        XCTAssertTrue(draft.markdown.contains("converter: \"docling\""))
+        XCTAssertTrue(draft.markdown.contains("pdf_path: \"") && draft.markdown.contains("/source.pdf\""))
+        XCTAssertEqual(draft.indexEntry.captureMethod, "pdf-docling-pending")
+        XCTAssertEqual(draft.indexEntry.conversionStatus, "pending")
+        XCTAssertEqual(draft.indexEntry.converter, "docling")
+        XCTAssertEqual(draft.indexEntry.pdfPath, draft.attachment?.path)
     }
 
     func testFetchedWebCaptureStoresMarkdownMetadataAndBody() throws {
@@ -68,7 +75,7 @@ final class ClipBuilderTests: XCTestCase {
             sharedText: "https://blog.example.com/article",
             articleText: "## Introduction\n\nA [useful link](https://example.com).",
             articleContentFormat: "markdown",
-            articleCaptureMethod: "ios-share-web",
+            articleCaptureMethod: "dom-readable",
             fileData: nil,
             filename: nil,
             mimeType: nil
@@ -83,7 +90,7 @@ final class ClipBuilderTests: XCTestCase {
             now: date
         )
 
-        XCTAssertTrue(draft.markdown.contains("capture_method: \"ios-share-web\""))
+        XCTAssertTrue(draft.markdown.contains("capture_method: \"dom-readable\""))
         XCTAssertTrue(draft.markdown.contains("content_format: \"markdown\""))
         XCTAssertTrue(draft.markdown.contains("## Captured content\n\n## Introduction"))
         XCTAssertFalse(draft.markdown.contains("## Shared text"))

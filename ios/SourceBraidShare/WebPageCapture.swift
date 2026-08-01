@@ -5,6 +5,7 @@ struct WebPageCaptureResult: Decodable {
     let title: String
     let url: String
     let markdown: String
+    let captureMethod: String
 }
 
 @MainActor
