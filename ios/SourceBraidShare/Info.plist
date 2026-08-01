@@ -19,7 +19,7 @@
     <key>CFBundleVersion</key>
     <string>$(CURRENT_PROJECT_VERSION)</string>
     <key>SourceBraidKeychainAccessGroup</key>
-    <string>$(AppIdentifierPrefix)de.patrickschiller.sourcebraid.shared</string>
+    <string>$(AppIdentifierPrefix)de.patrickschiller.stowmark.shared</string>
     <key>NSExtension</key>
     <dict>
         <key>NSExtensionAttributes</key>
