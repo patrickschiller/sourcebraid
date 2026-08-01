@@ -237,6 +237,8 @@ Hinweise für Beiträge und den DCO-Sign-off stehen in
 [CONTRIBUTING.md](CONTRIBUTING.md). Der
 [Verhaltenskodex](CODE_OF_CONDUCT.md) regelt die Zusammenarbeit, die
 [Security Policy](SECURITY.md) die vertrauliche Meldung von Schwachstellen.
+Der [öffentliche Release-Prozess](RELEASING.md) beschreibt Versionierung,
+Prüfungen und reproduzierbare Release-Artefakte.
 [Datenschutz](PRIVACY.md), [Nutzungsbedingungen](TERMS.md) und der
 [Hinweis](NOTICE) dokumentieren Datenfluss und Lizenzgrenzen.
 
