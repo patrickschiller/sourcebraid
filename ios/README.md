@@ -8,8 +8,8 @@ The iOS project contains a SwiftUI configuration app and a native Share Extensio
 2. Select the **SourceBraid** project and the **SourceBraid** target.
 3. Under **Signing & Capabilities**, select your Apple Developer team.
 4. Repeat for the **SourceBraidShare** target.
-5. The existing TestFlight app keeps its pre-rebrand bundle identifiers `de.patrickschiller.stowmark` and `de.patrickschiller.stowmark.share`; changing them would create a different app instead of an update.
-6. Keep the pre-rebrand App Group identical in both targets: `group.de.patrickschiller.stowmark`. This preserves settings and Keychain access across the SourceBraid rename.
+5. Register or select the SourceBraid bundle identifiers `de.patrickschiller.sourcebraid` and `de.patrickschiller.sourcebraid.share`.
+6. Register the App Group `group.de.patrickschiller.sourcebraid`, enable it for both targets, and keep the shared Keychain access group aligned with the entitlements.
 7. Run the SourceBraid app on your iPhone once and configure GitHub.
 
 The fine-grained GitHub token needs `Contents: Read and write` for the private SourceBraid repository. It is stored in a Keychain access group shared only by the app and extension.
@@ -38,9 +38,9 @@ xcodebuild \
   -allowProvisioningUpdates
 ```
 
-The export options upload the archive directly to App Store Connect. The existing
-app record uses bundle ID `de.patrickschiller.stowmark`; its customer-facing name
-is **SourceBraid**.
+The export options upload the archive directly to App Store Connect. Create the
+initial app record with bundle ID `de.patrickschiller.sourcebraid` and the
+customer-facing name **SourceBraid** before the first upload.
 
 ## Use
 
