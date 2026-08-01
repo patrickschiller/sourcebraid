@@ -2,8 +2,8 @@ import Foundation
 
 enum SourceBraidEnvironment {
     // Keep the pre-rebrand identifiers so TestFlight upgrades retain settings and credentials.
-    static let appGroupIdentifier = "group.de.patrickschiller.stowmark"
-    static let keychainService = "de.patrickschiller.stowmark"
+    static let appGroupIdentifier = "group.de.patrickschiller.sourcebraid"
+    static let keychainService = "de.patrickschiller.sourcebraid"
     static let keychainAccount = "github-token"
     static let recentCapturesKey = "recent-captures"
 

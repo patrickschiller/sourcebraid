@@ -324,6 +324,8 @@ SourceBraid is fully open source under the [MIT License](LICENSE). See
 [CONTRIBUTING.md](CONTRIBUTING.md) for contribution guidance and DCO sign-off,
 the [Code of Conduct](CODE_OF_CONDUCT.md) for community standards, and the
 [Security Policy](SECURITY.md) for private vulnerability reporting. The
+[public release process](RELEASING.md) documents versioning, validation, and
+reproducible release artifacts. The
 [privacy notice](PRIVACY.md), [terms](TERMS.md), and [notice](NOTICE) document
 the local, user-controlled data flow and licensing boundaries.
 
