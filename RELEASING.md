@@ -26,7 +26,7 @@ customer-facing version unless the maintainers document a different decision.
 Before creating the first release candidate, align these customer-facing
 versions:
 
-- Chrome: `version` in `manifest.json`.
+- Chrome: `version` in `chrome-extension/sourcebraid/manifest.json`.
 - ChatGPT/Codex skills package: `version` in
   `codex-plugin/sourcebraid/.codex-plugin/plugin.json`.
 - iOS app and Share Extension: `MARKETING_VERSION` in
@@ -71,7 +71,8 @@ changes.
 
 ## Chrome package
 
-Build the Manifest V3 archive from its explicit allowlist:
+The unpacked extension source lives in `chrome-extension/sourcebraid`. Build the
+Manifest V3 archive from its explicit allowlist:
 
 ```bash
 python3 scripts/build_chrome_package.py

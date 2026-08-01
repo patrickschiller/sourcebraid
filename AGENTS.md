@@ -29,10 +29,12 @@ These instructions apply to human contributors and automated coding agents.
 
 ## Project map
 
-- Chrome extension: root-level `manifest.json`, HTML, CSS, and JavaScript files.
-- Shared capture behavior and tests: `capture-utils.js` and `tests/`.
+- Chrome extension: `chrome-extension/sourcebraid/`.
+- Shared capture behavior and tests:
+  `chrome-extension/sourcebraid/capture-utils.js` and `tests/`.
 - PDF conversion: `scripts/`, `requirements-docling.txt`, and
-  `.github/workflows/convert-pdfs.yml`.
+  `.github/workflows/convert-pdfs.yml`; the Chrome extension contains verified
+  bundled copies of these support files for unpacked development and releases.
 - ChatGPT/Codex plugin: `codex-plugin/sourcebraid/`.
 - iOS app and Share Extension: `ios/`.
 - Public documentation and community policy: root Markdown files and `.github/`.

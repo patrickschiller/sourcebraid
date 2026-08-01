@@ -1,0 +1,62 @@
+# Managed by SourceBraid PDF support.
+name: Convert PDFs to Markdown
+
+on:
+  push:
+    paths:
+      - "**/assets/*/source.pdf"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: pdf-conversion-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  convert:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+          cache-dependency-path: requirements-docling.txt
+
+      - name: Install Docling
+        run: python -m pip install --requirement requirements-docling.txt
+
+      - name: Convert queued PDFs
+        if: github.event_name == 'push'
+        run: >-
+          python scripts/convert_pdfs.py
+          --before "${{ github.event.before }}"
+          --after "${{ github.sha }}"
+
+      - name: Convert all queued PDFs
+        if: github.event_name == 'workflow_dispatch'
+        run: python scripts/convert_pdfs.py --all
+
+      - name: Commit converted Markdown
+        run: |
+          git add --all
+          if git diff --cached --quiet; then
+            echo "No converted files changed."
+            exit 0
+          fi
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git commit -m "Convert queued PDFs to Markdown"
+          python scripts/push_with_retry.py \
+            --branch "${GITHUB_REF_NAME}" \
+            --attempts 5 \
+            --delay-seconds 2

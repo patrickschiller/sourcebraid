@@ -4,7 +4,8 @@ const path = require("node:path");
 const test = require("node:test");
 const vm = require("node:vm");
 
-const Core = require("../capture-utils.js");
+const extensionRoot = path.join(__dirname, "..", "chrome-extension", "sourcebraid");
+const Core = require(path.join(extensionRoot, "capture-utils.js"));
 
 test("buildGitHubPath keeps the configured root and local capture date", () => {
   assert.equal(
@@ -229,7 +230,7 @@ test("GitHub saves reject an unavailable target repository before reading archiv
   };
   context.globalThis = context;
   context.SourceBraidCore = Core;
-  vm.runInNewContext(fs.readFileSync(path.join(__dirname, "..", "background.js"), "utf8"), context);
+  vm.runInNewContext(fs.readFileSync(path.join(extensionRoot, "background.js"), "utf8"), context);
 
   await assert.rejects(
     context.ensureGitHubRepository({ owner: "missing-owner", repo: "missing-repo", token: "test-token" }),
@@ -286,7 +287,7 @@ test("DeepMind blog capture excludes cover and related-post cards", () => {
   };
   context.globalThis = context;
   context.SourceBraidCore = Core;
-  vm.runInNewContext(fs.readFileSync(path.join(__dirname, "..", "content.js"), "utf8"), context);
+  vm.runInNewContext(fs.readFileSync(path.join(extensionRoot, "content.js"), "utf8"), context);
 
   const result = context.tryGoogleDeepMindBlog({
     pageUrl: "https://deepmind.google/blog/example/",

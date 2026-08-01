@@ -66,9 +66,10 @@ node --test tests/capture-utils.test.js
 python3 -m unittest discover -s tests -p "test_*.py"
 ```
 
-The Chrome extension uses Manifest V3 and has no build step. Load the repository
-as an unpacked extension for manual browser testing. The iOS app and Share
-Extension require Xcode; see [ios/README.md](ios/README.md) for build commands.
+The Chrome extension uses Manifest V3 and has no build step. Load
+`chrome-extension/sourcebraid` as an unpacked extension for manual browser
+testing. The iOS app and Share Extension require Xcode; see
+[ios/README.md](ios/README.md) for build commands.
 
 The website is maintained separately from the public release. Maintainers with
 access to its private source can validate it with:
