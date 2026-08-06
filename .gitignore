@@ -3,6 +3,7 @@ __pycache__/
 *.py[cod]
 xcuserdata/
 *.xcuserstate
+ios/build/
 
 # Release archives are published separately.
 dist/*.zip
