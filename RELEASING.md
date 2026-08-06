@@ -57,7 +57,8 @@ python3 -m unittest discover -s tests -p "test_*.py"
 Run the unsigned iOS build from `ios/`:
 
 ```bash
-xcodebuild \
+python3 ../scripts/validate_ios_release.py
+DEVELOPER_DIR=/Applications/Xcode.app/Contents/Developer xcodebuild \
   -project SourceBraid.xcodeproj \
   -scheme SourceBraid \
   -sdk iphonesimulator \
@@ -103,7 +104,10 @@ Local repository installations can continue to use the complete plugin source.
 Confirm that the SourceBraid bundle identifiers, App Group, and Keychain access
 group are registered for the selected Apple Developer team before enabling
 signing. First validate the unsigned simulator build above. Then use the archive
-and export commands in [`ios/README.md`](ios/README.md).
+and export commands in [`ios/README.md`](ios/README.md). Validate the archived
+`.app` with `scripts/validate_ios_release.py --app-bundle PATH` before uploading
+it. This catches stale icons and mismatched app/extension versions in the actual
+package rather than only checking the Xcode sources.
 
 Signing and App Store upload credentials are not part of this repository. Never
 commit provisioning profiles, certificates, export credentials, review tokens,

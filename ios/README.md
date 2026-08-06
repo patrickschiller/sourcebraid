@@ -17,12 +17,22 @@ The fine-grained GitHub token needs `Contents: Read and write` for the private S
 ## TestFlight
 
 The project uses automatic distribution signing for Apple Developer team
-`H76K2HQUFB`. Before each upload, increment `CURRENT_PROJECT_VERSION` for both
-the app and Share Extension. Then archive and upload from Xcode's Organizer, or
-run:
+`H76K2HQUFB`. The first App Store candidate is version `1.0.0` (build `6`) for
+both the app and Share Extension and contains the refreshed SourceBraid app
+icon. Before every later upload, increment `CURRENT_PROJECT_VERSION` for both
+targets.
+
+Run the release preflight from the repository root before archiving:
 
 ```bash
-xcodebuild \
+python3 scripts/validate_ios_release.py
+```
+
+Use a stable Xcode release accepted by App Store Connect. If `xcode-select`
+currently points at a beta, select the stable installation for each command:
+
+```bash
+DEVELOPER_DIR=/Applications/Xcode.app/Contents/Developer xcodebuild \
   -project SourceBraid.xcodeproj \
   -scheme SourceBraid \
   -configuration Release \
@@ -31,7 +41,7 @@ xcodebuild \
   -allowProvisioningUpdates \
   archive
 
-xcodebuild \
+DEVELOPER_DIR=/Applications/Xcode.app/Contents/Developer xcodebuild \
   -exportArchive \
   -archivePath build/SourceBraid.xcarchive \
   -exportOptionsPlist ExportOptions.plist \
@@ -41,6 +51,15 @@ xcodebuild \
 The export options upload the archive directly to App Store Connect. Create the
 initial app record with bundle ID `de.patrickschiller.sourcebraid` and the
 customer-facing name **SourceBraid** before the first upload.
+
+After archiving and before uploading, validate the exact packaged app, including
+its generated icon references, embedded Share Extension, privacy manifests,
+bundle identifiers, version, and build number:
+
+```bash
+python3 ../scripts/validate_ios_release.py \
+  --app-bundle build/SourceBraid.xcarchive/Products/Applications/SourceBraid.app
+```
 
 ## Use
 
