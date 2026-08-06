@@ -17,7 +17,7 @@ The fine-grained GitHub token needs `Contents: Read and write` for the private S
 ## TestFlight
 
 The project uses automatic distribution signing for Apple Developer team
-`H76K2HQUFB`. The first App Store candidate is version `1.0.0` (build `6`) for
+`H76K2HQUFB`. The current App Store candidate is version `1.0.0` (build `9`) for
 both the app and Share Extension and contains the refreshed SourceBraid app
 icon. Before every later upload, increment `CURRENT_PROJECT_VERSION` for both
 targets.
