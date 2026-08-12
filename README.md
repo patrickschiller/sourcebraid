@@ -88,7 +88,7 @@ index repair.
 | **Remote or local PDF** | Original PDF plus asynchronous Docling workflow in GitHub Actions | Reading order, tables, OCR text, and referenced figures; starts as `pending`, then becomes finished Markdown | The original remains as `source.pdf`; extracted figures sit beside it | Local PDFs require Chrome's **Allow access to file URLs** setting; encrypted or session-only PDFs are unsupported |
 | **Azure DevOps Wiki** | Authenticated Wiki REST API returns source Markdown | Azure macros are normalized, Mermaid remains a `mermaid` code block, internal wiki links become absolute | Protected attachments are loaded through the still-authenticated source tab | Rendered `.markdown-content` area |
 | **GitHub Gist** | GitHub Gist API, with the configured token for private Gists | A single Markdown file directly; multiple files as sections; source code in language-tagged fences | Public images directly, protected GitHub images through the signed-in Gist tab | Revision-specific URLs keep their revision |
-| **Native Markdown** | HTTP response to `Accept: text/markdown` | Source frontmatter and duplicate H1 removed; relative links made absolute | Relevant images are stored locally and linked relatively | Continue through dedicated APIs, then DOM extraction |
+| **Native Markdown** | HTTP response to `Accept: text/markdown`, for example from Hashnode or appropriately configured Cloudflare sites | Source frontmatter and duplicate H1 removed; relative links made absolute | Relevant images are stored locally and linked relatively | Continue through dedicated APIs, then DOM extraction |
 | **WordPress** | WordPress REST endpoint discovered from page metadata | Article content converted from structured API data | Relevant article images stored locally | Visible page content |
 | **Forem / DEV** | Forem API with source Markdown | Normalized Markdown without site chrome | Relevant images stored locally | Visible page content |
 | **Ghost** | Configured Ghost Content API | Structured post content with canonical URL validation | Relevant images stored locally | Visible page content |
@@ -148,6 +148,8 @@ metadata collection on each capture. Existing archives with
 the plugin. Each entry includes title, canonical URL, repository path, capture
 date, optional publication and modification dates, tags, source type,
 extraction method, capture timestamp, and saved image paths.
+`date` and the `YYYY/MM` path use the local capture date; a source's publication
+date remains separate in `published`.
 
 ## Research papers and PDFs
 
@@ -203,7 +205,8 @@ not navigation, headers, or unrelated Azure DevOps UI.
 Protected attachment URLs may need the browser's signed-in session, so
 SourceBraid loads images sequentially through the open source tab, stores them
 in the asset folder, and rewrites links to relative repository paths. Keep the
-source tab open until capture completes.
+source tab open until capture completes. The frontmatter records the
+organization, project, wiki ID, page ID, page path, and revision when available.
 
 ### GitHub Gists
 
@@ -248,8 +251,10 @@ The token is stored locally in Chrome extension storage.
 
 Optional API configuration:
 
-- Ghost Content API: base URL plus a browser-safe Content API key
-- Blogger: optional Google API key for anonymous public API quota
+- Ghost Content API: base URL, such as `https://example.com/ghost/api/content`,
+  plus a browser-safe Content API key
+- Blogger: optional Google API key; public posts do not require OAuth, but
+  anonymous API calls normally need a key for quota
 
 ## SourceBraid in ChatGPT and Codex
 
@@ -301,9 +306,9 @@ owned assets, then requires explicit confirmation. It writes a normal,
 non-forced Git commit, so repository history remains recoverable.
 
 The plugin also includes a local MCP server with standard `search` and `fetch`
-tools, enabling the same installation in ChatGPT and Codex. See
-[`docs/CHATGPT_PLUGIN.md`](docs/CHATGPT_PLUGIN.md) for local setup and the future
-public HTTPS endpoint.
+tools for Codex. ChatGPT requires a private Secure MCP Tunnel while the service
+is not publicly deployed. See [`docs/CHATGPT_PLUGIN.md`](docs/CHATGPT_PLUGIN.md)
+for the local Codex setup and the later ChatGPT endpoint.
 
 ## iOS
 
