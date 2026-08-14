@@ -14,7 +14,7 @@ struct ContentView: View {
                     )
                     .foregroundStyle(model.isConfigured ? Color.green : Color.orange)
 
-                    Text("In FAZ or any other app, tap Share and choose “SourceBraid”.")
+                    Text("Weave the web into durable Markdown in your own GitHub repository.")
                         .font(.subheadline)
                         .foregroundStyle(.secondary)
                 } header: {

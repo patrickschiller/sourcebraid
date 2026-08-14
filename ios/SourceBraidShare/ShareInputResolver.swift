@@ -49,7 +49,7 @@ enum ShareInputResolver {
                 input.url = url
             }
         }
-        guard input.url != nil || input.fileData != nil || !input.sharedText.isEmpty || !input.articleText.isEmpty else {
+        guard input.url != nil || input.fileData != nil || !input.sharedText.isEmpty || !input.articleText.isEmpty || !input.images.isEmpty else {
             throw ShareInputError.unsupported
         }
         return input
@@ -68,6 +68,23 @@ enum ShareInputResolver {
         }
         if input.articleText.isEmpty, let value = result["articleText"] as? String {
             input.articleText = limited(value)
+        }
+        if let values = result["images"] as? [Any] {
+            var seen = Set<String>()
+            input.images = values.compactMap { value in
+                guard let image = value as? [String: Any],
+                      let urlValue = image["url"] as? String,
+                      let url = URL(string: urlValue),
+                      ["http", "https"].contains(url.scheme?.lowercased() ?? ""),
+                      seen.insert(url.absoluteString).inserted else {
+                    return nil
+                }
+                return CaptureImage(
+                    url: url,
+                    alt: limited(image["alt"] as? String ?? ""),
+                    caption: limited(image["caption"] as? String ?? "")
+                )
+            }
         }
     }
 

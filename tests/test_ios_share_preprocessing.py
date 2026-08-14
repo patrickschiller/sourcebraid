@@ -14,6 +14,18 @@ class SafariSharePreprocessingTests(unittest.TestCase):
 const fs = require("fs");
 const vm = require("vm");
 const source = fs.readFileSync(process.argv[1], "utf8");
+const image = {
+  currentSrc: "https://cdn.example.com/cover.jpg",
+  alt: "Article cover",
+  naturalWidth: 1200,
+  naturalHeight: 800,
+  getAttribute: () => "",
+  closest: () => ({ querySelector: () => ({ innerText: "Photo caption" }) })
+};
+const article = {
+  innerText: "Readable page text",
+  querySelectorAll: () => [image]
+};
 const sandbox = {
   window: {
     getSelection: () => ({ toString: () => "Selected excerpt" }),
@@ -22,9 +34,7 @@ const sandbox = {
   document: {
     title: "Example article",
     location: { href: "https://example.com/article" },
-    querySelector: (selector) => selector === "article"
-      ? { innerText: "Readable page text" }
-      : null
+    querySelector: (selector) => selector === "article" ? article : null
   }
 };
 vm.createContext(sandbox);
@@ -50,6 +60,11 @@ sandbox.ExtensionPreprocessingJS.run({
                 "title": "Example article",
                 "selectedText": "Selected excerpt",
                 "articleText": "Readable page text",
+                "images": [{
+                    "url": "https://cdn.example.com/cover.jpg",
+                    "alt": "Article cover",
+                    "caption": "Photo caption",
+                }],
             },
         )
 
