@@ -1,6 +1,6 @@
 # SourceBraid for iOS
 
-The iOS project contains a SwiftUI configuration app and a native Share Extension. It saves shared URLs, readable Safari content, selected text, PDFs, and other files into the same GitHub repository and URL-hash-sharded `web-clips/index/*.jsonl` format as the Chrome extension.
+The iOS project contains a SwiftUI configuration app and a native Share Extension. It saves shared URLs, readable Safari content and its relevant image assets, selected text, PDFs, and other files into the same GitHub repository and URL-hash-sharded `web-clips/index/*.jsonl` format as the Chrome extension.
 
 ## Open and sign
 
@@ -63,13 +63,13 @@ python3 ../scripts/validate_ios_release.py \
 
 ## Use
 
-In FAZ, Safari, Files, or another app:
+In Safari, Files, or another app:
 
 1. Tap **Share**.
 2. Choose **SourceBraid**. If it is hidden, use **More** to enable it.
 3. Edit the title, add optional tags or a note, and tap **Save**.
 
-Apps such as Chrome and FAZ generally share only a URL. SourceBraid loads public web URLs in an isolated web view and converts the readable page content to Markdown before saving, recording the same extraction methods as the browser extension (including specialized DeepMind captures). Safari can additionally supply its already visible page text through the extension's preprocessing script. Shared PDFs are queued as `pdf-docling-pending`; the PDF is pushed last so the existing GitHub Actions workflow can safely convert it after its Markdown and index metadata exist. Pages that require an authenticated browser session or block the isolated request are saved as clearly labeled link-only clips.
+Apps such as Chrome generally share only a URL. SourceBraid loads public web URLs in an isolated web view and converts the readable page content to Markdown before saving, recording the same extraction methods as the browser extension (including specialized DeepMind captures). Safari can additionally supply its already visible page text and relevant article images through the extension's preprocessing script. Images are copied into the clip's asset folder and linked relatively in Markdown. Shared PDFs are queued as `pdf-docling-pending`; the PDF is pushed last so the existing GitHub Actions workflow can safely convert it after its Markdown and index metadata exist. Pages that require an authenticated browser session or block the isolated request are saved as clearly labeled link-only clips.
 
 ## Build without signing
 

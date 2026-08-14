@@ -313,9 +313,9 @@ for the local Codex setup and the later ChatGPT endpoint.
 ## iOS
 
 The native iOS app and Share Extension live under [`ios/`](ios/README.md).
-After one-time repository and token setup, URLs, selected text, Safari articles,
-PDFs, and other files can be sent to the configured private archive through the
-system share sheet.
+After one-time repository and token setup, URLs, selected text, Safari articles
+with relevant image assets, PDFs, and other files can be sent to the configured
+private archive through the system share sheet.
 
 ## Android roadmap
 

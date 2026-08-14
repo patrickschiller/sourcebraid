@@ -46,12 +46,14 @@ final class ShareViewModel: ObservableObject {
             guard !token.isEmpty else {
                 throw ShareSaveError.notConfigured
             }
+            let imageAssets = await ImageAssetDownloader.download(input.images)
             let draft = try ClipBuilder.build(
                 input: input,
                 title: title,
                 tags: ClipBuilder.parseTags(tags),
                 notes: notes,
-                configuration: configuration
+                configuration: configuration,
+                imageAssets: imageAssets
             )
             try await GitHubClient(configuration: configuration, token: token).save(draft)
             RecentCaptureStore.add(RecentCapture(title: draft.title, path: draft.path))
@@ -116,6 +118,56 @@ final class ShareViewModel: ObservableObject {
         } catch {
             state = .failed(error.localizedDescription)
         }
+    }
+}
+
+private enum ImageAssetDownloader {
+    private static let maximumImageCount = 12
+    private static let maximumImageBytes = 8 * 1024 * 1024
+    private static let maximumTotalBytes = 25 * 1024 * 1024
+
+    static func download(_ images: [CaptureImage]) async -> [CapturedImageAsset] {
+        var assets: [CapturedImageAsset] = []
+        var totalBytes = 0
+
+        for image in images.prefix(maximumImageCount) {
+            guard let asset = try? await fetch(image),
+                  totalBytes + asset.data.count <= maximumTotalBytes else {
+                continue
+            }
+            totalBytes += asset.data.count
+            assets.append(asset)
+        }
+        return assets
+    }
+
+    private static func fetch(_ image: CaptureImage) async throws -> CapturedImageAsset {
+        var request = URLRequest(url: image.url)
+        request.timeoutInterval = 20
+        request.cachePolicy = .reloadIgnoringLocalCacheData
+        request.setValue("image/*", forHTTPHeaderField: "Accept")
+
+        let (data, response) = try await URLSession.shared.data(for: request)
+        guard let response = response as? HTTPURLResponse,
+              (200...299).contains(response.statusCode),
+              !data.isEmpty,
+              data.count <= maximumImageBytes else {
+            throw ImageDownloadError.invalidResponse
+        }
+        let mimeType = (
+            (response.value(forHTTPHeaderField: "Content-Type") ?? "")
+                .split(separator: ";", maxSplits: 1)
+                .first
+                .map(String.init) ?? ""
+        ).lowercased()
+        guard mimeType.hasPrefix("image/") else {
+            throw ImageDownloadError.invalidResponse
+        }
+        return CapturedImageAsset(image: image, data: data, mimeType: mimeType)
+    }
+
+    private enum ImageDownloadError: Error {
+        case invalidResponse
     }
 }
 
