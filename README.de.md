@@ -343,8 +343,8 @@ zur lokalen Codex-Einrichtung und zum späteren ChatGPT-Endpunkt stehen in
 
 Die native iOS-App und Share Extension liegen unter [`ios/`](ios/README.md).
 Nach einmaliger Einrichtung von Repository und Token können URLs, ausgewählter
-Text, Safari-Artikel, PDFs und andere Dateien über das Teilen-Menü an das
-konfigurierte private Archiv gesendet werden.
+Text, Safari-Artikel mit relevanten Bild-Assets, PDFs und andere Dateien über
+das Teilen-Menü an das konfigurierte private Archiv gesendet werden.
 
 ## Android-Roadmap
 

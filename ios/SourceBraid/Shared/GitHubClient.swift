@@ -21,6 +21,13 @@ struct GitHubClient {
             try await putReplacing(path: attachment.path, data: attachment.data, message: "Queue SourceBraid PDF: \(draft.title)")
             return
         }
+        for image in draft.imageAttachments {
+            try await putReplacing(
+                path: image.attachment.path,
+                data: image.attachment.data,
+                message: "Save SourceBraid image: \(draft.title)"
+            )
+        }
         if let attachment = draft.attachment {
             try await putReplacing(path: attachment.path, data: attachment.data, message: "Save SourceBraid attachment: \(draft.title)")
         }

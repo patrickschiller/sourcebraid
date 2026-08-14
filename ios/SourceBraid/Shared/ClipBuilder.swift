@@ -10,6 +10,7 @@ struct CaptureInput {
     var fileData: Data?
     var filename: String?
     var mimeType: String?
+    var images: [CaptureImage] = []
 
     static let empty = CaptureInput(
         url: nil,
@@ -22,9 +23,27 @@ struct CaptureInput {
     )
 }
 
+struct CaptureImage: Equatable {
+    let url: URL
+    let alt: String
+    let caption: String
+}
+
+struct CapturedImageAsset {
+    let image: CaptureImage
+    let data: Data
+    let mimeType: String
+}
+
 struct CaptureAttachment {
     let path: String
     let data: Data
+}
+
+struct CapturedImageAttachment {
+    let image: CaptureImage
+    let attachment: CaptureAttachment
+    let mimeType: String
 }
 
 struct CaptureDraft {
@@ -33,6 +52,22 @@ struct CaptureDraft {
     let markdown: String
     let indexEntry: SourceBraidIndexEntry
     let attachment: CaptureAttachment?
+    let imageAttachments: [CapturedImageAttachment]
+}
+
+struct SourceBraidImageIndexEntry: Encodable {
+    let url: String
+    let path: String
+    let relativePath: String
+    let alt: String
+    let caption: String
+    let contentType: String
+
+    enum CodingKeys: String, CodingKey {
+        case url, path, alt, caption
+        case relativePath = "relative_path"
+        case contentType = "content_type"
+    }
 }
 
 struct SourceBraidIndexEntry: Encodable {
@@ -50,6 +85,7 @@ struct SourceBraidIndexEntry: Encodable {
     let capturedAt: String
     let attachmentPath: String?
     let pdfPath: String?
+    let images: [SourceBraidImageIndexEntry]?
 
     enum CodingKeys: String, CodingKey {
         case title, url, path, date, tags, source
@@ -61,6 +97,7 @@ struct SourceBraidIndexEntry: Encodable {
         case capturedAt = "captured_at"
         case attachmentPath = "attachment_path"
         case pdfPath = "pdf_path"
+        case images
     }
 }
 
@@ -73,11 +110,12 @@ enum ClipBuilder {
         tags: [String],
         notes: String,
         configuration: SourceBraidConfiguration,
+        imageAssets: [CapturedImageAsset] = [],
         now: Date = Date()
     ) throws -> CaptureDraft {
         let normalizedConfiguration = configuration.normalized()
         let hasText = !input.sharedText.trimmed.isEmpty || !input.articleText.trimmed.isEmpty
-        guard input.url != nil || hasText || input.fileData != nil else {
+        guard input.url != nil || hasText || input.fileData != nil || !input.images.isEmpty else {
             throw ClipBuilderError.emptyInput
         }
         if let data = input.fileData, data.count > maximumAttachmentBytes {
@@ -114,6 +152,10 @@ enum ClipBuilder {
             captureMethod = "ios-share-url"
             sourceType = "article"
             contentFormat = "link"
+        } else if !input.images.isEmpty {
+            captureMethod = "ios-share-images"
+            sourceType = "article"
+            contentFormat = "images"
         } else {
             captureMethod = "ios-share-text"
             sourceType = "note"
@@ -131,6 +173,25 @@ enum ClipBuilder {
             attachment = nil
         }
 
+        let imageAttachments = queuesPDFConversion
+            ? []
+            : buildImageAttachments(
+                imageAssets,
+                rootFolder: normalizedConfiguration.rootFolder,
+                captureDate: captureDate,
+                markdownPath: path
+            )
+        let indexImages = imageAttachments.map { image in
+            SourceBraidImageIndexEntry(
+                url: image.image.url.absoluteString,
+                path: image.attachment.path,
+                relativePath: relativePath(from: path, to: image.attachment.path),
+                alt: image.image.alt,
+                caption: image.image.caption,
+                contentType: image.mimeType
+            )
+        }
+
         let markdown = buildMarkdown(
             input: input,
             title: title,
@@ -145,6 +206,7 @@ enum ClipBuilder {
             tags: tags,
             notes: notes,
             attachmentPath: attachment?.path,
+            imageAttachments: imageAttachments,
             markdownPath: path
         )
         let entry = SourceBraidIndexEntry(
@@ -161,9 +223,17 @@ enum ClipBuilder {
             converter: queuesPDFConversion ? "docling" : nil,
             capturedAt: capturedAt,
             attachmentPath: queuesPDFConversion ? nil : attachment?.path,
-            pdfPath: queuesPDFConversion ? attachment?.path : nil
+            pdfPath: queuesPDFConversion ? attachment?.path : nil,
+            images: indexImages.isEmpty ? nil : indexImages
         )
-        return CaptureDraft(title: title, path: path, markdown: markdown, indexEntry: entry, attachment: attachment)
+        return CaptureDraft(
+            title: title,
+            path: path,
+            markdown: markdown,
+            indexEntry: entry,
+            attachment: attachment,
+            imageAttachments: imageAttachments
+        )
     }
 
     static func parseTags(_ value: String) -> [String] {
@@ -188,6 +258,7 @@ enum ClipBuilder {
         tags: [String],
         notes: String,
         attachmentPath: String?,
+        imageAttachments: [CapturedImageAttachment],
         markdownPath: String
     ) -> String {
         var lines = [
@@ -243,7 +314,44 @@ enum ClipBuilder {
         if !sharedText.isEmpty, sharedText != input.url?.absoluteString, sharedText != articleText {
             lines.append(contentsOf: ["## Shared text", "", sharedText, ""])
         }
+        if !imageAttachments.isEmpty {
+            lines.append(contentsOf: ["## Images", ""])
+            for image in imageAttachments {
+                let alt = markdownImageAlt(image.image.alt)
+                let imagePath = relativePath(from: markdownPath, to: image.attachment.path)
+                lines.append("![\(alt)](\(imagePath))")
+                let caption = image.image.caption.trimmingCharacters(in: .whitespacesAndNewlines)
+                if !caption.isEmpty, caption != image.image.alt {
+                    lines.append(caption)
+                }
+                lines.append("")
+            }
+        }
         return lines.joined(separator: "\n") + "\n"
+    }
+
+    private static func buildImageAttachments(
+        _ imageAssets: [CapturedImageAsset],
+        rootFolder: String,
+        captureDate: String,
+        markdownPath: String
+    ) -> [CapturedImageAttachment] {
+        let clipSlug = markdownPath
+            .split(separator: "/")
+            .last
+            .map(String.init)?
+            .replacingOccurrences(of: ".md", with: "") ?? "document"
+        return imageAssets.enumerated().map { index, asset in
+            let filename = String(format: "%02d", index + 1)
+                + "."
+                + imageFileExtension(url: asset.image.url, mimeType: asset.mimeType)
+            let path = "\(rootFolder)/\(captureDate.prefix(4))/\(captureDate.dropFirst(5).prefix(2))/assets/\(clipSlug)/\(filename)"
+            return CapturedImageAttachment(
+                image: asset.image,
+                attachment: CaptureAttachment(path: path, data: asset.data),
+                mimeType: asset.mimeType
+            )
+        }
     }
 
     private static func normalizedTitle(_ suppliedTitle: String, input: CaptureInput) -> String {
@@ -296,6 +404,34 @@ enum ClipBuilder {
             return ext
         }
         return mimeType == "application/pdf" ? "pdf" : "bin"
+    }
+
+    private static func imageFileExtension(url: URL, mimeType: String) -> String {
+        let extensions = [
+            "image/jpeg": "jpg",
+            "image/jpg": "jpg",
+            "image/png": "png",
+            "image/webp": "webp",
+            "image/gif": "gif",
+            "image/svg+xml": "svg",
+            "image/avif": "avif"
+        ]
+        if let value = extensions[mimeType.lowercased()] {
+            return value
+        }
+        let value = url.pathExtension.lowercased()
+        if value.range(of: "^[a-z0-9]{1,8}$", options: .regularExpression) != nil {
+            return value
+        }
+        return "jpg"
+    }
+
+    private static func markdownImageAlt(_ value: String) -> String {
+        value
+            .replacingOccurrences(of: "\\", with: "\\\\")
+            .replacingOccurrences(of: "[", with: "\\[")
+            .replacingOccurrences(of: "]", with: "\\]")
+            .replacingOccurrences(of: "\n", with: " ")
     }
 
     private static func relativePath(from markdownPath: String, to attachmentPath: String) -> String {

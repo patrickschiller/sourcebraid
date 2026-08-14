@@ -96,6 +96,43 @@ final class ClipBuilderTests: XCTestCase {
         XCTAssertFalse(draft.markdown.contains("## Shared text"))
     }
 
+    func testSafariImagesAreStoredAsLocalAssetsAndLinkedFromMarkdown() throws {
+        let image = CaptureImage(
+            url: URL(string: "https://images.example.com/cover.webp")!,
+            alt: "Example cover",
+            caption: "A source-provided caption"
+        )
+        let input = CaptureInput(
+            url: URL(string: "https://www.example.com/article")!,
+            suggestedTitle: "Example Article",
+            sharedText: "",
+            articleText: "Article body",
+            fileData: nil,
+            filename: nil,
+            mimeType: nil,
+            images: [image]
+        )
+        let date = ISO8601DateFormatter().date(from: "2026-08-14T12:00:00Z")!
+        let draft = try ClipBuilder.build(
+            input: input,
+            title: "Example Article",
+            tags: [],
+            notes: "",
+            configuration: configuration,
+            imageAssets: [
+                CapturedImageAsset(image: image, data: Data("image".utf8), mimeType: "image/webp")
+            ],
+            now: date
+        )
+
+        let attachment = try XCTUnwrap(draft.imageAttachments.first)
+        XCTAssertTrue(attachment.attachment.path.hasSuffix("/assets/2026-08-14-example.com-example-article-f32a89/01.webp"))
+        XCTAssertTrue(draft.markdown.contains("![Example cover](assets/2026-08-14-example.com-example-article-f32a89/01.webp)"))
+        XCTAssertTrue(draft.markdown.contains("A source-provided caption"))
+        XCTAssertEqual(draft.indexEntry.images?.first?.path, attachment.attachment.path)
+        XCTAssertEqual(draft.indexEntry.images?.first?.url, image.url.absoluteString)
+    }
+
     func testTagParsingTrimsAndDeduplicates() {
         XCTAssertEqual(ClipBuilder.parseTags("AI, reading, ai,  research "), ["AI", "reading", "research"])
     }
