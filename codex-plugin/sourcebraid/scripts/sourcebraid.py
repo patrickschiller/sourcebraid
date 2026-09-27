@@ -5,6 +5,7 @@ from __future__ import annotations
 
 import argparse
 import base64
+import hashlib
 import json
 import os
 import re
@@ -45,7 +46,14 @@ class Config:
 
     @property
     def cache_dir(self) -> Path:
-        return CACHE_ROOT / self.owner / self.repo / self.branch
+        validate_config(self)
+        namespace = hashlib.sha256(
+            json.dumps([self.branch, self.root_folder], separators=(",", ":")).encode("utf-8")
+        ).hexdigest()[:24]
+        path = CACHE_ROOT / self.owner / self.repo / namespace
+        if path.resolve() != CACHE_ROOT.resolve() / self.owner / self.repo / namespace:
+            raise KnowledgeError("cache directory must remain inside the SourceBraid cache.")
+        return path
 
     @property
     def index_db(self) -> Path:
@@ -291,6 +299,9 @@ def main() -> int:
     except KnowledgeError as error:
         print(f"error: {error}", file=sys.stderr)
         return 2
+    except (OSError, sqlite3.Error):
+        print("error: could not access SourceBraid local storage; check permissions or rebuild the search index.", file=sys.stderr)
+        return 2
 
     return 1
 
@@ -306,7 +317,10 @@ def add_config_flags(parser: argparse.ArgumentParser) -> None:
 def write_config(args: argparse.Namespace) -> None:
     if args.show:
         if CONFIG_PATH.exists():
-            print(CONFIG_PATH.read_text(encoding="utf-8").rstrip())
+            values = read_file_config()
+            if "token" in values:
+                values["token"] = "[redacted]" if values["token"] else ""
+            print(json.dumps(values, indent=2, sort_keys=True))
         else:
             print(f"no config file at {CONFIG_PATH}")
         return
@@ -315,7 +329,8 @@ def write_config(args: argparse.Namespace) -> None:
     if not owner or not repo:
         raise KnowledgeError("config requires --repo-slug OWNER/REPO or both --owner OWNER --repo REPO.")
 
-    CONFIG_PATH.parent.mkdir(parents=True, exist_ok=True)
+    validate_config(Config(owner, repo, args.branch, args.root_folder, args.token or ""))
+    CONFIG_PATH.parent.mkdir(mode=0o700, parents=True, exist_ok=True)
     values = {
         "owner": owner,
         "repo": repo,
@@ -325,7 +340,10 @@ def write_config(args: argparse.Namespace) -> None:
     if args.token:
         values["token"] = args.token
 
-    CONFIG_PATH.write_text(json.dumps(values, indent=2, sort_keys=True) + "\n", encoding="utf-8")
+    flags = os.O_WRONLY | os.O_CREAT | os.O_TRUNC | getattr(os, "O_NOFOLLOW", 0)
+    with os.fdopen(os.open(CONFIG_PATH, flags, 0o600), "w", encoding="utf-8") as config_file:
+        os.fchmod(config_file.fileno(), 0o600)
+        config_file.write(json.dumps(values, indent=2, sort_keys=True) + "\n")
     print(f"wrote {CONFIG_PATH}")
     print(f"repo: {owner}/{repo}")
     print(f"branch: {args.branch}")
@@ -334,10 +352,50 @@ def write_config(args: argparse.Namespace) -> None:
         print("auth: using GITHUB_TOKEN/GH_TOKEN or gh api fallback")
 
 
-def load_config(args: argparse.Namespace, allow_missing: bool = False) -> Config:
-    file_config: dict[str, str] = {}
-    if CONFIG_PATH.exists():
+def read_file_config() -> dict[str, str]:
+    try:
         file_config = json.loads(CONFIG_PATH.read_text(encoding="utf-8"))
+    except FileNotFoundError:
+        return {}
+    except (OSError, ValueError):
+        raise KnowledgeError("could not read SourceBraid config; it must be a readable JSON object.") from None
+    if not isinstance(file_config, dict) or any(
+        not isinstance(value, str) for value in file_config.values()
+    ):
+        raise KnowledgeError("SourceBraid config must be a JSON object with string values.")
+    return file_config
+
+
+def validate_config(config: Config, allow_missing: bool = False) -> None:
+    for name, value, pattern in (
+        ("owner", config.owner, r"[A-Za-z0-9][A-Za-z0-9-]{0,38}"),
+        ("repo", config.repo, r"[A-Za-z0-9._-]{1,100}"),
+    ):
+        if allow_missing and value == "":
+            continue
+        if not isinstance(value, str) or not re.fullmatch(pattern, value) or value in {".", ".."}:
+            raise KnowledgeError(f"{name} must be a valid GitHub {name} name.")
+    branch = config.branch
+    if (
+        not isinstance(branch, str) or not branch or branch == "@" or branch.startswith("-")
+        or ".." in branch or "@{" in branch or branch.endswith(".")
+        or re.search(r"[\s\x00-\x1f\x7f~^:?*\[\\]", branch)
+        or any(not part or part.startswith(".") or part.endswith(".lock") for part in branch.split("/"))
+    ):
+        raise KnowledgeError("branch must be a valid GitHub branch name.")
+    root = config.root_folder
+    if (
+        not isinstance(root, str) or not root or "\\" in root
+        or re.search(r"[\x00-\x1f\x7f]", root)
+        or any(part.lower() in {"", ".", "..", ".git", ".github"} for part in root.split("/"))
+    ):
+        raise KnowledgeError("root_folder must be a normalized relative repository directory.")
+    if not isinstance(config.token, str) or re.search(r"[\x00-\x20\x7f]", config.token):
+        raise KnowledgeError("GitHub token must be a single value without whitespace or control characters.")
+
+
+def load_config(args: argparse.Namespace, allow_missing: bool = False) -> Config:
+    file_config = read_file_config()
 
     cli_owner, cli_repo = parse_repo_inputs(
         getattr(args, "owner", None),
@@ -352,18 +410,18 @@ def load_config(args: argparse.Namespace, allow_missing: bool = False) -> Config
         os.environ.get("SOURCEBRAID_ROOT"),
         file_config.get("root_folder"),
         "web-clips",
-    ).strip("/")
+    )
     token = first_value(args.token, os.environ.get("GITHUB_TOKEN"), os.environ.get("GH_TOKEN"), file_config.get("token"), "")
 
     missing = [name for name, value in {"owner": owner, "repo": repo}.items() if not value]
     if missing:
-        if allow_missing:
-            return Config(owner="", repo="", branch=branch, root_folder=root_folder, token=token)
-        raise KnowledgeError(
-            f"missing {', '.join(missing)}. Run `sourcebraid.py config --repo-slug OWNER/REPO` first."
-        )
-
-    return Config(owner=owner, repo=repo, branch=branch, root_folder=root_folder, token=token)
+        if not allow_missing:
+            raise KnowledgeError(
+                f"missing {', '.join(missing)}. Run `sourcebraid.py config --repo-slug OWNER/REPO` first."
+            )
+    config = Config(owner=owner, repo=repo, branch=branch, root_folder=root_folder, token=token)
+    validate_config(config, allow_missing=allow_missing)
+    return config
 
 
 def parse_repo_inputs(owner: str | None, repo: str | None, repo_slug: str | None) -> tuple[str, str]:
@@ -450,6 +508,7 @@ def is_metadata_index_path(config: Config, repo_path: str) -> bool:
 
 
 def is_archive_text_path(config: Config, repo_path: str) -> bool:
+    validate_archive_path(config, repo_path)
     return repo_path.startswith(f"{config.root_folder}/") and (
         repo_path.endswith(".md") or is_metadata_index_path(config, repo_path)
     )
@@ -464,7 +523,7 @@ def remote_text_inventory(config: Config, tree_payload: dict[str, object]) -> di
             continue
         path = str(item.get("path") or "")
         sha = str(item.get("sha") or "")
-        if sha and is_archive_text_path(config, path):
+        if sha and path.startswith(f"{config.root_folder}/") and is_archive_text_path(config, path):
             inventory[path] = sha
     return inventory
 
@@ -484,7 +543,7 @@ def download_repository_texts(config: Config, ref: str) -> dict[str, str]:
                 if not member.isfile() or "/" not in member.name:
                     continue
                 repo_path = member.name.split("/", 1)[1]
-                if not is_archive_text_path(config, repo_path):
+                if not repo_path.startswith(f"{config.root_folder}/") or not is_archive_text_path(config, repo_path):
                     continue
                 if member.size > 50 * 1024 * 1024:
                     raise KnowledgeError(f"archive text file is unexpectedly large: {repo_path}")
@@ -514,16 +573,17 @@ def github_download(config: Config, path: str, destination: Any) -> None:
             with urllib.request.urlopen(request, timeout=120) as response:
                 shutil.copyfileobj(response, destination)
             return
-        except (urllib.error.HTTPError, urllib.error.URLError) as error:
-            raise KnowledgeError(f"GitHub snapshot download failed for {path}: {error}") from error
+        except urllib.error.HTTPError as error:
+            raise KnowledgeError(f"GitHub snapshot download failed (HTTP {error.code}); check repository access and token permissions.") from None
+        except urllib.error.URLError:
+            raise KnowledgeError("GitHub snapshot download failed; check your network connection.") from None
 
     gh = shutil.which("gh")
     if not gh:
         raise KnowledgeError("no token configured and GitHub CLI `gh` is not available.")
     completed = subprocess.run([gh, "api", path], stdout=destination, stderr=subprocess.PIPE, check=False)
     if completed.returncode != 0:
-        message = completed.stderr.decode("utf-8", errors="replace").strip()
-        raise KnowledgeError(message or f"gh api snapshot download failed for {path}")
+        raise KnowledgeError("GitHub CLI snapshot download failed; check `gh auth status` and repository access.")
 
 
 def connect_search_index(config: Config, create: bool = False) -> sqlite3.Connection:
@@ -658,11 +718,8 @@ def upsert_document(
 def build_search_index(config: Config) -> dict[str, object]:
     head_sha, _tree_sha, tree_payload = repository_snapshot(config)
     inventory = remote_text_inventory(config, tree_payload)
-    if not any(path.endswith(".md") for path in inventory):
-        raise KnowledgeError(f"no Markdown clips found under {config.root_folder!r} in {config.repo_slug}.")
-
     try:
-        texts = download_repository_texts(config, head_sha)
+        texts = download_repository_texts(config, head_sha) if inventory else {}
     except KnowledgeError as snapshot_error:
         print(f"warning: {snapshot_error}; falling back to per-file GitHub reads", file=sys.stderr)
         texts = {}
@@ -812,6 +869,7 @@ def update_search_index(
 
 def maybe_auto_update(config: Config, quiet: bool = False) -> None:
     if not config.index_db.exists():
+        build_search_index(config)
         return
     try:
         update_search_index(config, max_age=AUTO_REFRESH_SECONDS)
@@ -1035,13 +1093,13 @@ def print_index_result(record: dict[str, object]) -> None:
 
 
 def fetch(config: Config, repo_path: str) -> None:
-    path = cache_path(config, repo_path)
+    normalized = validate_clip_path(config, repo_path)
+    path = cache_path(config, normalized)
     if not path.exists():
         if config.index_db.exists():
             update_search_index(config)
 
     if not path.exists():
-        normalized = validate_clip_path(config, repo_path)
         text = repository_text(config, normalized, current_branch_head(config))
         print(text)
         return
@@ -1449,7 +1507,9 @@ def build_delete_plan(config: Config, repo_path: str) -> DeletePlan:
     markdown_text = repository_text(config, normalized_path, head_sha)
     frontmatter = parse_frontmatter(markdown_text)
     frontmatter_url = str(frontmatter.get("url") or "")
-    candidate_indexes = [metadata_shard_path(config, frontmatter_url)] if frontmatter_url else []
+    # Scan every shard: missing or changed frontmatter URLs must not leave stale metadata
+    # behind, and duplicate entries in a second shard must prevent deletion.
+    candidate_indexes = sorted(path for path in tree_paths if path != legacy_index and is_metadata_index_path(config, path))
     for candidate in candidate_indexes:
         if candidate not in tree_paths:
             continue
@@ -1559,8 +1619,10 @@ def remove_index_entry(index_text: str, repo_path: str) -> tuple[str, list[dict[
 
 
 def validate_archive_path(config: Config, repo_path: str) -> str:
-    if not repo_path or repo_path != repo_path.strip("/"):
+    if not isinstance(repo_path, str) or not repo_path or repo_path != repo_path.strip("/"):
         raise KnowledgeError(f"path must be a normalized repository path under {config.root_folder!r}: {repo_path}")
+    if "\\" in repo_path or re.search(r"[\x00-\x1f\x7f]", repo_path):
+        raise KnowledgeError("archive paths must not contain backslashes or control characters.")
     path = PurePosixPath(repo_path)
     if any(part in {"", ".", ".."} for part in path.parts) or path.as_posix() != repo_path:
         raise KnowledgeError(f"path must not contain traversal or redundant segments: {repo_path}")
@@ -1573,7 +1635,7 @@ def validate_archive_path(config: Config, repo_path: str) -> str:
 def validate_clip_path(config: Config, repo_path: str) -> str:
     normalized = validate_archive_path(config, repo_path)
     if PurePosixPath(normalized).suffix.lower() != ".md":
-        raise KnowledgeError(f"only Markdown clip paths can be deleted: {repo_path}")
+        raise KnowledgeError(f"only Markdown clip paths are supported: {repo_path}")
     return normalized
 
 
@@ -1703,7 +1765,7 @@ def update_cache_after_delete(config: Config, plan: DeletePlan) -> str | None:
                     set_index_state(connection, "checked_at", 0)
             finally:
                 connection.close()
-    except OSError as error:
+    except (OSError, sqlite3.Error, KnowledgeError) as error:
         return f"Repository deletion succeeded, but the local cache could not be updated: {error}"
     return None
 
@@ -1753,6 +1815,7 @@ def run_rg(config: Config, query: str, context: int) -> list[dict[str, str]]:
             "*.md",
             "--context",
             str(context),
+            "--",
             query,
             str(config.cache_dir),
         ]
@@ -1800,6 +1863,7 @@ def python_search(config: Config, query: str, context: int) -> list[dict[str, st
     results: list[dict[str, str]] = []
 
     for path in config.cache_dir.rglob("*.md"):
+        repo_path_from_cache(config, path)
         lines = path.read_text(encoding="utf-8", errors="replace").splitlines()
         for index, line in enumerate(lines):
             lowered = line.lower()
@@ -1849,6 +1913,7 @@ def load_index(config: Config) -> list[dict[str, object]]:
     for index_path in index_paths:
         if not index_path.exists():
             continue
+        repo_path_from_cache(config, index_path)
         for line in index_path.read_text(encoding="utf-8", errors="replace").splitlines():
             if not line.strip():
                 continue
@@ -1883,14 +1948,20 @@ def has_cached_markdown(config: Config) -> bool:
 
 
 def cache_path(config: Config, repo_path: str) -> Path:
-    normalized = repo_path.strip("/")
-    if normalized != config.root_folder and not normalized.startswith(f"{config.root_folder}/"):
-        raise KnowledgeError(f"path must be under {config.root_folder!r}: {repo_path}")
-    return config.cache_dir / normalized
+    normalized = config.root_folder if repo_path == config.root_folder else validate_archive_path(config, repo_path)
+    path = config.cache_dir / normalized
+    if path.resolve() != config.cache_dir.resolve() / normalized:
+        raise KnowledgeError("archive path must remain inside the configured local cache.")
+    return path
 
 
 def repo_path_from_cache(config: Config, path: Path) -> str:
-    return path.relative_to(config.cache_dir).as_posix()
+    try:
+        repo_path = path.relative_to(config.cache_dir).as_posix()
+    except ValueError:
+        raise KnowledgeError("archive path must remain inside the configured local cache.") from None
+    cache_path(config, repo_path)
+    return repo_path
 
 
 def github_json(config: Config, path: str) -> dict[str, object]:
@@ -1948,10 +2019,9 @@ def github_request_with_token(
             body = response.read().decode("utf-8")
             return json.loads(body) if body else {}
     except urllib.error.HTTPError as error:
-        body = error.read().decode("utf-8", errors="replace")
-        raise KnowledgeError(f"GitHub API {error.code} for {method} {path}: {body}") from error
-    except urllib.error.URLError as error:
-        raise KnowledgeError(f"GitHub API failed for {method} {path}: {error.reason}") from error
+        raise KnowledgeError(f"GitHub API HTTP {error.code}; check repository access, token permissions and rate limits.") from None
+    except urllib.error.URLError:
+        raise KnowledgeError("GitHub API request failed; check your network connection.") from None
     except json.JSONDecodeError as error:
         raise KnowledgeError(f"GitHub returned invalid JSON for {method} {path}.") from error
 
@@ -1978,7 +2048,7 @@ def github_request_with_gh(
         check=False,
     )
     if completed.returncode != 0:
-        raise KnowledgeError(completed.stderr.strip() or f"gh api failed for {method} {path}")
+        raise KnowledgeError("GitHub CLI request failed; check `gh auth status` and repository access.")
     try:
         return json.loads(completed.stdout) if completed.stdout.strip() else {}
     except json.JSONDecodeError as error:

@@ -46,6 +46,8 @@ In scope:
 - The SourceBraid Chrome extension and its GitHub integration.
 - The iOS app and Share Extension, including local credential handling.
 - The ChatGPT/Codex plugin, local index, and archive-management scripts.
+- The hosted ChatGPT MCP service code, OAuth consent, credential storage, and
+  archive-access boundaries; the official deployment when it is enabled.
 - Workflows, source adapters, and other code in the public repository.
 - The official `sourcebraid.com` website when the issue is specific to that
   deployment.

@@ -20,11 +20,13 @@ Git-Historie, die auch ohne SourceBraid nützlich bleiben.
 ## So funktioniert SourceBraid
 
 SourceBraid verbindet Capture-Clients, ein privates GitHub-Repository als
-dauerhaft maßgebliche Datenquelle und ein universelles ChatGPT-/Codex-Plugin für
-Abruf und Archivverwaltung. Es gibt keinen zentralen
-SourceBraid-Inhaltsserver. Die Chrome-Erweiterung beziehungsweise die iOS-App
-liest die ausgewählte Quelle, bereitet sie auf und schreibt das Ergebnis direkt
-in das konfigurierte Repository.
+dauerhaft maßgebliche Datenquelle und zwei Zugriffswege. Das lokale Codex-Plugin
+unterstützt Suche und Archivverwaltung. Die gehostete ChatGPT-Integration mit
+reinem Lesezugriff ist für Bereitstellung und Prüfung vorbereitet; sie ist noch
+kein öffentlich verfügbarer Dienst. Chrome-Erweiterung und iOS-App schreiben
+Captures direkt in das konfigurierte GitHub-Repository. Gehostete
+ChatGPT-Anfragen laufen künftig über den SourceBraid-Worker bei Cloudflare,
+ohne eine dauerhafte Inhaltsdatenbank anzulegen.
 
 Der lokale SQLite-Index ist nur ein jederzeit neu aufbaubarer Such-Cache.
 Maßgeblich bleiben die Markdown-Dateien und die Git-Historie.
@@ -51,7 +53,9 @@ flowchart TD
     M --> Q["SQLite-Index mit FTS5"]
     O --> Q
     P --> Q
-    Q --> R["ChatGPT oder Codex: suchen, abrufen, auflisten oder sicher löschen"]
+    Q --> R["Lokales Codex: suchen, abrufen, auflisten oder sicher löschen"]
+    K --> S["Vorbereiteter gehosteter MCP: GitHub-Lesezugriff"]
+    S --> T["ChatGPT nach Bereitstellung und Prüfung"]
 ```
 
 Der Ablauf im Einzelnen:
@@ -74,14 +78,15 @@ Der Ablauf im Einzelnen:
    das Original-PDF im Repository. Eine GitHub Action erzeugt mit Docling das
    endgültige Markdown, extrahiert Abbildungen und ersetzt den zunächst
    angelegten Platzhalter.
-6. **Indexieren:** Beim ersten Einsatz baut das Plugin aus dem Repository einen
+6. **Lokal indexieren:** Beim ersten Einsatz baut das Codex-Plugin aus dem Repository einen
    lokalen SQLite-FTS5-Index auf. Spätere Aktualisierungen vergleichen den
    gespeicherten Commit und die Git-Blob-SHAs; dadurch werden nur neue,
    geänderte oder gelöschte Dateien verarbeitet.
-7. **Verwenden:** ChatGPT oder Codex durchsucht normalerweise den lokalen Index,
-   kann Treffer vollständig abrufen und unterstützt eine abgesicherte Löschung
-   mit Vorschau und eindeutiger Bestätigung. Ist GitHub vorübergehend nicht
-   erreichbar, bleibt der zuletzt synchronisierte Index lesbar.
+7. **Verwenden:** Lokales Codex durchsucht den Index und unterstützt abgesicherte
+   Löschungen mit Vorschau und eindeutiger Bestätigung. Ohne GitHub-Verbindung
+   bleibt der zuletzt synchronisierte Index lesbar. Der vorbereitete
+   ChatGPT-Dienst sucht und liest über GitHub, nennt Suchgrenzen ausdrücklich
+   und bietet weder lokalen Index noch Löschwerkzeuge.
 
 Die Trennung zwischen GitHub-Archiv und lokalem Such-Cache ist für größere
 Sammlungen entscheidend: Auch bei vielen Tausend Dokumenten muss eine normale
@@ -239,7 +244,10 @@ zusätzlich den konfigurierten GitHub-Token, sofern dieser Leserechte für Gists
 besitzt. Zugriffsgeschützte GitHub-Bilder können über den weiterhin geöffneten
 Gist-Tab mit aktiver GitHub-Sitzung geladen werden.
 
-## Chrome-Installation
+## Chrome-Installation aus dem Quellcode
+
+Bis der Eintrag im Chrome Web Store live ist, lässt sich die geprüfte
+Erweiterung aus diesem Checkout laden:
 
 1. `chrome://extensions` öffnen.
 2. **Entwicklermodus** aktivieren.
@@ -255,6 +263,35 @@ einer erfolgreichen Extraktion, steht im Popup **Download Fallback** zur
 Verfügung. Vor dem Upload prüft SourceBraid, ob das konfigurierte Repository
 existiert und mit dem Token zugänglich ist; bei `404 Not Found` zeigt das Popup
 einen eindeutigen Fehler an.
+
+Vor der ersten Erfassung erklärt SourceBraid, welche Seitendaten gelesen werden
+und wohin sie gehen, und verlangt eine ausdrückliche Zustimmung. **Export Plugin
+Config** enthält weder den GitHub-Token noch optionale Zugangsdaten für
+Quell-APIs.
+
+## GitHub-Archiv einrichten
+
+Wenn die GitHub CLI installiert und angemeldet ist (`gh auth login`), erstellt
+oder initialisiert ein Befehl das private Archiv des angemeldeten Kontos:
+
+```bash
+python3 scripts/setup_github.py
+```
+
+Standardmäßig wird `AUTHENTICATED_USER/sourcebraid-private` verwendet. Das
+Skript verweigert öffentliche Repositories, bewahrt vorhandene Dateien, aktiviert
+GitHub Actions, lädt ausschließlich die freigegebenen PDF-Hilfsdateien hoch und
+schreibt eine tokenfreie `sourcebraid-config.json`. Mit `--repo OWNER/NAME` lässt
+sich ein anderes privates Ziel wählen; `--dry-run` zeigt nur die geplanten
+Schritte.
+
+Release-Builds stellen denselben Ablauf außerdem als einzelne, eigenständige
+Datei bereit. Sie lässt sich lokal so bauen:
+
+```bash
+python3 scripts/build_setup_package.py
+python3 dist/sourcebraid-github-setup-v1.0.1.py --help
+```
 
 ## GitHub-Token
 
@@ -280,6 +317,48 @@ Optionale API-Einstellungen:
   anonyme API-Aufrufe normalerweise aber einen Key für das Kontingent
 
 ## SourceBraid in ChatGPT und Codex
+
+Die primäre ChatGPT-Veröffentlichung nutzt den gehosteten MCP-Dienst unter
+[`chatgpt-mcp/`](chatgpt-mcp/). Vorgesehener Endpunkt ist
+`https://mcp.sourcebraid.com/mcp`; Bereitstellung, Live-Authentifizierungstests
+und OpenAI-Prüfung samt Veröffentlichung stehen noch aus. Die Schritte stehen
+in der [Bereitstellungsanleitung](docs/CHATGPT_MCP_DEPLOYMENT.md) und im
+[OpenAI-MCP-Einreichungskit](marketing/OPENAI_MCP_SUBMISSION.md).
+
+Nach Bereitstellung verbinden sich Nutzer über die HTTPS-Zustimmungsseite von
+SourceBraid mit einem Fine-grained-GitHub-Token: **Contents: Read-only** für
+genau ein privates Archiv-Repository. Der Token gehört niemals in einen
+ChatGPT-Prompt. Die gehosteten Werkzeuge suchen, lesen, listen auf und zeigen
+den Status. Sie können nichts erfassen, ändern, löschen, migrieren oder lokal
+indexieren. Die Suche auf dem Standardbranch nutzt GitHub Code Search und
+prüft Treffer an einem festgehaltenen Commit. Indexierungsverzögerungen,
+Suchgrenzen und ein gegebenenfalls begrenzter Fallback werden ausgewiesen.
+
+Das lokale Codex-Plugin bleibt die Variante mit voller Archivverwaltung. Es
+benötigt Python 3 und lokale GitHub-Authentifizierung. Ein reines Skills-ZIP
+verschafft gewöhnlichem ChatGPT allein keinen Zugriff auf lokale Dateien oder
+Zugangsdaten.
+
+Für die lokale Entwicklung wird dieser Checkout als Marketplace hinzugefügt und
+das Plugin installiert:
+
+```bash
+codex plugin marketplace add .
+codex plugin add sourcebraid@sourcebraid
+```
+
+Sobald der geprüfte Tag `v1.0.1` veröffentlicht ist, lautet die an diesen Tag
+gebundene Installation von GitHub:
+
+```bash
+codex plugin marketplace add patrickschiller/sourcebraid \
+  --ref v1.0.1 \
+  --sparse .agents/plugins \
+  --sparse codex-plugin/sourcebraid
+codex plugin add sourcebraid@sourcebraid
+```
+
+Nach der Installation muss eine neue Codex-Unterhaltung gestartet werden.
 
 **Export Plugin Config** lädt `sourcebraid-config.json` herunter. Speichere die
 Datei unter:
@@ -310,11 +389,13 @@ python3 codex-plugin/sourcebraid/scripts/sourcebraid.py plan-delete \
   --path "web-clips/2026/07/example.md" --json
 ```
 
-Der Index liegt pro Repository und Branch unter
+Der Index liegt getrennt pro Repository, Branch und Archivordner unter
 `~/.cache/sourcebraid/.../search.sqlite3` und wird nicht in Git gespeichert.
 Eine Suche prüft höchstens alle 15 Minuten, ob sich der Remote-Head geändert
 hat; wenn GitHub nicht erreichbar ist, bleibt der lokale Index nutzbar.
 `search --scan` ist ein expliziter Diagnose-Fallback auf Basis von `rg`.
+Der sicherere Cache-Pfad dieser Version löst einen erneuten Erstaufbau aus;
+Markdown-Dateien und Git-Historie bleiben unverändert.
 
 Neue Captures schreiben stabile URL-Hash-Shards wie
 `web-clips/index/47.jsonl`. Bestehende Archive bleiben lesbar. Vor der
@@ -333,11 +414,13 @@ Assets an und verlangt anschließend eine ausdrückliche Bestätigung. Es
 speichert die Änderung als normalen Git-Commit ohne erzwungenes Überschreiben,
 sodass sie über die Git-Historie wiederherstellbar bleibt.
 
-Das Plugin umfasst außerdem einen lokalen MCP-Server mit den Standardwerkzeugen
-`search` und `fetch` für Codex. Solange der Dienst nicht öffentlich
-bereitgestellt ist, benötigt ChatGPT einen privaten Secure MCP Tunnel. Hinweise
-zur lokalen Codex-Einrichtung und zum späteren ChatGPT-Endpunkt stehen in
-[`docs/CHATGPT_PLUGIN.md`](docs/CHATGPT_PLUGIN.md).
+Das vollständige Repository-Plugin enthält den lokalen stdio-MCP-Server. Das
+optionale Skills-Paket enthält lokale Python-Abläufe und ist von der gehosteten
+Einreichung als **With MCP** getrennt. Angeforderte Quellen verarbeitet die
+aktive ChatGPT- oder Codex-Umgebung; gehostete Anfragen durchlaufen zusätzlich
+SourceBraid und Cloudflare. [Integrationsanleitung](docs/CHATGPT_PLUGIN.md) und
+[Datenschutzhinweise](PRIVACY.md) beschreiben Authentifizierung, Speicherung und
+Widerruf.
 
 ## iOS
 
@@ -364,8 +447,8 @@ Hinweise für Beiträge und den DCO-Sign-off stehen in
 Der [öffentliche Release-Prozess](RELEASING.md) beschreibt Versionierung,
 Prüfungen und reproduzierbare Release-Artefakte.
 [Datenschutz](PRIVACY.md), [Nutzungsbedingungen](TERMS.md) und der
-[Hinweis](NOTICE) dokumentieren den lokalen, vom Benutzer kontrollierten
-Datenfluss und die Lizenzgrenzen.
+[Hinweis](NOTICE) dokumentieren die Datenflüsse von Capture-Clients, lokalem
+Plugin und gehostetem Dienst sowie die Lizenzgrenzen.
 
 ## Technische Hinweise
 

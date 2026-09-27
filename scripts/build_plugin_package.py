@@ -36,8 +36,21 @@ class PluginPackageError(RuntimeError):
     """Raised when the public plugin package cannot be built safely."""
 
 
+def package_source(root: Path, relative: PurePosixPath) -> Path:
+    if relative.is_absolute() or ".." in relative.parts:
+        raise PluginPackageError(f"unsafe plugin path: {relative}")
+    source = root
+    for part in relative.parts:
+        source /= part
+        if source.is_symlink():
+            raise PluginPackageError(f"refusing to package symlink: {relative}")
+    if not source.is_file():
+        raise PluginPackageError(f"required plugin file is missing: {relative}")
+    return source
+
+
 def public_manifest(plugin_root: Path) -> dict[str, object]:
-    manifest_path = plugin_root / ".codex-plugin" / "plugin.json"
+    manifest_path = package_source(plugin_root, PurePosixPath(".codex-plugin/plugin.json"))
     try:
         manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
     except (OSError, json.JSONDecodeError) as error:
@@ -61,11 +74,7 @@ def validated_files(plugin_root: Path) -> list[tuple[Path, str]]:
     result: list[tuple[Path, str]] = []
     for archive_name in PLUGIN_FILES:
         relative = PurePosixPath(archive_name)
-        source = plugin_root.joinpath(*relative.parts)
-        if source.is_symlink():
-            raise PluginPackageError(f"refusing to package symlink: {archive_name}")
-        if not source.is_file():
-            raise PluginPackageError(f"required plugin file is missing: {archive_name}")
+        source = package_source(plugin_root, relative)
         result.append((source, relative.as_posix()))
     return result
 

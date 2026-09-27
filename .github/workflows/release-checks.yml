@@ -1,0 +1,59 @@
+name: Release checks
+
+on:
+  pull_request:
+    branches: [main]
+  push:
+    branches: [main]
+    tags: ["v*"]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: release-checks-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-python@v7
+        with:
+          python-version: "3.12"
+      - uses: actions/setup-node@v7
+        with:
+          node-version: "22"
+          package-manager-cache: false
+      - name: Verify shared capture behavior
+        run: node --test tests/capture-utils.test.js
+      - name: Install locked ChatGPT MCP dependencies
+        working-directory: chatgpt-mcp
+        run: npm ci
+      - name: Test ChatGPT MCP with synthetic data and mocked GitHub responses
+        working-directory: chatgpt-mcp
+        run: npm test
+      - name: Validate the ChatGPT MCP deployment build without publishing
+        working-directory: chatgpt-mcp
+        env:
+          WRANGLER_SEND_METRICS: "false"
+        run: npm run build
+      - name: Verify Python behavior and package boundaries
+        run: python3 -m unittest discover -s tests -p "test_*.py"
+      - name: Build and verify reproducible submission bundle
+        run: |
+          if [ "$GITHUB_REF_TYPE" = "tag" ]; then
+            python3 scripts/build_release.py --verify-reproducible --require-clean --expected-version "${GITHUB_REF_NAME#v}"
+          else
+            python3 scripts/build_release.py --verify-reproducible --require-clean
+          fi
+      - name: Keep reviewed artifacts for download
+        uses: actions/upload-artifact@v7
+        with:
+          name: sourcebraid-submission-bundle-${{ github.sha }}
+          path: dist/sourcebraid-release-v*/
+          if-no-files-found: error
+          retention-days: 30

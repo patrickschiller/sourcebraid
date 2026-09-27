@@ -18,10 +18,12 @@ you with ordinary files and Git history that remain useful without SourceBraid.
 ## How SourceBraid works
 
 SourceBraid combines capture clients, a private GitHub repository as the durable
-source of truth, and a universal ChatGPT/Codex plugin for retrieval and archive
-management. There is no central SourceBraid content server. The Chrome extension
-or iOS app reads and prepares a selected source, then writes the result directly
-to the repository configured by the user.
+source of truth, and two archive-access paths. The local Codex plugin supports
+search and archive management. The hosted, read-only ChatGPT integration is
+prepared for deployment and review; it is not yet a live public service. The
+Chrome extension and iOS app write captures directly to the configured GitHub
+repository. Hosted ChatGPT requests will pass through SourceBraid's Cloudflare
+Worker without creating a permanent content database.
 
 The local SQLite index is only a rebuildable search cache. Markdown files and
 Git history remain authoritative.
@@ -48,7 +50,9 @@ flowchart TD
     M --> Q["SQLite index with FTS5"]
     O --> Q
     P --> Q
-    Q --> R["ChatGPT or Codex: search, fetch, list, or safely delete"]
+    Q --> R["Local Codex: search, fetch, list, or safely delete"]
+    K --> S["Prepared hosted MCP: read-only GitHub access"]
+    S --> T["ChatGPT after deployment and review"]
 ```
 
 The workflow in detail:
@@ -67,13 +71,14 @@ The workflow in detail:
 5. **Finish PDFs:** When no suitable HTML representation exists, the original
    PDF remains in the repository. A GitHub Action uses Docling to create the
    final Markdown, extract figures, and replace the pending placeholder.
-6. **Index:** On first use, the plugin builds a local SQLite FTS5 index. Later
+6. **Index locally:** On first use, the Codex plugin builds a local SQLite FTS5 index. Later
    updates compare the stored commit and Git blob SHAs, processing only new,
    changed, or deleted files.
-7. **Use:** ChatGPT or Codex searches the local index, fetches complete sources,
-   and supports guarded deletion with a preview and exact confirmation. If
-   GitHub is temporarily unavailable, the last synchronized index remains
-   readable.
+7. **Use:** Local Codex searches the index and supports guarded deletion with a
+   preview and exact confirmation. Its last synchronized index remains readable
+   when GitHub is unavailable. The prepared ChatGPT service searches and fetches
+   through GitHub with read-only access, explicit coverage limits, and no local
+   index or deletion tools.
 
 Keeping the GitHub archive separate from the local search cache matters for
 large collections: a normal query does not need to reopen thousands of Markdown
@@ -218,7 +223,10 @@ Public Gists work anonymously. For private Gists, SourceBraid uses the configure
 GitHub token when it has Gist read permission. Signed-in GitHub image assets can
 be loaded through the still-open Gist tab.
 
-## Chrome installation
+## Chrome installation from source
+
+Until the Chrome Web Store listing is live, load the reviewed extension from
+this checkout:
 
 1. Open `chrome://extensions`.
 2. Enable **Developer mode**.
@@ -233,6 +241,33 @@ the GitHub upload fails after successful extraction, the popup offers a
 **Download Fallback**. Before an upload starts, SourceBraid verifies that the
 configured repository exists and is accessible to the token; the popup reports
 an explicit error when GitHub returns `404 Not Found`.
+
+Before the first capture, SourceBraid shows what page data is read and where it
+goes, and requires affirmative consent. **Export Plugin Config** never includes
+the GitHub token or optional source API credentials.
+
+## GitHub archive setup
+
+With the GitHub CLI installed and authenticated (`gh auth login`), one command
+creates or initializes the private archive for the authenticated account:
+
+```bash
+python3 scripts/setup_github.py
+```
+
+The default target is `AUTHENTICATED_USER/sourcebraid-private`. The script
+refuses public repositories, preserves existing files, enables GitHub Actions,
+uploads only the allowlisted PDF support files, and writes a token-free
+`sourcebraid-config.json`. Use `--repo OWNER/NAME` for another private target or
+`--dry-run` to preview the operation.
+
+Release builds also provide the same workflow as one standalone file. Build it
+locally with:
+
+```bash
+python3 scripts/build_setup_package.py
+python3 dist/sourcebraid-github-setup-v1.0.1.py --help
+```
 
 ## GitHub token
 
@@ -257,6 +292,45 @@ Optional API configuration:
   anonymous API calls normally need a key for quota
 
 ## SourceBraid in ChatGPT and Codex
+
+The primary ChatGPT release uses the hosted MCP service in [`chatgpt-mcp/`](chatgpt-mcp/).
+Its intended endpoint is `https://mcp.sourcebraid.com/mcp`; deployment, live
+authentication tests, and OpenAI review/publication are still required. Follow
+the [deployment guide](docs/CHATGPT_MCP_DEPLOYMENT.md) and
+[OpenAI MCP submission kit](marketing/OPENAI_MCP_SUBMISSION.md).
+
+After the service is deployed, users connect through SourceBraid's HTTPS consent
+page using a fine-grained GitHub token with **Contents: Read-only** for exactly
+one private archive repository. Never paste that token into a ChatGPT prompt.
+The hosted tools provide search, fetch, listing, and status; they cannot capture,
+edit, delete, migrate metadata, or build a local index. Default-branch search
+uses GitHub Code Search and verifies matches at a pinned commit. Indexing delays,
+limits, and any bounded fallback are reported with the results.
+
+The local Codex plugin remains the full archive-management option. It needs
+Python 3 and local GitHub authentication; a skills-only ZIP does not by itself
+give ordinary ChatGPT access to those local files or credentials.
+
+For local development, add this checkout as a marketplace and install the
+plugin:
+
+```bash
+codex plugin marketplace add .
+codex plugin add sourcebraid@sourcebraid
+```
+
+After the reviewed `v1.0.1` tag is published, the tag-bound GitHub installation
+is:
+
+```bash
+codex plugin marketplace add patrickschiller/sourcebraid \
+  --ref v1.0.1 \
+  --sparse .agents/plugins \
+  --sparse codex-plugin/sourcebraid
+codex plugin add sourcebraid@sourcebraid
+```
+
+Start a new Codex conversation after installation.
 
 **Export Plugin Config** downloads `sourcebraid-config.json`. Store it at:
 
@@ -285,11 +359,13 @@ python3 codex-plugin/sourcebraid/scripts/sourcebraid.py plan-delete \
   --path "web-clips/2026/07/example.md" --json
 ```
 
-The index is stored per repository and branch under
+The index is stored separately per repository, branch, and archive root under
 `~/.cache/sourcebraid/.../search.sqlite3` and is never committed. Search checks
 for a changed remote head at most every 15 minutes; when GitHub is unavailable,
 the local index remains usable. `search --scan` is an explicit `rg` diagnostic
 fallback.
+The safer cache namespace introduced in this release triggers a fresh initial
+build; existing Markdown and Git history are unchanged.
 
 New captures write stable URL-hash shards such as
 `web-clips/index/47.jsonl`. Legacy archives remain readable. Preview and confirm
@@ -305,10 +381,12 @@ Before deletion, the plugin shows the exact Markdown file, metadata change, and
 owned assets, then requires explicit confirmation. It writes a normal,
 non-forced Git commit, so repository history remains recoverable.
 
-The plugin also includes a local MCP server with standard `search` and `fetch`
-tools for Codex. ChatGPT requires a private Secure MCP Tunnel while the service
-is not publicly deployed. See [`docs/CHATGPT_PLUGIN.md`](docs/CHATGPT_PLUGIN.md)
-for the local Codex setup and the later ChatGPT endpoint.
+The complete repository plugin includes the local stdio MCP server. The optional
+skills package contains the local Python workflows and is separate from the
+hosted **With MCP** submission. Requested sources are processed by the active
+ChatGPT or Codex environment; hosted requests also pass through SourceBraid and
+Cloudflare. See the [integration guide](docs/CHATGPT_PLUGIN.md) and
+[privacy notice](PRIVACY.md) for authentication, storage, and revocation details.
 
 ## iOS
 
@@ -332,7 +410,7 @@ the [Code of Conduct](CODE_OF_CONDUCT.md) for community standards, and the
 [public release process](RELEASING.md) documents versioning, validation, and
 reproducible release artifacts. The
 [privacy notice](PRIVACY.md), [terms](TERMS.md), and [notice](NOTICE) document
-the local, user-controlled data flow and licensing boundaries.
+the capture, local-plugin, and hosted-service data flows and licensing boundaries.
 
 ## Technical notes
 

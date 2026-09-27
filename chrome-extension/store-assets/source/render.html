@@ -1,0 +1,92 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>SourceBraid Chrome Web Store asset</title>
+    <link rel="stylesheet" href="render.css">
+  </head>
+  <body>
+    <main class="canvas">
+      <header>
+        <div class="brand">
+          <img src="../../sourcebraid/icons/icon-128.png" alt="">
+          <span>SourceBraid</span>
+        </div>
+        <span class="route">CHROME → YOUR GITHUB</span>
+      </header>
+      <section class="copy">
+        <p class="eyebrow">WEAVE THE WEB INTO MARKDOWN</p>
+        <h1 id="title">Capture the web as clean Markdown.</h1>
+        <p id="subtitle">One click turns a selected source into portable files and Git history you control.</p>
+      </section>
+      <figure id="capture-scene">
+        <div class="browser-bar"><span class="window-dots">● ● ●</span><span class="address">example.com/research/local-first-knowledge</span><span class="demo-label">SYNTHETIC DEMO</span></div>
+        <div class="capture-content">
+          <article>
+            <p class="article-label">RESEARCH NOTES</p>
+            <h2>Building a durable,<br>local-first knowledge archive</h2>
+            <p class="article-intro">Keep useful sources readable, searchable,<br>and under your own control.</p>
+            <p class="article-byline">Synthetic article · SourceBraid demo</p>
+            <hr>
+            <p>A durable archive preserves the original source URL and keeps
+              Markdown files independent of any one app.</p>
+            <p>Add your own notes, keep relevant images nearby, and use Git
+              history to follow changes over time.</p>
+          </article>
+          <iframe title="SourceBraid capture popup" src="../../sourcebraid/popup.html"></iframe>
+        </div>
+      </figure>
+      <figure id="archive-scene" hidden>
+        <div class="archive-bar"><strong>you / sourcebraid-archive</strong><span class="private-label">Private repository</span><span class="demo-label">SYNTHETIC DEMO</span></div>
+        <div class="archive-content">
+          <aside><p>YOUR ARCHIVE</p><pre id="archive-tree"></pre></aside>
+          <div class="markdown-view"><div id="archive-path"></div><pre id="archive-markdown"></pre></div>
+        </div>
+      </figure>
+      <footer>Open source · Portable Markdown · Chrome saves directly to your GitHub</footer>
+    </main>
+    <script src="../../sourcebraid/capture-utils.js"></script>
+    <script>
+      const scenes = {
+        capture: {
+          title: "Capture the web as clean Markdown.",
+          subtitle: "Add tags and notes, then save the selected source directly to your private GitHub repository."
+        },
+        archive: {
+          title: "Your private archive stays yours.",
+          subtitle: "Readable Markdown, nearby assets, YAML metadata, and normal Git history remain the source of truth."
+        }
+      };
+      const selected = new URLSearchParams(location.search).get("scene") || "capture";
+      if (selected === "promo") {
+        document.body.classList.add("promo");
+      } else {
+        const scene = scenes[selected] || scenes.capture;
+        document.querySelector("#title").textContent = scene.title;
+        document.querySelector("#subtitle").textContent = scene.subtitle;
+        document.querySelector("#capture-scene").hidden = selected === "archive";
+        document.querySelector("#archive-scene").hidden = selected !== "archive";
+      }
+      const demo = {
+        title: "Building a durable, local-first knowledge archive",
+        url: "https://example.com/research/local-first-knowledge",
+        site: "example.com",
+        rootFolder: "web-clips",
+        capturedDate: "2026-09-11",
+        capturedAt: "2026-09-11T10:00:00.000Z",
+        captureMethod: "dom-readable",
+        sourceType: "article",
+        contentFormat: "html",
+        tags: ["knowledge", "local-first", "research"],
+        notes: "Useful source for the open-source launch plan.",
+        body: "A durable archive preserves the original source URL and keeps\nMarkdown files independent of any one app."
+      };
+      const clipPath = SourceBraidCore.buildGitHubPath(demo);
+      const shardPath = SourceBraidCore.buildIndexPath(demo);
+      document.querySelector("#archive-path").textContent = clipPath;
+      document.querySelector("#archive-markdown").textContent = SourceBraidCore.buildDocument(demo);
+      document.querySelector("#archive-tree").textContent = `web-clips/\n├─ 2026/09/\n│  ├─ ${clipPath.split("/").pop().slice(0, 24)}…\n│  └─ assets/\n└─ index/\n   └─ ${shardPath.split("/").pop()}\n\nREADME.md`;
+    </script>
+  </body>
+</html>

@@ -24,10 +24,33 @@
         ><span aria-hidden="true">&#9881;</span></button>
       </header>
 
-      <section class="status" id="status">Ready to capture this page.</section>
+      <section class="status" id="status" role="status" aria-live="polite">Ready to capture this page.</section>
+
+      <section class="disclosure" id="data-disclosure" aria-labelledby="data-disclosure-title">
+        <h2 id="data-disclosure-title">Before your first capture</h2>
+        <p>
+          SourceBraid reads the active page only after you choose Save or Download.
+          Save sends its URL, extracted content, tags, notes, and captured assets directly
+          to the GitHub repository you configure. Download keeps the Markdown local.
+          It may request the selected website and relevant assets to prepare the clip.
+          Nothing is sent to a SourceBraid content server.
+        </p>
+        <label class="consent">
+          <input id="data-consent" type="checkbox">
+          <span>I understand and want SourceBraid to read the active page when I capture it.</span>
+        </label>
+        <a href="https://github.com/patrickschiller/sourcebraid/blob/main/PRIVACY.md" target="_blank" rel="noreferrer">Privacy policy</a>
+      </section>
 
       <section class="settings" id="settings" aria-label="GitHub repository settings" hidden>
         <h2>GitHub repository</h2>
+        <p>
+          Choose a private repository with an initial commit. The token needs
+          <strong>Contents: Read and write</strong> for that repository only.
+          PDF support also needs <strong>Workflows: Read and write</strong> for its first installation.
+          <a href="https://github.com/patrickschiller/sourcebraid#github-archive-setup" target="_blank" rel="noreferrer">Setup guide</a>
+          · <a href="https://github.com/settings/personal-access-tokens/new" target="_blank" rel="noreferrer">Create a token</a>
+        </p>
 
         <div class="settings-grid">
           <label>
@@ -77,6 +100,11 @@
           <button id="save-settings" class="secondary" type="button">Save Settings</button>
           <button id="export-sourcebraid-config" class="secondary" type="button">Export Plugin Config</button>
         </div>
+
+        <p class="privacy-note">
+          Credentials are stored in Chrome local storage and sent only to GitHub or,
+          when configured, Ghost or Blogger endpoints. Exported plugin configs never contain tokens.
+        </p>
       </section>
 
       <label>

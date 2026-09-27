@@ -10,7 +10,18 @@ const PDF_WORKFLOW_FILES = [
   ".github/workflows/convert-pdfs.yml"
 ];
 
-chrome.runtime.onMessage.addListener((message, _sender, sendResponse) => {
+// Content scripts need the capture APIs, but never direct access to saved tokens.
+chrome.storage?.local?.setAccessLevel?.({ accessLevel: "TRUSTED_CONTEXTS" });
+
+chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
+  if (sender.id !== chrome.runtime.id) {
+    return false;
+  }
+  if (["save-to-github", "save-pdf-to-github"].includes(message?.type)
+      && (sender.tab || sender.url !== chrome.runtime.getURL("popup.html"))) {
+    sendResponse({ ok: false, error: "GitHub saves must be started from the SourceBraid popup." });
+    return false;
+  }
   if (message?.type === "fetch-resource") {
     fetchResource(message.request)
       .then(sendResponse)
@@ -36,11 +47,6 @@ chrome.runtime.onMessage.addListener((message, _sender, sendResponse) => {
     fetchGistRaw(message.url)
       .then(sendResponse)
       .catch((error) => sendResponse({ ok: false, error: error.message || String(error) }));
-    return true;
-  }
-
-  if (message?.type === "download-markdown") {
-    downloadMarkdown(message, sendResponse);
     return true;
   }
 
@@ -226,26 +232,6 @@ function sanitizeFetchHeaders(value) {
   return headers;
 }
 
-function downloadMarkdown(message, sendResponse) {
-  const url = `data:text/markdown;charset=utf-8;base64,${base64EncodeUtf8(message.markdown)}`;
-
-  chrome.downloads.download(
-    {
-      url,
-      filename: message.filename,
-      saveAs: false
-    },
-    (downloadId) => {
-      if (chrome.runtime.lastError) {
-        sendResponse({ ok: false, error: chrome.runtime.lastError.message });
-        return;
-      }
-
-      sendResponse({ ok: true, downloadId });
-    }
-  );
-}
-
 async function saveToGitHub(settings, clip) {
   validateGitHubSave(settings, clip);
   await ensureGitHubRepository(settings);
@@ -335,6 +321,9 @@ async function savePdfToGitHub(settings, pdf) {
   }
   if (bytes.byteLength > MAX_PDF_BYTES) {
     throw new Error(`PDF is larger than the ${MAX_PDF_BYTES / 1024 / 1024} MB extension limit.`);
+  }
+  if (!new TextDecoder("ascii").decode(bytes.slice(0, 1024)).includes("%PDF-")) {
+    throw new Error("The selected resource is not a PDF document. Open the PDF itself and try again.");
   }
 
   const title = cleanPdfTitle(pdf.title, response.url);
@@ -475,7 +464,7 @@ async function ensurePdfWorkflow(settings) {
 }
 
 function validatePdfSave(settings, pdf) {
-  validateGitHubSave(settings, { path: "pending.md", markdown: "pending" });
+  validateGitHubSave(settings, { path: `${settings?.rootFolder}/pending.md`, markdown: "pending" });
   if (!pdf?.url) {
     throw new Error("Missing PDF URL.");
   }
@@ -561,10 +550,10 @@ async function persistImages(settings, clip) {
 }
 
 async function fetchImageAsset(image, clip) {
-  const url = image?.url;
-  if (!url || /^(data|blob):/i.test(url)) {
+  if (!image?.url || /^(data|blob):/i.test(image.url)) {
     return null;
   }
+  const url = validateRemoteUrl(image.url);
 
   if (image.fetch_mode === "tab-authenticated") {
     if (!Number.isInteger(clip?.tabId)) {
@@ -749,6 +738,11 @@ function findIndexEntry(existingText, url) {
 }
 
 async function removePreviousClip(settings, entry) {
+  // Historical metadata is data, not authority to delete arbitrary repository files.
+  if (!isSafeArchivePath(settings.rootFolder, entry.path) || !entry.path.endsWith(".md")) {
+    return;
+  }
+  const assetPrefix = `${dirname(entry.path)}/assets/${basename(entry.path).slice(0, -3)}/`;
   const paths = [entry.path];
   if (entry.pdf_path) {
     paths.push(entry.pdf_path);
@@ -757,7 +751,11 @@ async function removePreviousClip(settings, entry) {
     paths.push(...entry.images.map((image) => image.path).filter(Boolean));
   }
 
-  for (const path of paths) {
+  for (const path of new Set(paths)) {
+    if (!isSafeArchivePath(settings.rootFolder, path)
+        || (path !== entry.path && !path.startsWith(assetPrefix))) {
+      continue;
+    }
     try {
       await deleteContent(settings, path, `Move web clip asset: ${path}`);
     } catch (_error) {
@@ -840,6 +838,17 @@ function validateGitHubSave(settings, clip) {
   if (missing.length) {
     throw new Error(`Missing required value: ${missing.join(", ")}.`);
   }
+  if (!isSafeArchivePath(settings.rootFolder, clip.path) || !clip.path.endsWith(".md")) {
+    throw new Error("The clip path must be a Markdown file inside the configured archive folder.");
+  }
+}
+
+function isSafeArchivePath(rootFolder, path) {
+  const root = Core.normalizeRootFolder(rootFolder);
+  return typeof path === "string"
+    && path.startsWith(`${root}/`)
+    && !/[\\\u0000-\u001f\u007f]/.test(path)
+    && !path.split("/").some((part) => !part || [".", "..", ".git", ".github"].includes(part));
 }
 
 function dirname(path) {

@@ -23,6 +23,8 @@ PDF_SUPPORT_FILES = (
 
 PACKAGE_FILES = (
     *PDF_SUPPORT_FILES,
+    "_locales/en/messages.json",
+    "_locales/de/messages.json",
     "background.js",
     "capture-utils.js",
     "content.js",
@@ -43,8 +45,21 @@ class PackageError(RuntimeError):
     """Raised when a safe release archive cannot be created."""
 
 
+def package_source(root: Path, relative: PurePosixPath) -> Path:
+    if relative.is_absolute() or ".." in relative.parts:
+        raise PackageError(f"unsafe package path: {relative}")
+    source = root
+    for part in relative.parts:
+        source /= part
+        if source.is_symlink():
+            raise PackageError(f"refusing to package symlink: {relative}")
+    if not source.is_file():
+        raise PackageError(f"required extension file is missing: {relative}")
+    return source
+
+
 def validated_manifest(repository_root: Path) -> dict[str, object]:
-    manifest_path = repository_root.joinpath(*EXTENSION_DIRECTORY.parts, "manifest.json")
+    manifest_path = package_source(repository_root, EXTENSION_DIRECTORY / "manifest.json")
     try:
         manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
     except (OSError, json.JSONDecodeError) as error:
@@ -63,16 +78,9 @@ def validated_manifest(repository_root: Path) -> dict[str, object]:
 
 def validated_package_files(repository_root: Path) -> list[tuple[Path, str]]:
     files: list[tuple[Path, str]] = []
-    extension_root = repository_root.joinpath(*EXTENSION_DIRECTORY.parts)
     for archive_name in PACKAGE_FILES:
         relative = PurePosixPath(archive_name)
-        if relative.is_absolute() or ".." in relative.parts:
-            raise PackageError(f"unsafe package path: {archive_name}")
-        source = extension_root.joinpath(*relative.parts)
-        if source.is_symlink():
-            raise PackageError(f"refusing to package symlink: {archive_name}")
-        if not source.is_file():
-            raise PackageError(f"required extension file is missing: {archive_name}")
+        source = package_source(repository_root, EXTENSION_DIRECTORY / relative)
         files.append((source, relative.as_posix()))
     return files
 

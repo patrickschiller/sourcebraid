@@ -17,17 +17,23 @@ const ghostApiKeyInput = document.querySelector("#ghost-api-key");
 const bloggerApiKeyInput = document.querySelector("#blogger-api-key");
 const settingsPanel = document.querySelector("#settings");
 const settingsToggle = document.querySelector("#settings-toggle");
+const dataDisclosure = document.querySelector("#data-disclosure");
+const dataConsentInput = document.querySelector("#data-consent");
+
+const DATA_DISCLOSURE_VERSION = "1";
 
 let lastClip = null;
+let dataDisclosureAccepted = false;
 
 init().catch((error) => {
   setStatus(error.message || String(error), "error");
 });
 
 async function init() {
-  const tab = await getActiveTab({ optional: true });
-  titleBox.textContent = tab?.title || "Current tab";
   await loadSettings();
+  if (dataDisclosureAccepted) {
+    await updateActiveTabTitle();
+  }
 
   settingsToggle.addEventListener("click", () => {
     setSettingsOpen(settingsPanel.hidden);
@@ -38,8 +44,12 @@ async function init() {
   });
 
   saveSettingsButton.addEventListener("click", async () => {
-    await saveSettings();
-    setStatus("GitHub settings saved.", "success");
+    try {
+      await saveSettings();
+      setStatus("GitHub settings saved.", "success");
+    } catch (error) {
+      setStatus(error.message || String(error), "error");
+    }
   });
 
   exportSourceBraidConfigButton.addEventListener("click", async () => {
@@ -52,10 +62,11 @@ async function init() {
 }
 
 async function saveCurrentTab() {
-  setBusy(true, "Capturing content...");
   let pdfMode = false;
 
   try {
+    await ensureDataDisclosureAccepted();
+    setBusy(true, "Capturing content...");
     const settings = collectSettings();
     validateSettings(settings);
     await persistSettings(settings);
@@ -125,9 +136,9 @@ async function saveCurrentTab() {
 }
 
 async function downloadLastClip() {
-  setBusy(true, "Capturing fallback Markdown...");
-
   try {
+    await ensureDataDisclosureAccepted();
+    setBusy(true, "Capturing fallback Markdown...");
     const settings = collectSettings();
     const tab = await getActiveTab();
     if (await isPdfTab(tab)) {
@@ -268,7 +279,8 @@ async function loadSettings() {
     githubToken: "",
     ghostApiUrl: "",
     ghostContentApiKey: "",
-    bloggerApiKey: ""
+    bloggerApiKey: "",
+    dataDisclosureAcceptedVersion: ""
   };
   const settings = await storageGet(defaults);
   if (settings.githubRepo === "codex-knowledge") {
@@ -284,7 +296,30 @@ async function loadSettings() {
   ghostApiUrlInput.value = settings.ghostApiUrl;
   ghostApiKeyInput.value = settings.ghostContentApiKey;
   bloggerApiKeyInput.value = settings.bloggerApiKey;
+  dataDisclosureAccepted = settings.dataDisclosureAcceptedVersion === DATA_DISCLOSURE_VERSION;
+  dataDisclosure.hidden = dataDisclosureAccepted;
   setSettingsOpen(!(settings.githubOwner && settings.githubRepo && settings.githubToken));
+}
+
+async function ensureDataDisclosureAccepted() {
+  if (dataDisclosureAccepted) {
+    return;
+  }
+  if (!dataConsentInput.checked) {
+    dataDisclosure.hidden = false;
+    dataConsentInput.focus();
+    throw new Error("Confirm the data-use notice before capturing this page.");
+  }
+
+  await storageSet({ dataDisclosureAcceptedVersion: DATA_DISCLOSURE_VERSION });
+  dataDisclosureAccepted = true;
+  dataDisclosure.hidden = true;
+  await updateActiveTabTitle();
+}
+
+async function updateActiveTabTitle() {
+  const tab = await getActiveTab({ optional: true });
+  titleBox.textContent = tab?.title || "Current tab";
 }
 
 async function saveSettings() {
@@ -307,16 +342,7 @@ async function exportSourceBraidConfig() {
 
     await persistSettings(settings);
 
-    const config = {
-      owner: settings.owner,
-      repo: settings.repo,
-      branch: settings.branch,
-      root_folder: settings.rootFolder
-    };
-
-    if (settings.token) {
-      config.token = settings.token;
-    }
+    const config = Core.buildPluginConfig(settings);
 
     downloadBlobFile(
       "sourcebraid-config.json",
@@ -379,7 +405,8 @@ async function storageGet(defaults) {
     githubToken: localStorage.getItem("githubToken") || defaults.githubToken,
     ghostApiUrl: localStorage.getItem("ghostApiUrl") || defaults.ghostApiUrl,
     ghostContentApiKey: localStorage.getItem("ghostContentApiKey") || defaults.ghostContentApiKey,
-    bloggerApiKey: localStorage.getItem("bloggerApiKey") || defaults.bloggerApiKey
+    bloggerApiKey: localStorage.getItem("bloggerApiKey") || defaults.bloggerApiKey,
+    dataDisclosureAcceptedVersion: localStorage.getItem("dataDisclosureAcceptedVersion") || defaults.dataDisclosureAcceptedVersion
   };
 }
 
@@ -408,10 +435,7 @@ function hasChromeApi(namespace, member) {
 }
 
 function normalizeRootFolder(value) {
-  return (value || "web-clips")
-    .trim()
-    .replace(/^\/+|\/+$/g, "")
-    .replace(/\/{2,}/g, "/") || "web-clips";
+  return Core.normalizeRootFolder(value);
 }
 
 function normalizeOptionalUrl(value) {
@@ -421,9 +445,12 @@ function normalizeOptionalUrl(value) {
   }
   try {
     const url = new URL(trimmed);
-    return ["http:", "https:"].includes(url.protocol) ? url.href.replace(/\/+$/, "") : "";
+    if (url.protocol !== "https:" || url.username || url.password || url.search || url.hash) {
+      throw new Error("invalid endpoint");
+    }
+    return url.href.replace(/\/+$/, "");
   } catch (_error) {
-    return trimmed;
+    throw new Error("Ghost Content API URL must be an HTTPS endpoint without credentials, query parameters, or a fragment.");
   }
 }
 

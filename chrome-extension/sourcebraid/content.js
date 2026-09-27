@@ -731,7 +731,7 @@ async function tryGhostApi(metadata, settings) {
 
 async function tryBloggerApi(metadata, settings) {
   const isBlogger = /blogger/i.test(metadata.generator) || /\.blogspot\./i.test(location.hostname);
-  if (!isBlogger || !metadata.bloggerBlogId || !metadata.bloggerPostId) {
+  if (!isBlogger || !metadata.bloggerBlogId || !metadata.bloggerPostId || !settings.bloggerApiKey) {
     return null;
   }
 

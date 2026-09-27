@@ -83,8 +83,44 @@ p {
   padding: 10px;
 }
 
-.settings[hidden] {
+.settings[hidden],
+.disclosure[hidden] {
   display: none;
+}
+
+.disclosure {
+  display: grid;
+  gap: 10px;
+  padding: 12px;
+  border: 1px solid #9bc7c3;
+  border-radius: 8px;
+  background: #f0fbfa;
+}
+
+.disclosure a {
+  width: fit-content;
+  color: #0e615d;
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.consent {
+  grid-template-columns: auto minmax(0, 1fr);
+  align-items: start;
+  gap: 8px;
+  font-size: 12px;
+  line-height: 1.4;
+}
+
+.consent input {
+  width: 16px;
+  height: 16px;
+  margin: 1px 0 0;
+  accent-color: #166b68;
+}
+
+.privacy-note {
+  padding-top: 2px;
 }
 
 h2 {
