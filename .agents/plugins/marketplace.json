@@ -1,0 +1,20 @@
+{
+  "name": "sourcebraid",
+  "interface": {
+    "displayName": "SourceBraid"
+  },
+  "plugins": [
+    {
+      "name": "sourcebraid",
+      "source": {
+        "source": "local",
+        "path": "./codex-plugin/sourcebraid"
+      },
+      "policy": {
+        "installation": "AVAILABLE",
+        "authentication": "ON_INSTALL"
+      },
+      "category": "Productivity"
+    }
+  ]
+}

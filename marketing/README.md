@@ -8,8 +8,9 @@ or screenshots of a real user's repository.
 ## Core message
 
 **SourceBraid turns web pages, papers, wikis, Gists, and PDFs into durable
-Markdown in a private GitHub repository controlled by the user. The archive can
-then be searched and managed from ChatGPT and Codex.**
+Markdown in a private GitHub repository controlled by the user. Local Codex
+searches and manages that archive. The prepared ChatGPT service will provide
+read-only search and retrieval after deployment and review.**
 
 Short version:
 
@@ -59,6 +60,12 @@ rg -n '\{\{[A-Z0-9_]+\}\}' marketing
 
 - [`GITHUB.md`](GITHUB.md): repository metadata, topics, and community setup;
 - [`LAUNCH_CHECKLIST.md`](LAUNCH_CHECKLIST.md): release gates and launch order;
+- [`OPENAI_MCP_SUBMISSION.md`](OPENAI_MCP_SUBMISSION.md): primary ChatGPT
+  **With MCP** listing, protected review setup, tests, and submission checklist;
+- [`OPENAI_PLUGIN_SUBMISSION.md`](OPENAI_PLUGIN_SUBMISSION.md): optional local
+  Python skills package and its separate index/deletion regression cases;
+- [`CHATGPT_MCP_DEPLOYMENT.md`](../docs/CHATGPT_MCP_DEPLOYMENT.md): deployment and
+  live authentication checks for the prepared hosted service;
 - [`DEMO_SCRIPT.md`](DEMO_SCRIPT.md): 60-second product demo;
 - [`PRODUCT_HUNT.md`](PRODUCT_HUNT.md): listing and maker comment;
 - [`SHOW_HN.md`](SHOW_HN.md): technical launch post;
@@ -69,6 +76,10 @@ rg -n '\{\{[A-Z0-9_]+\}\}' marketing
 - Explain the user-controlled data flow before listing extraction adapters.
 - Prefer one real workflow over a long feature inventory.
 - Say exactly which clients and stores are available in the current release.
+- A prepared Worker or skills ZIP does not establish live ChatGPT access.
+  Describe hosted search as read-only and disclose SourceBraid/Cloudflare
+  processing, encrypted OAuth grant storage, and the absence of a permanent
+  content database.
 - Use "private GitHub repository" only when showing a private synthetic demo
   repository with no private user content.
 - Never imply that SourceBraid bypasses paywalls, access controls, or publisher

@@ -1,4 +1,5 @@
 import base64
+import argparse
 import contextlib
 import importlib.util
 import io
@@ -32,6 +33,77 @@ class SourceBraidPluginTests(unittest.TestCase):
             root_folder="web-clips",
             token="token",
         )
+
+    def test_cache_rejects_traversal_and_symlink_escape(self):
+        with tempfile.TemporaryDirectory() as temporary_directory:
+            with mock.patch.object(sourcebraid, "CACHE_ROOT", Path(temporary_directory) / "cache"):
+                for path in ("web-clips/../../secret.md", "/web-clips/a.md", "web-clips//a.md", "web-clips/./a.md", "web-clips/a\\b.md"):
+                    with self.subTest(path=path), self.assertRaises(sourcebraid.KnowledgeError):
+                        sourcebraid.cache_path(self.config, path)
+                root = self.config.cache_dir / "web-clips"
+                root.mkdir(parents=True)
+                (root / "escape.md").symlink_to(Path(temporary_directory) / "secret.md")
+                with self.assertRaises(sourcebraid.KnowledgeError):
+                    sourcebraid.fetch(self.config, "web-clips/escape.md")
+
+    def test_cache_isolates_branches_and_roots(self):
+        with tempfile.TemporaryDirectory() as temporary_directory:
+            with mock.patch.object(sourcebraid, "CACHE_ROOT", Path(temporary_directory)):
+                variant = sourcebraid.Config("owner", "archive", "feature/search", "other-clips", "token")
+                self.assertNotEqual(self.config.cache_dir, variant.cache_dir)
+                variant.branch = "main"
+                self.assertNotEqual(self.config.cache_dir, variant.cache_dir)
+                variant.root_folder = "web-clips"
+                self.assertEqual(self.config.cache_dir, variant.cache_dir)
+                variant.repo = "../escape"
+                with self.assertRaises(sourcebraid.KnowledgeError):
+                    _ = variant.cache_dir
+
+    def test_config_masks_token_and_restricts_file_permissions(self):
+        args = argparse.Namespace(show=False, owner=None, repo=None, repo_slug="owner/archive", branch="main", root_folder="web-clips", token="synthetic-secret")
+        with tempfile.TemporaryDirectory() as temporary_directory:
+            path = Path(temporary_directory) / "config.json"
+            with mock.patch.object(sourcebraid, "CONFIG_PATH", path), contextlib.redirect_stdout(io.StringIO()):
+                sourcebraid.write_config(args)
+                self.assertEqual(path.stat().st_mode & 0o777, 0o600)
+                args.show = True
+                output = io.StringIO()
+                with contextlib.redirect_stdout(output):
+                    sourcebraid.write_config(args)
+                self.assertNotIn("synthetic-secret", output.getvalue())
+                self.assertIn("[redacted]", output.getvalue())
+
+    def test_bad_config_fails_without_echoing_secret(self):
+        with tempfile.TemporaryDirectory() as temporary_directory:
+            path = Path(temporary_directory) / "config.json"
+            with mock.patch.object(sourcebraid, "CONFIG_PATH", path):
+                for value in ('{"token":"synthetic-secret"', '[]', '{"repo":5}'):
+                    path.write_text(value)
+                    with self.assertRaises(sourcebraid.KnowledgeError) as caught:
+                        sourcebraid.read_file_config()
+                    self.assertNotIn("synthetic-secret", str(caught.exception))
+
+    def test_fresh_empty_archive_builds_searchable_empty_index(self):
+        with tempfile.TemporaryDirectory() as temporary_directory:
+            with mock.patch.object(sourcebraid, "CACHE_ROOT", Path(temporary_directory)):
+                with mock.patch.object(sourcebraid, "repository_snapshot", return_value=("head", "tree", {"tree": []})):
+                    with mock.patch.object(sourcebraid, "download_repository_texts") as download:
+                        sourcebraid.maybe_auto_update(self.config)
+                self.assertEqual(sourcebraid.search_index_records(self.config, "anything"), [])
+                self.assertEqual(sourcebraid.index_status_payload(self.config)["documents"], 0)
+                download.assert_not_called()
+
+    def test_delete_finds_metadata_when_frontmatter_url_is_missing(self):
+        clip = "web-clips/example.md"
+        shard = "web-clips/index/12.jsonl"
+        tree = {"tree": [{"path": clip, "type": "blob"}, {"path": shard, "type": "blob"}]}
+        texts = {clip: "---\ntitle: Example\n---\nBody", shard: json.dumps({"path": clip, "url": "https://example.com"}) + "\n"}
+        with mock.patch.object(sourcebraid, "repository_snapshot", return_value=("head", "tree", tree)):
+            with mock.patch.object(sourcebraid, "repository_text", side_effect=lambda _, path, ref: texts[path]):
+                plan = sourcebraid.build_delete_plan(self.config, clip)
+        self.assertTrue(plan.indexed)
+        self.assertEqual(plan.index_path, shard)
+        self.assertEqual(plan.next_index_text, "")
 
     def test_validate_clip_path_rejects_unsafe_or_non_markdown_paths(self):
         self.assertEqual(

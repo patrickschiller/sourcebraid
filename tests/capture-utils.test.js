@@ -29,6 +29,26 @@ test("buildIndexPath assigns the same URL to a stable metadata shard", () => {
   );
 });
 
+test("buildPluginConfig never exports credentials", () => {
+  assert.deepEqual(
+    Core.buildPluginConfig({
+      owner: " octocat ",
+      repo: " sourcebraid-private ",
+      branch: "main",
+      rootFolder: "/web-clips/",
+      token: "github_pat_secret",
+      ghostContentApiKey: "ghost-secret",
+      bloggerApiKey: "blogger-secret"
+    }),
+    {
+      owner: "octocat",
+      repo: "sourcebraid-private",
+      branch: "main",
+      root_folder: "web-clips"
+    }
+  );
+});
+
 test("normalizeSourceMarkdown removes source frontmatter and a duplicate H1", () => {
   const result = Core.normalizeSourceMarkdown(
     "---\ntitle: Original\n---\n# Example article\n\nRead [more](/more).\n\n![Plot](images/plot.png)",
@@ -296,4 +316,104 @@ test("DeepMind blog capture excludes cover and related-post cards", () => {
   assert.equal(result.captureMethod, "google-deepmind-dom");
   assert.match(result.html, /Article paragraph/);
   assert.doesNotMatch(result.html, /Cover|Related card/);
+});
+
+function backgroundContext(overrides = {}) {
+  const context = {
+    TextEncoder, TextDecoder, URL, Uint8Array, atob, btoa,
+    chrome: { runtime: { id: "sourcebraid-test", getURL: (file) => `chrome-extension://sourcebraid-test/${file}`,
+      onMessage: { addListener(listener) { context.messageListener = listener; } } } },
+    fetch: async () => { throw new Error("Unexpected network request"); },
+    importScripts() {},
+    ...overrides
+  };
+  context.globalThis = context;
+  context.SourceBraidCore = Core;
+  vm.runInNewContext(fs.readFileSync(path.join(extensionRoot, "background.js"), "utf8"), context);
+  return context;
+}
+
+test("archive roots reject traversal and repository configuration paths", () => {
+  for (const root of ["../private", "web-clips/../other", "web-clips/./nested", ".github/workflows", ".git", "clips\\other", "clips\u0000"]) {
+    assert.throws(() => Core.normalizeRootFolder(root), /Root folder/);
+  }
+  assert.equal(Core.normalizeRootFolder(" /knowledge//clips/ "), "knowledge/clips");
+});
+
+test("content scripts cannot request GitHub writes", () => {
+  const context = backgroundContext();
+  let result;
+  const keepAlive = context.messageListener({ type: "save-to-github", settings: {}, clip: {} }, {
+    id: "sourcebraid-test", url: "https://example.com/", tab: { id: 42 }
+  }, (value) => { result = value; });
+  assert.equal(keepAlive, false);
+  assert.equal(result.ok, false);
+  assert.match(result.error, /started from the SourceBraid popup/);
+});
+
+test("GitHub writes reject clip paths outside the configured archive", () => {
+  const context = backgroundContext();
+  const settings = { owner: "example", repo: "archive", branch: "main", rootFolder: "web-clips", token: "test-token" };
+  for (const path of ["README.md", "web-clips/../README.md", "web-clips/.github/workflows/task.md", "web-clips\\clip.md"]) {
+    assert.throws(() => context.validateGitHubSave(settings, { path, markdown: "synthetic" }), /inside the configured archive/);
+  }
+});
+
+test("page images cannot read local files or extension resources", async () => {
+  const context = backgroundContext();
+  for (const url of ["file:///private/synthetic-image.png", "chrome-extension://sourcebraid-test/popup.html"]) {
+    await assert.rejects(context.fetchImageAsset({ url }, {}), /Unsupported URL protocol/);
+  }
+});
+
+test("recapture cleanup only deletes assets belonging to the previous clip", async () => {
+  const context = backgroundContext();
+  const deleted = [];
+  context.deleteContent = async (_settings, path) => { deleted.push(path); };
+  const clipPath = "web-clips/2026/09/synthetic-old.md";
+  const assetPath = "web-clips/2026/09/assets/synthetic-old/cover.png";
+  await context.removePreviousClip({ rootFolder: "web-clips" }, {
+    path: clipPath, pdf_path: ".github/workflows/example.yml",
+    images: [{ path: assetPath }, { path: "README.md" }, { path: "web-clips/2026/09/another.md" }]
+  });
+  assert.deepEqual(deleted, [clipPath, assetPath]);
+});
+
+test("a login page returned from a PDF URL is rejected before archive writes", async () => {
+  const context = backgroundContext();
+  context.ensureGitHubRepository = async () => {};
+  context.ensurePdfWorkflow = async () => {};
+  context.fetch = async () => ({ ok: true, url: "https://example.com/paper.pdf",
+    headers: { get: (name) => name === "content-type" ? "text/html" : null },
+    arrayBuffer: async () => new TextEncoder().encode("<html>Synthetic login page</html>").buffer
+  });
+  await assert.rejects(context.savePdfToGitHub({ owner: "example", repo: "archive", branch: "main", rootFolder: "web-clips", token: "test-token" }, {
+    url: "https://example.com/paper.pdf", title: "Paper"
+  }), /not a PDF document/);
+});
+
+test("first capture requires consent before tab access or capture requests", async () => {
+  const elements = new Map();
+  const requests = [];
+  const element = (selector) => {
+    if (!elements.has(selector)) elements.set(selector, { value: "", checked: false, hidden: false,
+      addEventListener() {}, setAttribute() {}, focus() {} });
+    return elements.get(selector);
+  };
+  const context = {
+    URL,
+    document: { querySelector: element },
+    chrome: {
+      storage: { local: { get: async (defaults) => defaults, set: async (values) => { requests.push(values); } } },
+      tabs: { query: async () => { requests.push("tab-read"); return [{ id: 42, title: "Synthetic page", url: "https://example.com/" }]; } },
+      runtime: { sendMessage: async () => { requests.push("capture"); } }
+    },
+    SourceBraidCore: Core
+  };
+  vm.runInNewContext(fs.readFileSync(path.join(extensionRoot, "popup.js"), "utf8"), context);
+  await new Promise(setImmediate);
+  await context.saveCurrentTab();
+  assert.deepEqual(requests, []);
+  assert.match(element("#status").textContent, /Confirm the data-use notice/);
+  assert.equal(element("#settings").hidden, false);
 });

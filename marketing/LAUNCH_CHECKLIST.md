@@ -19,12 +19,26 @@ does not count as a public destination.
 - [ ] Inspect archive contents and record their SHA-256 digests.
 - [ ] Publish a GitHub release at `{{RELEASE_URL}}`.
 - [ ] Publish and verify every store or plugin destination that will be named.
-- [ ] For the OpenAI submission, confirm the publishing organization grants the
-  submitter `Apps Management: Write` and uses a verified developer or business
-  identity.
-- [ ] Complete the plugin listing information, skills or MCP details, starter
-  prompts, test cases, country availability, and policy attestations required by
-  the [official OpenAI submission guide](https://developers.openai.com/plugins/deploy/submission).
+- [ ] Deploy the prepared `chatgpt-mcp/` Worker, verify
+  `https://mcp.sourcebraid.com/mcp`, and complete live OAuth/search/fetch tests
+  using [`docs/CHATGPT_MCP_DEPLOYMENT.md`](../docs/CHATGPT_MCP_DEPLOYMENT.md).
+- [ ] Submit the primary ChatGPT release as **With MCP** only after its public
+  HTTPS endpoint and domain verification are working.
+- [ ] Follow [`OPENAI_MCP_SUBMISSION.md`](OPENAI_MCP_SUBMISSION.md), confirm
+  `Apps Management: Write`, and use a verified developer or business identity.
+- [ ] Enter the real MCP endpoint, scan its read-only tools, and enter the MCP
+  kit's three starter prompts, five positive tests, three negative tests,
+  release notes, country availability, and policy attestations.
+- [ ] Give reviewers access only to the dedicated private synthetic repository;
+  provide its credential through OpenAI's protected submission field, never in
+  the repository or ordinary listing copy.
+- [ ] Restrict the hosted review token to Contents read-only for exactly one
+  private repository seeded from the synthetic review ZIP. Enter PATs only on
+  the SourceBraid HTTPS consent page, never into a ChatGPT prompt.
+- [ ] Verify Cloudflare/OAuth data handling against `PRIVACY.md`; no content,
+  query, or credential logging is enabled.
+- [ ] Treat the optional local skills package as a separate runtime path; do
+  not advertise local index or deletion tools as hosted ChatGPT features.
 - [ ] Complete one clean installation from each public destination.
 - [ ] Complete first-run GitHub setup using a new private synthetic repository.
 - [ ] Save one HTML source and one PDF, then verify Markdown, frontmatter,
@@ -83,8 +97,8 @@ communities whose self-promotion rules prohibit the submission.
 
 - [ ] Reserve two focused response windows in both European and US waking hours.
 - [ ] Keep concise answers ready for GitHub token scope, `<all_urls>`, PDF
-  conversion, private repositories, deletion safety, and the lack of a central
-  SourceBraid content server.
+  conversion, private repositories, local deletion safety, and the hosted
+  SourceBraid/Cloudflare processing step without a permanent content database.
 - [ ] Convert reproducible defects into Issues; keep broad questions in
   Discussions.
 - [ ] Publish corrections visibly if a listing or post overstates a capability.

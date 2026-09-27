@@ -1,5 +1,6 @@
 import importlib.util
 import json
+import subprocess
 import sys
 import unittest
 from pathlib import Path
@@ -18,6 +19,21 @@ SPEC.loader.exec_module(mcp)
 
 
 class SourceBraidMCPTests(unittest.TestCase):
+    def test_invalid_arguments_do_not_trigger_archive_access(self):
+        for name, arguments in (("search", {}), ("search", {"query": "x", "extra": True}), ("sourcebraid_list", {"limit": True}), ("sourcebraid_list", {"tags": None})):
+            with self.subTest(name=name, arguments=arguments), mock.patch.object(mcp, "load_config") as load:
+                response = mcp.dispatch({"jsonrpc": "2.0", "id": 7, "method": "tools/call", "params": {"name": name, "arguments": arguments}})
+                self.assertTrue(response["result"]["isError"])
+                load.assert_not_called()
+
+    def test_stdio_recovers_from_bad_json_without_echoing_payload(self):
+        completed = subprocess.run([sys.executable, str(SCRIPT_PATH)], input='{"token":"synthetic-secret"\n[]\n{"jsonrpc":"2.0","id":2,"method":"ping"}\n', text=True, capture_output=True, check=True)
+        messages = [json.loads(line) for line in completed.stdout.splitlines()]
+        self.assertEqual(messages[0]["error"]["code"], -32700)
+        self.assertEqual(messages[1]["error"]["code"], -32600)
+        self.assertEqual(messages[2]["result"], {})
+        self.assertNotIn("synthetic-secret", completed.stdout + completed.stderr)
+
     def test_initialize_advertises_server_and_tools(self):
         response = mcp.dispatch(
             {

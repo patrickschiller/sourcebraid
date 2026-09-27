@@ -15,3 +15,9 @@ licenses continue to apply and are not replaced by the SourceBraid license.
 Captured articles, papers, PDFs, images, and other user-supplied source material
 are not part of SourceBraid and are not licensed under the project's MIT
 License.
+
+The separately deployed chatgpt-mcp service uses
+@cloudflare/workers-oauth-provider under its MIT License. Development tooling
+and transitive dependencies retain the licenses distributed with their npm
+packages. Consult chatgpt-mcp/package-lock.json for the pinned dependency tree;
+these dependencies are not relicensed by SourceBraid.

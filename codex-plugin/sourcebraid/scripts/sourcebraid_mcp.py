@@ -5,6 +5,7 @@ from __future__ import annotations
 
 import argparse
 import json
+import sqlite3
 import sys
 from pathlib import Path
 from typing import Any, Callable
@@ -18,7 +19,7 @@ import sourcebraid as core  # noqa: E402
 
 
 SERVER_NAME = "sourcebraid"
-SERVER_VERSION = "0.5.0"
+SERVER_VERSION = "1.0.1"
 PROTOCOL_VERSION = "2025-06-18"
 DEFAULT_SEARCH_LIMIT = 10
 
@@ -378,7 +379,33 @@ def error_result(message: str) -> dict[str, object]:
     }
 
 
-def dispatch(request: dict[str, object]) -> dict[str, object] | None:
+def validate_arguments(arguments: dict[str, object], schema: dict[str, object]) -> None:
+    properties = schema["properties"]
+    if set(arguments) - set(properties):
+        raise core.KnowledgeError("tool arguments contain unknown properties.")
+    for name in schema.get("required", []):
+        if name not in arguments:
+            raise core.KnowledgeError(f"missing required argument: {name}.")
+    for name, value in arguments.items():
+        field = properties[name]
+        if field["type"] == "string":
+            if not isinstance(value, str) or (field.get("minLength") and not value.strip()):
+                raise core.KnowledgeError(f"{name} must be a {'non-empty ' if field.get('minLength') else ''}string.")
+        elif field["type"] == "integer":
+            optional_limit({"limit": value})
+        elif field["type"] == "array":
+            if value is None:
+                raise core.KnowledgeError(f"{name} must be an array.")
+            optional_tags({"tags": value})
+
+
+def dispatch(request: object) -> dict[str, object] | None:
+    if (
+        not isinstance(request, dict) or request.get("jsonrpc") != "2.0"
+        or not isinstance(request.get("method"), str)
+        or ("id" in request and (isinstance(request["id"], bool) or not isinstance(request["id"], (str, int))))
+    ):
+        return {"jsonrpc": "2.0", "id": None, "error": {"code": -32600, "message": "Invalid Request"}}
     method = request.get("method")
     request_id = request.get("id")
     if request_id is None:
@@ -410,9 +437,13 @@ def dispatch(request: dict[str, object]) -> dict[str, object] | None:
             if not isinstance(arguments, dict):
                 raise core.KnowledgeError("tool arguments must be an object.")
             try:
+                schema = next(tool["inputSchema"] for tool in TOOLS if tool["name"] == name)
+                validate_arguments(arguments, schema)
                 result = tool_result(TOOL_HANDLERS[name](arguments))
-            except (core.KnowledgeError, OSError, ValueError, json.JSONDecodeError) as error:
+            except core.KnowledgeError as error:
                 result = error_result(str(error))
+            except (OSError, ValueError, sqlite3.Error):
+                result = error_result("SourceBraid could not access its local data; check configuration, permissions and index health.")
         else:
             return {
                 "jsonrpc": "2.0",
@@ -434,14 +465,12 @@ def main() -> int:
             continue
         try:
             request = json.loads(raw_line)
-            if not isinstance(request, dict):
-                raise ValueError("request must be a JSON object")
             response = dispatch(request)
         except (json.JSONDecodeError, ValueError) as error:
             response = {
                 "jsonrpc": "2.0",
                 "id": None,
-                "error": {"code": -32700, "message": str(error)},
+                "error": {"code": -32700, "message": "Parse error"},
             }
         if response is not None:
             print(json.dumps(response, ensure_ascii=False, separators=(",", ":")), flush=True)
