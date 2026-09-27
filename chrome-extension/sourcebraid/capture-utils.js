@@ -3,6 +3,7 @@
     buildDocument,
     buildGitHubPath,
     buildIndexPath,
+    buildPluginConfig,
     collectMarkdownImageAssets,
     localDateStamp,
     normalizeMarkdownUrls,
@@ -108,6 +109,15 @@
     return `${root}/index/${urlHash(url || "document").slice(0, 2)}.jsonl`;
   }
 
+  function buildPluginConfig(settings = {}) {
+    return {
+      owner: String(settings.owner || "").trim(),
+      repo: String(settings.repo || "").trim(),
+      branch: String(settings.branch || "main").trim() || "main",
+      root_folder: normalizeRootFolder(settings.rootFolder || settings.root_folder)
+    };
+  }
+
   function normalizeSourceMarkdown(markdown, title, baseUrl) {
     let body = String(markdown || "").replace(/^\uFEFF/, "").trim();
     body = stripFrontmatter(body);
@@ -186,10 +196,14 @@
   }
 
   function normalizeRootFolder(value) {
-    return String(value || "web-clips")
+    const root = String(value || "web-clips")
       .trim()
       .replace(/^\/+|\/+$/g, "")
       .replace(/\/{2,}/g, "/") || "web-clips";
+    if (/[\\\u0000-\u001f\u007f]/.test(root) || root.split("/").some((part) => [".", "..", ".git", ".github"].includes(part))) {
+      throw new Error("Root folder must be an archive folder without dot segments or Git configuration directories.");
+    }
+    return root;
   }
 
   function parseArxivUrl(value) {
