@@ -1,0 +1,226 @@
+{
+  "sourceLanguage": "en",
+  "strings": {
+    "[%@] %@": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "new",
+            "value": "[%1$@] %2$@"
+          }
+        }
+      }
+    },
+    "%@": {},
+    "Clip": {
+      "extractionState": "manual",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Beitrag"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Clip"
+          }
+        }
+      }
+    },
+    "github_pat_…": {},
+    "Open clip": {
+      "extractionState": "manual",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Beitrag öffnen"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Open clip"
+          }
+        }
+      }
+    },
+    "Open SourceBraid clip": {
+      "extractionState": "manual",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "SourceBraid-Beitrag öffnen"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Open SourceBraid clip"
+          }
+        }
+      }
+    },
+    "Recent clips": {
+      "extractionState": "manual",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Letzte Beiträge"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Recent clips"
+          }
+        }
+      }
+    },
+    "Search archive": {
+      "extractionState": "manual",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Archiv durchsuchen"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Search archive"
+          }
+        }
+      }
+    },
+    "Search SourceBraid archive": {
+      "extractionState": "manual",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "SourceBraid-Archiv durchsuchen"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Search SourceBraid archive"
+          }
+        }
+      }
+    },
+    "Search text": {
+      "extractionState": "manual",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Suchtext"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Search text"
+          }
+        }
+      }
+    },
+    "Show recent SourceBraid clips": {
+      "extractionState": "manual",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Neueste SourceBraid-Beiträge anzeigen"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Show recent SourceBraid clips"
+          }
+        }
+      }
+    },
+    "SourceBraid": {},
+    "SourceBraid clip": {
+      "extractionState": "manual",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "SourceBraid-Beitrag"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "SourceBraid clip"
+          }
+        }
+      }
+    },
+    "Latest": {
+      "extractionState": "manual",
+      "comment": "Primary archive destination in the system tab bar.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Latest"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Neueste"
+          }
+        }
+      }
+    },
+    "Search": {
+      "extractionState": "manual",
+      "comment": "Primary archive destination in the system tab bar.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Search"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Suche"
+          }
+        }
+      }
+    },
+    "Chat": {
+      "extractionState": "manual",
+      "comment": "Primary archive destination in the system tab bar.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Chat"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Chat"
+          }
+        }
+      }
+    }
+  },
+  "version": "1.0"
+}

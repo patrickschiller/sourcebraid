@@ -429,6 +429,18 @@ Nach einmaliger Einrichtung von Repository und Token können URLs, ausgewählter
 Text, Safari-Artikel mit relevanten Bild-Assets, PDFs und andere Dateien über
 das Teilen-Menü an das konfigurierte private Archiv gesendet werden.
 
+Der iOS-Release-Kandidat **1.1.0** ergänzt einen Markdown-Reader, die neuesten
+sieben Beiträge, Offline-Downloads und Volltextsuche, optionalen lokalen
+Apple-Intelligence-Chat mit Quellenlinks sowie adaptive iPad-/iPhone-Duo-Navigation.
+Der Maintainer hat die Veröffentlichung nach einem eigenen Funktionstest am
+15. Oktober 2026 freigegeben. Xcode-Cloud-Distribution und App-Store-Verfügbarkeit
+werden getrennt verfolgt; die Freigabe belegt keinen erfolgreichen Cloud-Build
+oder Store-Release. Siehe [Release-Hinweise 1.1.0](docs/IOS_RELEASE_1.1.0.de.md),
+[Umsetzungs- und Testprotokoll](docs/IOS_IMPLEMENTATION_TESTING.de.md)
+und [verbleibende Geräteprüfungen](docs/IOS_DEVICE_ACCEPTANCE.de.md). Native
+Navigation für Neueste/Suche/Chat und begrenzte Hintergrundaktualisierung stehen
+im [UI- und Refresh-Konzept](docs/IOS_READER_REFRESH_UX.de.md).
+
 ## Android-Roadmap
 
 Android ist bewusst nicht Teil der ersten Veröffentlichung. Das Feedback aus

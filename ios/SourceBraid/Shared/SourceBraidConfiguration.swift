@@ -61,9 +61,16 @@ enum SourceBraidSettings {
         guard let defaults = UserDefaults(suiteName: SourceBraidEnvironment.appGroupIdentifier) else {
             throw SourceBraidSettingsError.appGroupUnavailable
         }
-        let data = try JSONEncoder().encode(configuration.normalized())
+        let normalized = configuration.normalized()
+        if load().normalized() != normalized { defaults.removeObject(forKey: SourceBraidEnvironment.recentCapturesKey) }
+        let data = try JSONEncoder().encode(normalized)
         defaults.set(data, forKey: configurationKey)
+        NotificationCenter.default.post(name: .sourceBraidConfigurationChanged, object: nil)
     }
+}
+
+extension Notification.Name {
+    static let sourceBraidConfigurationChanged = Notification.Name("SourceBraid.ConfigurationChanged")
 }
 
 enum SourceBraidSettingsError: LocalizedError {
