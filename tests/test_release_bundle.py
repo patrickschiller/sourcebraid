@@ -134,6 +134,47 @@ class ReleaseBundleTests(unittest.TestCase):
                 release.mcp.build_package(root, root / "mismatched.zip")
             self.assertFalse((root / "mismatched.zip").exists())
 
+    def test_hosted_plugin_upload_is_reproducible_and_excludes_local_runtime(self):
+        with tempfile.TemporaryDirectory() as temporary:
+            root = Path(temporary)
+            for source, _ in release.chatgpt.PLUGIN_FILES:
+                path = root / source
+                path.parent.mkdir(parents=True, exist_ok=True)
+                path.write_bytes((ROOT / source).read_bytes())
+            package = json.loads((ROOT / "chatgpt-mcp/package.json").read_text())
+            (root / "chatgpt-mcp").mkdir()
+            (root / "chatgpt-mcp/package.json").write_text(json.dumps(package))
+            (root / "chatgpt-mcp/package-lock.json").write_text(json.dumps({
+                "version": package["version"], "packages": {"": package},
+            }))
+            (root / "chatgpt-plugin/sourcebraid/.env").write_text("private-fixture-credential")
+            first = root / "first.zip"
+            second = root / "second.zip"
+            self.assertEqual(release.chatgpt.build_package(root, first), release.chatgpt.build_package(root, second))
+            with zipfile.ZipFile(first) as archive:
+                self.assertEqual(set(archive.namelist()), {"plugin.json", "mcp.json", "assets/sourcebraid-icon.png"})
+                manifest = json.loads(archive.read("plugin.json"))
+                server = json.loads(archive.read("mcp.json"))["mcpServers"]["sourcebraid"]
+                self.assertEqual(manifest["version"], package["version"])
+                self.assertEqual(manifest["extensions"]["com.openai"]["interface"]["capabilities"], ["Read"])
+                self.assertEqual(server["type"], "streamable-http")
+                self.assertEqual(server["extensions"]["com.openai"]["auth"]["baseScopes"], ["archive:read"])
+                for name in archive.namelist():
+                    self.assertNotIn(b"private-fixture-credential", archive.read(name))
+
+    def test_hosted_plugin_rejects_wrong_version_credentials_and_local_transport(self):
+        manifest = json.loads((ROOT / "chatgpt-plugin/sourcebraid/plugin.json").read_text())
+        servers = json.loads((ROOT / "chatgpt-plugin/sourcebraid/mcp.json").read_text())
+        version = manifest["version"]
+        with self.assertRaisesRegex(release.chatgpt.ChatGPTPluginPackageError, "version"):
+            release.chatgpt.validate_metadata(manifest, servers, "0.0.0")
+        for extra in ({"headers": {"Authorization": "Bearer synthetic-private"}}, {"type": "stdio", "command": "python3"}):
+            changed = json.loads(json.dumps(servers))
+            changed["mcpServers"]["sourcebraid"].update(extra)
+            with self.assertRaisesRegex(release.chatgpt.ChatGPTPluginPackageError, "OAuth DCR"):
+                release.chatgpt.validate_metadata(manifest, changed, version)
+
+
 
 if __name__ == "__main__":
     unittest.main()

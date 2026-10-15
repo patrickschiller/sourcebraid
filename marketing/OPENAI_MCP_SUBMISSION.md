@@ -1,9 +1,24 @@
-# OpenAI submission kit — SourceBraid read-only MCP 1.0.1
+# OpenAI submission kit — SourceBraid read-only MCP 1.1.0
 
 This is the **primary ChatGPT release route**. Code and submission material are
 prepared; deployment, live acceptance, identity verification, submission and
 approval are separate outstanding gates. Do not enter an undeployed URL as a
 working service. Follow [the deployment runbook](../docs/CHATGPT_MCP_DEPLOYMENT.md).
+
+Portal workflow checked against the [official submission guide](https://developers.openai.com/plugins/deploy/submission)
+on **October 15, 2026**: start with a plugin ZIP that already declares the remote
+MCP server. Adding MCP later to an existing skills-only plugin is not supported.
+
+## Upload package and deployment source
+
+- Upload **`sourcebraid-chatgpt-plugin-v1.1.0.zip`** from the verified release
+  bundle. It contains root `plugin.json`, root `mcp.json`, and the logo. The
+  manifest supplies listing metadata; `mcp.json` declares the stable HTTPS
+  endpoint and OAuth settings. Keep credentials outside this ZIP.
+- Deploy the service from **`sourcebraid-chatgpt-mcp-v1.1.0.zip`** following the
+  runbook. This is Worker source code, not the plugin upload or a live endpoint.
+- The optional **`sourcebraid-plugin-skills-v1.1.0.zip`** is a separate local
+  Python package. Do not upload it for this hosted read-only submission.
 
 ## Copy-ready listing
 
@@ -11,12 +26,13 @@ working service. Follow [the deployment runbook](../docs/CHATGPT_MCP_DEPLOYMENT.
 | --- | --- |
 | Name | SourceBraid |
 | Developer | Patrick Schiller, only if identical to the selected verified identity |
-| Submission | With MCP; Universal URL; remote MCP only |
+| Submission | Upload plugin ZIP, then connect the declared remote server under MCPs / With MCP |
+| Upload | `sourcebraid-chatgpt-plugin-v1.1.0.zip` |
 | Target MCP URL | `https://mcp.sourcebraid.com/mcp` — after deployment and live tests |
 | Authentication | OAuth 2.1 / PKCE S256; scope `archive:read` |
 | Category | Productivity |
 | Capability | Read |
-| Short description | Search and read your private Markdown knowledge archive. |
+| Short description | Search your Markdown archive. |
 | Website | `https://sourcebraid.com` |
 | Repository | `https://github.com/patrickschiller/sourcebraid` |
 | Privacy | `https://github.com/patrickschiller/sourcebraid/blob/main/PRIVACY.md` |
@@ -39,7 +55,7 @@ Long description:
 
 German short description:
 
-> Durchsuche und lies dein privates Markdown-Wissensarchiv.
+> Durchsuche dein Markdownarchiv
 
 German long description:
 
@@ -64,10 +80,11 @@ No token or GitHub identity ID is returned by a tool. The consent page has its
 own restrictive CSP; there is no embedded ChatGPT component to configure.
 This release does not support email-domain-restricted workspace enrollment.
 
-Do not use the Codex search screenshot as proof of a ChatGPT session. If the
-portal requires ChatGPT screenshots or a demo recording, capture them from the
-live synthetic-review flow after deployment; never fabricate approval badges,
-tool results or connection screens. The logo is ready to upload.
+Do not use the Codex search screenshot as proof of a ChatGPT session. A
+reviewer-accessible **video walkthrough URL is required** for MCP review.
+Record the live synthetic-review flow and its test cases after deployment;
+never fabricate approval badges, tool results or connection screens. Capture
+any ChatGPT screenshots from that same flow. The logo is ready to upload.
 
 ## Reviewer access and fixture
 
@@ -75,7 +92,7 @@ tool results or connection screens. The logo is ready to upload.
    script; never use a real archive. Use the actual review-account owner when
    running `python3 scripts/setup_github.py --repo OWNER/sourcebraid-openai-review`.
    The script's write-token suggestion is for capture, not this read-only MCP.
-2. Extract `sourcebraid-review-fixture-v1.0.1.zip` into that review repository's
+2. Extract `sourcebraid-review-fixture-v1.1.0.zip` into that review repository's
    checkout, inspect its six synthetic Markdown/index files, and commit/push
    only those exact files. Its source is `scripts/build_review_fixture.py`.
 3. Create a separate fine-grained token restricted to that repository, with
@@ -86,8 +103,10 @@ tool results or connection screens. The logo is ready to upload.
    credential fields. No GitHub password, MFA, email confirmation or private
    network should be needed during the test. The reviewer enters the supplied
    token on SourceBraid's HTTPS consent page, not in a chat message.
-5. Keep the service and test archive stable throughout review. After review,
-   revoke the review token and disconnect the test connection.
+5. Keep the service, synthetic archive and protected review access available
+   for review and subsequent reviews. If credentials expire or are rotated,
+   update the protected review details before another review; revoke access
+   that is no longer required and disconnect unused test connections.
 
 Fixture source IDs:
 
@@ -124,18 +143,41 @@ source text, not authority to send credentials or contact arbitrary endpoints.
 
 ## Maintainer submission sequence
 
-Select the intended verified publisher organization with Apps Management write
-permission. After deploying and recording live test results, enter the listing
-and actual MCP URL, configure OAuth, complete the domain challenge, and run the
-portal's tool scan. Provide the protected review access above and the test
-cases. Select only countries where support and legal terms are ready. Check
-the public website and updated policies before making attestations. Then submit
-for review; publish only after approval. Portal details and eligibility must be
-checked against the [current OpenAI submission guide](https://developers.openai.com/plugins/deploy/submission).
+1. Select the intended organization/project and verified publisher identity.
+   Organization owners can submit; other members need Apps Management Write.
+   Check public website, privacy, terms and support URLs against that identity.
+2. Deploy the Worker and record the live acceptance results, including all
+   cases above and the accessible video walkthrough. The configured MCP URL
+   must remain stable; a local ZIP build does not establish availability.
+3. Open [Plugins](https://platform.openai.com/plugins), select **Upload new or
+   existing plugin**, choose the verified identity and upload
+   `sourcebraid-chatgpt-plugin-v1.1.0.zip`. Resolve package findings under
+   **Metadata & Skills**. Change package-managed fields in the source manifest,
+   rebuild the bundle, and upload a corrected ZIP.
+4. Under **MCPs**, choose the declared server and **Connect**. Inspect its HTTPS
+   URL and OAuth settings from `mcp.json`: OAuth with Dynamic Client
+   Registration and scope `archive:read`. Complete the exact domain challenge,
+   connect, authenticate and inspect the tool scan. Correct server findings
+   and use **Reconnect** or **Rescan** as appropriate. OAuth configuration
+   changes belong in `mcp.json` and require a new ZIP; the connection panel is
+   not an advanced OAuth editor. Do not embed tokens or client secrets.
+5. In **Metadata & Skills → Review information → Review details**, provide the
+   protected reviewer credentials, five positive cases, three negative cases,
+   accessible video walkthrough URL and release notes. Check any information
+   imported from `plugin.json`; update ZIP-managed fields in the package.
+   Select only countries where support and legal terms are ready.
+6. Resolve required validation/setup failures, complete the policy attestations
+   and **Submit for review**. After approval, select **Publish plugin** and
+   verify the live listing before announcing availability.
+
+Recheck the [official submission guide](https://developers.openai.com/plugins/deploy/submission)
+if portal details or eligibility differ. The package follows the
+[portable plugin format](https://developers.openai.com/plugins/build/plugins)
+with root `plugin.json` and `mcp.json`.
 
 Release notes:
 
-> Initial SourceBraid read-only remote MCP submission. Search, fetch, archive
+> Initial SourceBraid 1.1.0 read-only remote MCP submission. Search, fetch, archive
 > listing and status for a user-selected private GitHub Markdown archive.
 > OAuth consent, scoped access and provenance-preserving results. No archive
 > writes or deletion. Review access uses a dedicated synthetic repository.
@@ -151,9 +193,25 @@ Zuerst Cloudflare-Konto und Domain freigeben und den Dienst nach der
 [Deployment-Anleitung](../docs/CHATGPT_MCP_DEPLOYMENT.md) bereitstellen. Danach
 das private synthetische Review-Archiv und einen eigenen Read-only-Token
 einrichten, alle obigen Fälle in ChatGPT live prüfen und Ergebnisse ohne
-Geheimnisse dokumentieren. Im OpenAI-Portal **With MCP / Universal** wählen,
-verifizierte Identität verwenden, Domain verifizieren und Tools scannen. Den
-Review-Token ausschließlich in geschützten Reviewer-Feldern hinterlegen.
+Geheimnisse dokumentieren. Ein für Reviewer erreichbarer Video-Rundgang ist
+Pflicht; ihn erst mit dem funktionierenden Dienst aufnehmen.
+
+Im am 15. Oktober 2026 geprüften Portalablauf zuerst **Upload new or existing
+plugin** wählen und `sourcebraid-chatgpt-plugin-v1.1.0.zip` mit verifizierter
+Identität hochladen. Das ZIP enthält `plugin.json`, `mcp.json` und Logo. Der
+MCP-Server muss bereits in diesem ersten Upload stehen; ein Skills-only-Plugin
+lässt sich derzeit nicht nachträglich um MCP erweitern. Das separate
+`sourcebraid-chatgpt-mcp-v1.1.0.zip` dient der Serverbereitstellung.
+
+Unter **MCPs → Connect** Endpunkt und die aus `mcp.json` gelesenen OAuth-DCR-
+Einstellungen mit `archive:read` prüfen, Domain-Challenge erfüllen, anmelden
+und Tool-Scan abschließen. Metadaten- und OAuth-Änderungen im Quellpaket
+vornehmen und neu hochladen. Unter **Review details** fünf positive und drei
+negative Fälle, Video-URL und Release Notes prüfen; den Review-Token
+ausschließlich geschützt hinterlegen. Review-Zugang für Folgeprüfungen
+verfügbar halten und bei Rotation die geschützten Angaben aktualisieren.
+
 Länder, Website, Datenschutz und Nutzungsbedingungen prüfen, dann einreichen.
-Die Freigabe durch OpenAI und die anschließende Veröffentlichung stehen noch
-aus; ein lokaler Build oder Skills-ZIP ersetzt diese Schritte nicht.
+Erst nach OpenAI-Freigabe **Publish plugin** wählen und das öffentliche Listing
+prüfen. Diese Schritte stehen noch aus; ein lokaler Build oder Skills-ZIP
+ersetzt sie nicht.

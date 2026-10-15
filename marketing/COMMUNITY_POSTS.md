@@ -9,7 +9,7 @@ day or reuse an identical title and body.
 
 Suggested title:
 
-> I built a GitHub-backed web-to-Markdown archive with no central content server
+> I built a web-to-Markdown archive with user-controlled GitHub storage
 
 Draft:
 
@@ -17,11 +17,13 @@ Draft:
 > papers, wikis, Gists, and PDFs as Markdown in a private GitHub repository the
 > user controls.
 >
-> I want to be precise about the "self-hosted" angle: SourceBraid is not a server
-> you deploy, and it depends on GitHub as the durable remote store. There is no
-> central SourceBraid content service. The Markdown files, assets, metadata
-> shards, and Git history live in the selected repository; the SQLite full-text
-> index is a disposable local cache.
+> I want to be precise about the "self-hosted" angle: capture and local Codex
+> retrieval depend on GitHub as the durable remote store. The Markdown files,
+> assets, metadata shards, and Git history live in the selected repository; the
+> Codex SQLite full-text index is a disposable local cache. A separate read-only
+> ChatGPT service is prepared for deployment on Cloudflare: requested sources
+> would pass through its Worker, with OAuth connection records in Workers KV.
+> It is not a self-hosted or wholly local ChatGPT workflow.
 >
 > Capture is available through the public clients listed here: {{PUBLIC_URL}}.
 > PDF conversion can run in the user's repository through GitHub Actions and
@@ -47,7 +49,9 @@ Draft:
 > SourceBraid captures articles, research papers, wikis, Gists, and PDFs into a
 > private GitHub repository. It adds YAML frontmatter, keeps relevant images as
 > relative assets, records notes and tags, and uses Git history for inspectable
-> changes. A ChatGPT/Codex plugin can search and fetch the resulting archive.
+> changes. A local Codex plugin can search and fetch the resulting archive. A
+> separate hosted, read-only ChatGPT integration is prepared for publication;
+> its requested sources pass through Cloudflare before reaching ChatGPT.
 >
 > Demo: {{DEMO_URL}}
 > Source: {{REPOSITORY_URL}}
@@ -69,12 +73,17 @@ Draft:
 > people who want their web research as portable Markdown.
 >
 > The capture clients save pages, papers, wikis, Gists, and PDFs into a private
-> GitHub repository selected by the user. The project has no central content
-> server. Markdown and Git history are authoritative, while the local SQLite
-> search index can be deleted and rebuilt. The code is MIT-licensed, with a
-> Manifest V3 Chrome extension, a native iOS app/Share Extension, and a
-> dependency-free Python plugin for ChatGPT and Codex. Remove any client from
-> this sentence that is not public for `{{VERSION}}`.
+> GitHub repository selected by the user. Markdown and Git history are
+> authoritative, while the local Codex SQLite search index can be deleted and
+> rebuilt. The code is MIT-licensed, with a Manifest V3 Chrome extension, a
+> native iOS app/Share Extension, and a standard-library Python plugin for local
+> Codex runtimes. Remove any client from this sentence that is not public for
+> `{{VERSION}}`.
+>
+> A separate read-only ChatGPT service is prepared for deployment and review.
+> It processes requested sources through Cloudflare Workers and stores OAuth
+> connection records in Workers KV. Local Codex indexing and confirmed archive
+> deletion are not capabilities of that hosted service.
 >
 > Repository: {{REPOSITORY_URL}}
 > Release: {{RELEASE_URL}}

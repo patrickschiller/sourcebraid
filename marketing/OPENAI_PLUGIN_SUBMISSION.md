@@ -1,4 +1,4 @@
-# Optional local skills kit — SourceBraid 1.0.1
+# Optional local skills kit — SourceBraid 1.1.0
 
 The primary ChatGPT submission is the hosted read-only **With MCP** integration
 documented in [`OPENAI_MCP_SUBMISSION.md`](OPENAI_MCP_SUBMISSION.md), with
@@ -16,25 +16,34 @@ Use the current [OpenAI submission guide](https://developers.openai.com/plugins/
 and [plugin packaging guide](https://developers.openai.com/plugins/build/plugins)
 if the portal differs from this kit.
 
+As checked on **October 15, 2026**, the public portal starts with a plugin ZIP
+upload. A remote MCP server must be declared in that first ZIP; an existing
+skills-only plugin cannot currently be extended with MCP. The main ChatGPT
+submission therefore uses `sourcebraid-chatgpt-plugin-v1.1.0.zip`, with its own
+root `plugin.json` and `mcp.json`, rather than this optional local package. For
+desktop execution, check the [desktop-only submission route](https://developers.openai.com/plugins/deploy/desktop-only)
+and its eligibility before submitting. Do not infer eligibility from a local
+installation or successful ZIP build.
+
 ## Release route
 
 | Field | Submission value |
 | --- | --- |
 | Product | SourceBraid |
-| Version | `1.0.1` |
+| Version | `1.1.0` |
 | Distribution type | Optional local-runtime skills package |
 | Runtime | Python 3 and locally supplied GitHub authentication |
-| Bundle | `dist/sourcebraid-plugin-skills-v1.0.1.zip` |
+| Bundle | `dist/sourcebraid-plugin-skills-v1.1.0.zip` |
 | Local source | `codex-plugin/sourcebraid/` |
 | Primary ChatGPT submission | **With MCP**, using `OPENAI_MCP_SUBMISSION.md` |
-| App UI submission | Not part of `1.0.1` |
+| App UI submission | Not part of `1.1.0` |
 
 Rebuild the ZIP from the final public release commit before distribution:
 
 ```bash
 python3 scripts/build_plugin_package.py
-unzip -l dist/sourcebraid-plugin-skills-v1.0.1.zip
-shasum -a 256 dist/sourcebraid-plugin-skills-v1.0.1.zip
+unzip -l dist/sourcebraid-plugin-skills-v1.1.0.zip
+shasum -a 256 dist/sourcebraid-plugin-skills-v1.1.0.zip
 ```
 
 Record the generated digest in the release's `SHA256SUMS` and
@@ -77,7 +86,7 @@ provide local GitHub credentials. Main ChatGPT publication follows the MCP kit.
 | Developer name | Patrick Schiller |
 | Category | Productivity |
 | Capabilities | Read, Interactive, Write |
-| Short description | Search your private Markdown knowledge archive. |
+| Short description | Search your Markdown archive. |
 | Website | `https://sourcebraid.com` |
 | Repository | `https://github.com/patrickschiller/sourcebraid` |
 | Privacy policy | `https://github.com/patrickschiller/sourcebraid/blob/main/PRIVACY.md` |
@@ -151,8 +160,8 @@ archive:
 
 ```bash
 python3 scripts/build_review_fixture.py \
-  --output dist/sourcebraid-review-fixture-v1.0.1.zip
-unzip -l dist/sourcebraid-review-fixture-v1.0.1.zip
+  --output dist/sourcebraid-review-fixture-v1.1.0.zip
+unzip -l dist/sourcebraid-review-fixture-v1.1.0.zip
 ```
 
 The paths are stable so the following local workflows remain reproducible.
@@ -223,7 +232,7 @@ review run if the review should exercise the initial index build.
 
 Paste this into the protected reviewer-instructions field:
 
-> This optional SourceBraid 1.0.1 skills package runs a standard-library Python
+> This optional SourceBraid 1.1.0 skills package runs a standard-library Python
 > CLI against the dedicated private synthetic GitHub repository. Configure the
 > four non-secret SOURCEBRAID variables supplied with this submission and expose
 > the restricted review credential as GITHUB_TOKEN. Run status before the first
@@ -390,8 +399,9 @@ availability merely because the portal permits it.
   package, and prepared hosted ChatGPT service.
 - [ ] Any separate optional listing explicitly names the required local
   runtime; the main ChatGPT submission follows **With MCP** and its own kit.
-- [ ] Listing copy, logo, screenshots, links, and capabilities entered.
-- [ ] Three starter prompts entered exactly.
+- [ ] Listing copy, logo, screenshots, links, and capabilities included in the
+  manifest and checked after ZIP upload under Metadata & Skills.
+- [ ] Three starter prompts included in the manifest and checked after upload.
 - [ ] Dedicated repository confirmed private and seeded only with the synthetic
   fixture.
 - [ ] Fine-grained review token restricted to that repository and placed only in
@@ -419,6 +429,15 @@ Die primäre ChatGPT-Einreichung erfolgt als **With MCP** nach
 Dienst `https://mcp.sourcebraid.com/mcp` ist noch nicht bereitgestellt. Er bietet
 ausschließlich Lesezugriff. Seine Review-Zugangsdaten müssen Contents-Leserechte
 für genau ein synthetisches privates Repository haben und dürfen nur geschützt
-übermittelt werden. Die folgenden lokalen Schreibtests sind keine Fähigkeiten
+übermittelt werden. Die oben aufgeführten lokalen Schreibtests sind keine Fähigkeiten
 des gehosteten Dienstes. Maßgeblich sind die frisch erzeugten Prüfsummen des
 finalen Release-Bundles, keine fest eingetragenen ZIP-Hashes.
+
+Nach dem am 15. Oktober 2026 geprüften Portalablauf beginnt die Einreichung mit
+einem Plugin-ZIP. Für den gehosteten Dienst ist das separate
+`sourcebraid-chatgpt-plugin-v1.1.0.zip` mit `plugin.json` und `mcp.json` vorgesehen.
+Ein MCP-Server kann derzeit nicht nachträglich zu einem Skills-only-Plugin
+hinzugefügt werden. Für dieses lokale Paket gelten die gesonderten
+[Desktop-Vorgaben](https://developers.openai.com/plugins/deploy/desktop-only);
+ein erfolgreicher lokaler Build belegt keine Freigabe für den öffentlichen
+Katalog.

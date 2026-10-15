@@ -52,16 +52,21 @@ Voiceover:
 
 ### 34-50 seconds: retrieve
 
-Visual: In ChatGPT or Codex, use the public plugin path and ask:
+Visual: In Codex, use the local plugin and ask:
 
 > Search my SourceBraid archive for the demo source and show its provenance.
+
+For a ChatGPT version of the demo, use the separate hosted read-only connection
+only after deployment, live verification, and public availability. Label the
+client and connection shown; do not imply that the local plugin ZIP connects
+ordinary ChatGPT.
 
 Show the matching result and source path. Do not show a deletion operation in
 the primary demo; it distracts from the capture-to-retrieval story.
 
 Voiceover:
 
-> The SourceBraid plugin searches the archive and returns the saved source with
+> SourceBraid searches the archive and returns the saved source with
 > its repository path and provenance.
 
 ### 50-60 seconds: trust and action
@@ -71,9 +76,15 @@ End on the product name and one public install URL.
 
 Voiceover:
 
-> There is no central SourceBraid content server. Your archive lives in the
-> GitHub repository you choose. SourceBraid is open source and available at
-> sourcebraid.com.
+> Your archive lives in the GitHub repository you choose, with Markdown and Git
+> history as the source of truth. SourceBraid is open source. Find the available
+> clients at sourcebraid.com.
+
+For the ChatGPT version, replace that voiceover with:
+
+> Your archive stays in your GitHub repository. This read-only ChatGPT connection
+> processes requested sources through SourceBraid's Cloudflare service. Find
+> the available clients at sourcebraid.com.
 
 On-screen text:
 

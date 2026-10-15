@@ -5,11 +5,12 @@ Store credentials, account verification, legal attestations, review accounts,
 and final submission decisions are intentionally maintained outside the public
 repository.
 
-The iOS app is published in the App Store as `1.0.1`. The Chrome Web Store and
-public ChatGPT/Codex directory releases remain separate maintainer actions and
-must not be described as available before their listings are live. The first
-coordinated Chrome and OpenAI plugin release uses `1.0.1` so all available
-clients start from the same customer-facing version.
+The maintainer confirmed on October 15, 2026 that iOS `1.1.0` is published in the
+App Store. The current Chrome, local Codex plugin, and hosted ChatGPT MCP release
+target is also `1.1.0`. These packages are prepared for release; the Chrome Web
+Store and public ChatGPT/Codex directory releases remain separate maintainer
+actions and must not be described as available before their listings are live.
+The iOS publication does not establish approval or publication of another client.
 
 ## Release principles
 
@@ -25,7 +26,7 @@ clients start from the same customer-facing version.
 
 ## Version alignment
 
-Before creating the first release candidate, align these customer-facing
+Before creating each release candidate, align these customer-facing
 versions:
 
 - Chrome: `version` in `chrome-extension/sourcebraid/manifest.json`.
@@ -33,6 +34,7 @@ versions:
   `codex-plugin/sourcebraid/.codex-plugin/plugin.json`.
 - Hosted ChatGPT MCP: `version` in `chatgpt-mcp/package.json` and its server
   metadata.
+- ChatGPT portal plugin: `version` in `chatgpt-plugin/sourcebraid/plugin.json`.
 - iOS app and Share Extension: `MARKETING_VERSION` in
   `ios/SourceBraid.xcodeproj/project.pbxproj`.
 
@@ -40,7 +42,7 @@ Chrome versions use one to four dot-separated integers. The plugin uses semantic
 versioning. After the first iOS upload, increase `CURRENT_PROJECT_VERSION` for
 every new binary while keeping the app and Share Extension build numbers equal.
 
-The first iOS publication uses the SourceBraid identities:
+The iOS publication uses the SourceBraid identities:
 
 - app: `de.patrickschiller.sourcebraid`;
 - Share Extension: `de.patrickschiller.sourcebraid.share`;
@@ -108,7 +110,7 @@ Local repository installations can continue to use the complete plugin source.
 This ZIP needs a runtime with Python and GitHub credentials. It is not a
 standalone normal-ChatGPT connection and is not the primary OpenAI submission.
 
-## Hosted ChatGPT MCP package
+## Hosted ChatGPT MCP source package
 
 The separate Worker in `chatgpt-mcp/` is prepared for
 `https://mcp.sourcebraid.com/mcp`; it is not deployed. Build the allowlisted
@@ -117,7 +119,7 @@ service source package and synthetic reviewer archive:
 ```bash
 python3 scripts/build_mcp_package.py
 python3 scripts/build_review_fixture.py \
-  --output dist/sourcebraid-review-fixture-v1.0.1.zip
+  --output dist/sourcebraid-review-fixture-v1.1.0.zip
 ```
 
 The review ZIP contains only three synthetic Markdown clips and their three
@@ -126,9 +128,26 @@ metadata shards. It does not read or copy a user's archive. Follow
 domain, KV, OAuth, and live smoke checks. A Worker dry-run or source ZIP is not a
 successful production deployment.
 
+## ChatGPT portal plugin package
+
+The complete release builder also creates
+`sourcebraid-chatgpt-plugin-v1.1.0.zip` for OpenAI's plugin portal. Its root
+`plugin.json`, `mcp.json`, and listing icon describe the hosted read-only
+connection. The separate `sourcebraid-chatgpt-mcp-v1.1.0.zip` contains the Worker
+source to deploy. Neither ZIP contains credentials, and the portal package does
+not deploy the Worker.
+
+Build the portal package on its own from the manifests in
+`chatgpt-plugin/sourcebraid/` and the allowlisted icon:
+
+```bash
+python3 scripts/build_chatgpt_plugin_package.py
+unzip -l dist/sourcebraid-chatgpt-plugin-v1.1.0.zip
+```
+
 ## OpenAI Plugins Directory submission
 
-The primary `1.0.1` ChatGPT submission is **With MCP**, using the hosted
+The primary `1.1.0` ChatGPT submission is **With MCP**, using the hosted
 read-only service after deployment and live tests. Supply the actual public
 HTTPS endpoint and complete domain verification. Do not submit the intended
 `https://mcp.sourcebraid.com/mcp` URL as a working service before it is live.
@@ -143,11 +162,14 @@ notes, privacy disclosures, and the final portal checklist. Before submitting:
    Worker with verified domain and OAuth configuration;
 3. seed the dedicated private review repository from the synthetic fixture ZIP
    and validate the live OAuth/search/fetch flow;
-4. restrict its review PAT to Contents read-only on that one repository and
-   provide credentials only through OpenAI's protected submission fields;
-5. select country availability deliberately and complete the policy
-   attestations; and
-6. submit for review, then publish only after approval.
+4. upload `sourcebraid-chatgpt-plugin-v1.1.0.zip` through **Upload new or existing
+   plugin**, inspect its metadata checks, then connect and scan its hosted MCP;
+5. restrict its review PAT to Contents read-only on that one repository and
+   provide credentials only through OpenAI's protected review fields;
+6. provide five positive and three negative tests and a reviewer-accessible
+   video walkthrough, select country availability deliberately, and complete
+   the policy attestations; and
+7. submit for review, then publish only after approval.
 
 Follow the current [OpenAI submission guide](https://developers.openai.com/plugins/deploy/submission)
 and [plugin packaging guide](https://developers.openai.com/plugins/build/plugins)
@@ -163,13 +185,18 @@ synthetic fixture from the final reviewed commit:
 
 ```bash
 python3 scripts/build_release.py --verify-reproducible --require-clean
-python3 scripts/build_release.py --verify dist/sourcebraid-release-v1.0.1
+python3 scripts/build_release.py --verify dist/sourcebraid-release-v1.1.0
 ```
 
 Use the generated `RELEASE_MANIFEST.json` and `SHA256SUMS` as the artifact and
 digest record. Do not hard-code a ZIP digest in documentation: runtime changes
 require rebuilding and verifying the bundle. The builders export only explicit
 public allowlists, never broad copies or private repository history.
+
+During local preparation, omit `--require-clean` to build an inspectable
+candidate with uncommitted changes. Its provenance records modified release
+inputs. Rebuild from the reviewed clean commit before publishing; a locally
+verified candidate is not a released artifact.
 
 ## iOS archive
 
@@ -202,7 +229,7 @@ with the same embedded allowlist:
 
 ```bash
 python3 scripts/build_setup_package.py
-python3 dist/sourcebraid-github-setup-v1.0.1.py --help
+python3 dist/sourcebraid-github-setup-v1.1.0.py --help
 ```
 
 The setup and builder must avoid printing or embedding credentials and must
@@ -218,7 +245,7 @@ GitHub with both paths included in the sparse checkout:
 
 ```bash
 codex plugin marketplace add patrickschiller/sourcebraid \
-  --ref v1.0.1 \
+  --ref v1.1.0 \
   --sparse .agents/plugins \
   --sparse codex-plugin/sourcebraid
 codex plugin add sourcebraid@sourcebraid
@@ -233,9 +260,10 @@ Do not advertise that command as live before the referenced tag exists.
 2. Record the passing check results and package SHA-256 digests.
 3. Create an annotated version tag on the reviewed public commit.
 4. Push the tag to the public repository.
-5. Attach the Chrome ZIP, hosted MCP source ZIP, optional local skills ZIP,
-   standalone GitHub setup script, synthetic fixture, and generated digest
-   record to the corresponding GitHub release when artifacts are distributed.
+5. Attach the Chrome ZIP, ChatGPT portal plugin ZIP, hosted MCP source ZIP,
+   optional local skills ZIP, standalone GitHub setup script, synthetic fixture,
+   and generated digest record to the corresponding GitHub release when
+   artifacts are distributed.
 6. Verify that every published archive can be traced back to the tagged commit.
 
 Store review and publication remain separate maintainer actions. A GitHub tag or

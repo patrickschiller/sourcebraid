@@ -1,10 +1,9 @@
 # SourceBraid for iOS
 
 The iOS project contains a SwiftUI archive reader, configuration screens, and a
-native Share Extension. The maintainer approved the **1.1.0** release candidate
-for publication on October 15, 2026 after a hands-on functional check. Xcode
-Cloud distribution and App Store availability are tracked separately in the
-[release notes](../docs/IOS_RELEASE_1.1.0.md). The Share
+native Share Extension. The maintainer confirmed on October 15, 2026 that
+**1.1.0** is published in the App Store. The [release notes](../docs/IOS_RELEASE_1.1.0.md)
+preserve the earlier preflight results and record the publication update. The Share
 Extension saves shared URLs, readable Safari content and its relevant image
 assets, selected text, PDFs, and other files into the same GitHub repository
 and URL-hash-sharded `web-clips/index/*.jsonl` format as the Chrome extension.
@@ -32,13 +31,14 @@ Reader-only use needs `Contents: Read` for the selected GitHub repository. The S
 ## TestFlight
 
 The project uses automatic distribution signing for Apple Developer team
-`H76K2HQUFB`. The approved release candidate is version `1.1.0` (build `11`) for
-both the app and Share Extension. Its planned iOS-only GitHub tag is
-`ios-v1.1.0`; Chrome, the Codex plugin, and hosted MCP remain at `1.0.1`.
+`H76K2HQUFB`. The source version is `1.1.0` (build `11`) for both the app and
+Share Extension; the maintainer has confirmed App Store publication of `1.1.0`.
+The iOS-only tag name is `ios-v1.1.0`. Chrome, the local Codex plugin, and hosted
+MCP now target `1.1.0` under the separate `v1.1.0` submission-bundle release.
 Before every later upload, increment `CURRENT_PROJECT_VERSION` for both targets.
 The maintainer reports that the Xcode Cloud workflow uses Xcode 27.1 RC.
-Cloud archive, distribution, and App Store processing must each be verified
-from their actual results; none is implied by local validation.
+For future uploads, cloud archive, distribution, and App Store processing must
+each be verified from their actual results; none is implied by local validation.
 
 Run the release preflight from the repository root before archiving:
 
@@ -133,26 +133,29 @@ xcodebuild \
 
 ## Local acceptance tests
 
-Use Xcode 27.1 for the complete candidate, including the Duo API. Select an
+Use Xcode 27.1 for the complete iOS implementation, including the Duo API. Select an
 installed simulator and run **Product → Test**; the shared scheme includes
 unit/integration tests and synthetic UI tests. No test needs a real archive or
 GitHub token. For CLI commands, synthetic demo setup, and real-device checks,
 see [English](../docs/IOS_DEVICE_ACCEPTANCE.md) / [Deutsch](../docs/IOS_DEVICE_ACCEPTANCE.de.md).
 
-The maintainer has approved publication of version 1.1.0/build 11. The remaining
+The maintainer has confirmed App Store publication of version 1.1.0. The remaining
 minimum-OS, physical Duo transition, dark-appearance, accessibility, and real
 model-quality checks remain documented in the acceptance checklist; this
-approval does not mark the full device matrix as passed. Historical test
+publication does not mark the full device matrix as passed. Historical test
 entries retain the version and build that were actually tested.
 
-## Deutsch: Release-Kandidat 1.1.0
+## Deutsch: Veröffentlichung 1.1.0
 
-Der Maintainer hat Version **1.1.0/Build 11** am 15. Oktober 2026 nach eigenem
-Funktionstest zur Veröffentlichung freigegeben. Der geplante iOS-GitHub-Tag
-lautet `ios-v1.1.0`; Chrome, Codex-Plugin und gehosteter MCP bleiben auf `1.0.1`.
-Der Xcode-Cloud-Workflow verwendet laut Maintainer Xcode 27.1 RC. Cloud-Build,
-Distribution und App-Store-Verfügbarkeit werden anhand ihrer tatsächlichen
-Ergebnisse getrennt geprüft. [Release-Hinweise](../docs/IOS_RELEASE_1.1.0.de.md).
+Der Maintainer hat am 15. Oktober 2026 die App-Store-Veröffentlichung von
+**1.1.0** bestätigt. App und Share Extension stehen im Quellcode auf
+**1.1.0/Build 11**. Der iOS-spezifische Tagname lautet `ios-v1.1.0`; Chrome,
+lokales Codex-Plugin und gehosteter MCP zielen jetzt auf `1.1.0` im separaten
+Submission-Bundle unter `v1.1.0`. Deren öffentliche Freigabe folgt unabhängig.
+Der Xcode-Cloud-Workflow verwendet laut Maintainer Xcode 27.1 RC. Für spätere
+Uploads werden Cloud-Build, Distribution und App-Store-Verarbeitung anhand
+ihrer tatsächlichen Ergebnisse geprüft. Die früheren Testnachweise bleiben
+in den [Release-Hinweisen](../docs/IOS_RELEASE_1.1.0.de.md) erhalten.
 
 Die App startet mit **Neueste** und den neuesten sieben Beiträgen; Antippen
 öffnet den Beitrag direkt. Native Bereiche für **Suche** und **Chat** halten

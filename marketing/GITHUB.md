@@ -104,16 +104,17 @@ Suggested welcome text:
 
 SourceBraid saves web pages, papers, wikis, Gists, and PDFs as portable Markdown
 in a private GitHub repository controlled by the user. This coordinated release
-includes the supported capture clients and ChatGPT/Codex archive tools listed
-below.
+includes the supported capture clients and archive integrations listed below.
 
 ## Install
 
 - Chrome: {{CHROME_STORE_URL}}
 - iPhone and iPad: {{APP_STORE_URL}}
-- ChatGPT and Codex plugin: {{PLUGIN_URL}}
+- Local Codex plugin: {{PLUGIN_URL}}
 
 Remove any installation line whose destination is not public for this release.
+Add a separate ChatGPT install link only after the hosted read-only service is
+deployed, verified live, and published.
 
 ## Highlights
 
@@ -121,8 +122,12 @@ Remove any installation line whose destination is not public for this release.
 
 ## Privacy and permissions
 
-SourceBraid has no central content server. Capture clients write to the GitHub
-repository selected by the user. Review the permissions and data flow in the
+Capture clients write directly to the GitHub repository selected by the user.
+Local Codex tools use a disposable SQLite index and require a fresh preview and
+explicit confirmation for deletion or metadata migration. The separate hosted
+read-only ChatGPT service is prepared for deployment; it processes requested sources through
+Cloudflare Workers and stores OAuth connection records in Workers KV.
+Markdown and Git history remain authoritative. Review the data flow in the
 [privacy notice](https://github.com/patrickschiller/sourcebraid/blob/main/PRIVACY.md).
 
 ## Checks

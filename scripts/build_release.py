@@ -14,6 +14,7 @@ import zipfile
 from pathlib import Path, PurePosixPath
 
 import build_chrome_package as chrome
+import build_chatgpt_plugin_package as chatgpt
 import build_mcp_package as mcp
 import build_plugin_package as plugin
 import build_review_fixture as review
@@ -79,6 +80,7 @@ def artifact_names(version: str) -> dict[str, str]:
         "chrome": f"sourcebraid-chrome-v{version}.zip",
         "openai": f"sourcebraid-plugin-skills-v{version}.zip",
         "mcp": f"sourcebraid-chatgpt-mcp-v{version}.zip",
+        "chatgpt": f"sourcebraid-chatgpt-plugin-v{version}.zip",
         "setup": f"sourcebraid-github-setup-v{version}.py",
         "fixture": f"sourcebraid-review-fixture-v{version}.zip",
     }
@@ -91,11 +93,13 @@ def source_inputs() -> tuple[str, ...]:
         "codex-plugin/sourcebraid/.codex-plugin/plugin.json",
         *(f"codex-plugin/sourcebraid/{name}" for name in plugin.PLUGIN_FILES),
         *(name for name, _ in mcp.MCP_FILES),
+        *(name for name, _ in chatgpt.PLUGIN_FILES),
         str(setup.SETUP_SCRIPT), *setup.SUPPORT_FILES,
         "scripts/build_chrome_package.py", "scripts/build_plugin_package.py",
         "scripts/build_setup_package.py", "scripts/build_review_fixture.py",
         "scripts/build_release.py",
         "scripts/build_mcp_package.py",
+        "scripts/build_chatgpt_plugin_package.py",
     ))))
 
 
@@ -129,9 +133,12 @@ the safety checks with `python3 scripts/build_release.py --verify PATH_TO_THIS_D
 
 - Chrome Web Store upload: `{names['chrome']}`. Listing and separate graphics:
   `chrome-extension/STORE_LISTING.md` and `chrome-extension/store-assets/`.
-- ChatGPT connector source: `{names['mcp']}`. Deploy the service following
+- ChatGPT portal upload: `{names['chatgpt']}` contains the portable plugin
+  manifest, remote MCP/OAuth configuration and logo. Complete live service
+  acceptance before submission; upload does not prove availability or approval.
+- ChatGPT service source: `{names['mcp']}`. Deploy the service following
   `docs/CHATGPT_MCP_DEPLOYMENT.md`, then follow `marketing/OPENAI_MCP_SUBMISSION.md`
-  to submit its HTTPS endpoint. This source ZIP is not the connector endpoint.
+  to upload the plugin ZIP and connect/scan its HTTPS endpoint.
 - Local/Codex skills package: `{names['openai']}`. Follow
   `marketing/OPENAI_PLUGIN_SUBMISSION.md`, including its runtime requirements.
   Separate listing graphics are in `codex-plugin/sourcebraid/assets/`.
@@ -141,8 +148,9 @@ the safety checks with `python3 scripts/build_release.py --verify PATH_TO_THIS_D
   It is test data, not an end-user archive or a plugin upload.
 
 Deutsch: Das Chrome-ZIP wird im Chrome Web Store eingereicht. Das MCP-ZIP enthält
-den Server zum Bereitstellen; danach wird dessen HTTPS-Endpunkt bei OpenAI
-eingereicht. Das GitHub-Setup-Skript ist eine Download-Datei für den GitHub Release.
+den Server zum Bereitstellen. Das separate ChatGPT-Plugin-ZIP wird bei OpenAI
+hochgeladen; dort wird sein HTTPS-Endpunkt verbunden und geprüft.
+Das GitHub-Setup-Skript ist eine Download-Datei für den GitHub Release.
 Die Bau- und Prüfschritte veröffentlichen noch nichts.
 
 `RELEASE_MANIFEST.json` records the source commit, whether allowlisted inputs
@@ -211,6 +219,7 @@ def verify_bundle(directory: Path) -> dict[str, object]:
         verify_zip(directory / names["chrome"], chrome.PACKAGE_FILES)
         verify_zip(directory / names["openai"], (".codex-plugin/plugin.json", *plugin.PLUGIN_FILES))
         verify_zip(directory / names["mcp"], tuple(name for _, name in mcp.MCP_FILES))
+        verify_zip(directory / names["chatgpt"], tuple(name for _, name in chatgpt.PLUGIN_FILES))
         verify_zip(directory / names["fixture"], tuple(review.fixture_files()), fixture=True)
         with zipfile.ZipFile(directory / names["openai"]) as archive:
             packaged_manifest = json.loads(archive.read(".codex-plugin/plugin.json"))
@@ -226,6 +235,8 @@ def verify_bundle(directory: Path) -> dict[str, object]:
             lock = json.loads(archive.read("package-lock.json"))
             if package.get("version") != version or lock.get("version") != version or lock.get("packages", {}).get("", {}).get("version") != version:
                 raise ReleaseError("ChatGPT MCP package version does not match the release")
+        with zipfile.ZipFile(directory / names["chatgpt"]) as archive:
+            chatgpt.validate_metadata(json.loads(archive.read("plugin.json")), json.loads(archive.read("mcp.json")), version)
         return manifest
     except (OSError, ValueError, KeyError, TypeError, zipfile.BadZipFile) as error:
         raise ReleaseError(f"could not verify release bundle: {error}") from error
@@ -248,6 +259,7 @@ def assemble(root: Path, destination: Path) -> dict[str, object]:
     setup.build_package(root, destination / names["setup"])
     review.build_package(destination / names["fixture"])
     mcp.build_package(root, destination / names["mcp"])
+    chatgpt.build_package(root, destination / names["chatgpt"])
     for name in KIT_FILES:
         path = destination / name
         path.parent.mkdir(parents=True, exist_ok=True)
@@ -333,7 +345,7 @@ def main(argv: list[str] | None = None) -> int:
             raise ReleaseError("release version does not match --expected-version")
         if args.require_clean and manifest["source"]["release_inputs_modified"] is not False:
             raise ReleaseError("release inputs were not committed and clean")
-    except (ReleaseError, chrome.PackageError, plugin.PluginPackageError, mcp.MCPPackageError, setup.SetupPackageError, OSError) as error:
+    except (ReleaseError, chrome.PackageError, plugin.PluginPackageError, mcp.MCPPackageError, chatgpt.ChatGPTPluginPackageError, setup.SetupPackageError, OSError) as error:
         print(f"error: {error}", file=sys.stderr)
         return 1
     print(f"release: {output}\nversion: {manifest['version']}\nverified files: {len(manifest['files']) + 2}")

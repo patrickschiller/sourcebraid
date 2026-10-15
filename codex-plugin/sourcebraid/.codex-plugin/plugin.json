@@ -1,6 +1,6 @@
 {
   "name": "sourcebraid",
-  "version": "1.0.1",
+  "version": "1.1.0",
   "description": "Search, fetch, index, and safely manage a private SourceBraid Markdown archive using a local Python runtime in Codex.",
   "author": {
     "name": "Patrick Schiller",
@@ -21,7 +21,7 @@
   "mcpServers": "./.mcp.json",
   "interface": {
     "displayName": "SourceBraid",
-    "shortDescription": "Search your private Markdown knowledge archive.",
+    "shortDescription": "Search your Markdown archive.",
     "longDescription": "Search and fetch saved Markdown sources from a private GitHub archive in Codex, maintain a local full-text index, and safely preview and delete clips. Requires Python 3 and local GitHub authentication. The hosted read-only ChatGPT connection is a separate distribution.",
     "developerName": "Patrick Schiller",
     "category": "Productivity",
@@ -31,6 +31,7 @@
       "Write"
     ],
     "websiteURL": "https://sourcebraid.com",
+    "supportURL": "https://github.com/patrickschiller/sourcebraid/issues",
     "privacyPolicyURL": "https://github.com/patrickschiller/sourcebraid/blob/main/PRIVACY.md",
     "termsOfServiceURL": "https://github.com/patrickschiller/sourcebraid/blob/main/TERMS.md",
     "defaultPrompt": [

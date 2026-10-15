@@ -1,7 +1,7 @@
 import { ArchiveError, connectArchive } from './archive.mjs';
 
 export const READ_SCOPE = 'archive:read';
-export const VERSION = '1.0.1';
+export const VERSION = '1.1.0';
 const COOKIE = '__Host-SourceBraidConsent';
 const CONSENT_TTL = 600;
 const enc = new TextEncoder();

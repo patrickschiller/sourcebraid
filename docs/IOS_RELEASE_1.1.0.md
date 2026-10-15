@@ -2,6 +2,19 @@
 
 October 15, 2026 · [Deutsch](IOS_RELEASE_1.1.0.de.md)
 
+## Publication update — October 15, 2026
+
+The maintainer has confirmed that iOS **1.1.0** is published in the App Store.
+Chrome, the local Codex plugin, and hosted ChatGPT MCP are now being prepared
+as **1.1.0** release packages. Their store/directory review and publication remain
+separate; the hosted MCP service still requires deployment and live testing.
+
+The pre-publication record below preserves the versions and results actually
+checked at that time, including the separate **1.0.1** submission bundle.
+Publication does not close the outstanding device and model-quality checks.
+
+## Pre-publication status
+
 The maintainer approved this release candidate for publication after a
 hands-on functional check. App and Share Extension use **1.1.0/build 11**.
 The planned GitHub tag is **`ios-v1.1.0`**, scoped to iOS. Chrome, the Codex
