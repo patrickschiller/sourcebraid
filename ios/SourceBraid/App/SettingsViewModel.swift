@@ -35,7 +35,7 @@ final class SettingsViewModel: ObservableObject {
     func save() {
         do {
             try persist()
-            showStatus("Settings saved. SourceBraid is ready in the iOS Share Sheet.")
+            showStatus(archiveText("Settings saved. SourceBraid is ready in the iOS Share Sheet.", "Einstellungen gespeichert. SourceBraid ist im Teilen-Menü bereit."))
         } catch {
             showStatus(error.localizedDescription, isError: true)
         }
@@ -47,7 +47,7 @@ final class SettingsViewModel: ObservableObject {
         do {
             try persist()
             try await GitHubClient(configuration: configuration.normalized(), token: token).testConnection()
-            showStatus("Connected to \(configuration.normalized().repoSlug).")
+            showStatus(archiveText("Connected to \(configuration.normalized().repoSlug).", "Verbunden mit \(configuration.normalized().repoSlug)."))
         } catch {
             showStatus(error.localizedDescription, isError: true)
         }
@@ -69,8 +69,10 @@ final class SettingsViewModel: ObservableObject {
         guard !token.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty else {
             throw SettingsValidationError.missingToken
         }
-        try SourceBraidSettings.save(normalized)
+        _ = try ArchiveIdentity(configuration: configuration)
         try KeychainStore().setToken(token)
+        try SourceBraidSettings.save(normalized)
+        refreshRecentCaptures()
         owner = normalized.owner
         repository = normalized.repository
         branch = normalized.branch
@@ -90,9 +92,9 @@ enum SettingsValidationError: LocalizedError {
     var errorDescription: String? {
         switch self {
         case .missingRepository:
-            return "Owner, repository, branch, and root folder are required."
+            return archiveText("Owner, repository, branch, and root folder are required.", "Eigentümer, Repository, Branch und Stammordner werden benötigt.")
         case .missingToken:
-            return "A fine-grained GitHub token is required."
+            return archiveText("A fine-grained GitHub token is required.", "Ein Fine-grained-GitHub-Token wird benötigt.")
         }
     }
 }

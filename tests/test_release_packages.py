@@ -215,7 +215,7 @@ class SetupPackageTests(unittest.TestCase):
 
 
 class ReleaseVersionTests(unittest.TestCase):
-    def test_customer_facing_versions_match_ios_release(self):
+    def test_package_versions_match_and_ios_release_is_independent(self):
         chrome = json.loads(
             (REPOSITORY_ROOT / "chrome-extension" / "sourcebraid" / "manifest.json").read_text()
         )
@@ -237,7 +237,9 @@ class ReleaseVersionTests(unittest.TestCase):
         mcp_version = re.search(r'^SERVER_VERSION = "([^"]+)"$', mcp, re.MULTILINE)
         self.assertEqual(chrome["version"], "1.0.1")
         self.assertEqual(plugin["version"], chrome["version"])
-        self.assertEqual(ios_versions, {chrome["version"]})
+        # iOS ships independently under ios-v* tags; v* tags version the
+        # Chrome/Codex/MCP submission bundle together.
+        self.assertEqual(ios_versions, {"1.1.0"})
         self.assertIsNotNone(mcp_version)
         self.assertEqual(mcp_version.group(1), chrome["version"])
 

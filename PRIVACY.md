@@ -1,6 +1,6 @@
 # SourceBraid Privacy
 
-Last updated: September 12, 2026
+Last updated: October 12, 2026
 
 SourceBraid is open-source software that stores captured sources in a GitHub
 repository selected and controlled by the user. The Chrome/iOS capture clients,
@@ -29,6 +29,44 @@ describes the implementation prepared for its release.
   Codex environment and are processed under that service's terms and data
   settings. Installing or publishing the plugin does not by itself transfer an
   archive or make its repository public.
+
+## Local iOS reader and Apple Intelligence development candidate
+
+The unreleased reader reads Markdown and assets from the configured GitHub
+archive using authenticated GET requests to `api.github.com`. Credentials stay
+in the existing shared Keychain. Archive identity separates local caches;
+changing repository, branch, or root clears the previous active archive cache
+and in-memory chat. Downloads and a disposable SQLite search index are stored
+inside the app's cache container, excluded from backup, with iOS file protection.
+File sizes and access timestamps are used locally to evict cached files.
+
+Warm starts restore local metadata. An empty cache initially downloads at most
+seven Markdown files. System-scheduled background refresh uses the same
+authenticated GitHub GET endpoint to update new/changed documents in bounded
+batches; it does not generate AI answers or load external images. iOS controls
+execution, and Background App Refresh can be disabled in system settings.
+Manual refresh remains available; sign-out cancels scheduled work.
+
+Chat explicitly uses Apple's on-device system model when it is available.
+Questions, bounded document excerpts, and a short conversation context are
+processed locally; this implementation does not call Private Cloud Compute,
+OpenAI, or a SourceBraid AI server. Chat history is kept in memory and cleared
+on an archive switch or local-data removal. Reader, search, and chat do not
+write or delete GitHub content. The separate Share Extension still saves
+captures using the permissions described above.
+
+External images remain placeholders until the user chooses to load them for
+the current document. That action contacts HTTPS source websites through a
+separate session without the GitHub token or persistent cookies. Opening an
+original source or GitHub link uses the system browser. Shortcuts expose only
+loaded archive entities and require local device authentication. Source links
+verify which excerpts were supplied; they do not guarantee the factual accuracy
+of generated answers.
+
+**Remove local data** deletes the active archive's downloads and search cache.
+**Sign out** additionally removes the shared GitHub credential and recent-capture
+list. These actions clear in-memory chat and leave GitHub files and history
+intact. SourceBraid does not log credentials, questions, or archive content.
 
 ## Prepared hosted ChatGPT service
 
@@ -101,6 +139,42 @@ liegen im Browser-Speicher beziehungsweise iOS-Schlüsselbund. Das lokale
 Codex-Plugin nutzt lokale Zugangsdaten, Markdown-Kopien und einen neu
 aufbaubaren SQLite-Index. Es kann nach Vorschau und neuer ausdrücklicher
 Bestätigung Clips löschen oder Metadaten migrieren.
+
+Der noch unveröffentlichte iOS-Reader liest Markdown und Assets per
+authentifiziertem GET von `api.github.com`. Zugangsdaten bleiben im vorhandenen
+gemeinsamen Schlüsselbund. Downloads und der verwerfbare SQLite-Suchindex
+liegen mit iOS-Dateischutz im vom Backup ausgeschlossenen App-Cache.
+Dateigrößen und Zugriffszeiten dienen ausschließlich der lokalen Cache-Begrenzung.
+Ein Wechsel von Repository, Branch oder Stammordner entfernt den vorherigen
+aktiven Cache und den Chat aus dem Arbeitsspeicher.
+
+Starts mit vorhandenem Cache stellen lokale Metadaten wieder her. Ein leerer
+Cache lädt zunächst höchstens sieben Markdown-Dateien. Systemgeplante
+Hintergrundaktualisierung nutzt denselben authentifizierten GitHub-GET-Endpunkt
+für neue/geänderte Dokumente in begrenzten Paketen; sie erzeugt keine
+KI-Antworten und lädt keine externen Bilder. iOS steuert die Ausführung;
+Hintergrundaktualisierung lässt sich in den Systemeinstellungen deaktivieren.
+Manuelles Aktualisieren bleibt möglich; Abmelden storniert geplante Arbeit.
+
+Der optionale Chat nutzt ausdrücklich Apples lokales Systemmodell, sofern
+verfügbar. Fragen, begrenzte Quellenauszüge und ein kurzer Gesprächskontext
+werden auf dem Gerät verarbeitet; diese Implementierung ruft weder Private
+Cloud Compute noch OpenAI oder einen SourceBraid-KI-Server auf. Chatverlauf
+bleibt im Arbeitsspeicher. Reader, Suche und Chat verändern keine GitHub-Dateien;
+die separate Share Extension speichert weiterhin Captures.
+
+Externe Bilder werden erst nach Auswahl der Ladeaktion für den aktuellen
+Beitrag über eine separate HTTPS-Sitzung ohne GitHub-Token und dauerhafte
+Cookies angefordert. Original- und GitHub-Links öffnen den Systembrowser.
+Kurzbefehle liefern nur geladene Archiv-Einträge und verlangen lokale
+Geräteauthentifizierung. Quellenlinks prüfen die bereitgestellten Auszüge,
+garantieren aber nicht die sachliche Richtigkeit einer KI-Antwort.
+
+„Lokale Daten entfernen“ löscht Downloads und Suchcache des aktiven Archivs;
+„Abmelden“ entfernt zusätzlich das gemeinsame GitHub-Zugangstoken und die
+Liste zuletzt gespeicherter Captures. Beide Aktionen leeren den Chat im
+Arbeitsspeicher und erhalten GitHub-Dateien und Git-Historie. SourceBraid
+protokolliert keine Zugangsdaten, Fragen oder Archivinhalte.
 
 Der gehostete ChatGPT-Dienst unter `https://mcp.sourcebraid.com/mcp` ist
 vorbereitet, aber noch nicht bereitgestellt oder öffentlich freigegeben. Nach

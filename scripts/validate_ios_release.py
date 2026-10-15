@@ -126,7 +126,7 @@ def validate_entitlements(root: Path, errors: list[str]) -> None:
             errors.append(f"unexpected Keychain group in {relative}")
 
 
-def validate_privacy_manifest(path: Path, errors: list[str]) -> None:
+def validate_privacy_manifest(path: Path, errors: list[str], *, archive_reader: bool = False) -> None:
     manifest = read_plist(path)
     if manifest.get("NSPrivacyTracking") is not False:
         errors.append(f"tracking must be disabled in {path}")
@@ -162,7 +162,14 @@ def validate_privacy_manifest(path: Path, errors: list[str]) -> None:
             "NSPrivacyAccessedAPITypeReasons": ["1C8F.1"],
         }
     ]
-    if accessed != expected_access:
+    if archive_reader:
+        expected_access.append({
+            "NSPrivacyAccessedAPIType": "NSPrivacyAccessedAPICategoryFileTimestamp",
+            "NSPrivacyAccessedAPITypeReasons": ["C617.1"],
+        })
+    valid_entries = isinstance(accessed, list) and all(isinstance(item, dict) for item in accessed)
+    order = lambda item: str(item.get("NSPrivacyAccessedAPIType", ""))
+    if not valid_entries or sorted(accessed, key=order) != sorted(expected_access, key=order):
         errors.append(f"required-reason API declaration is inconsistent in {path}")
 
 
@@ -217,6 +224,7 @@ def validate_source(root: Path = REPOSITORY_ROOT) -> ReleaseReport:
         APP_BUNDLE_IDENTIFIER: 2,
         SHARE_BUNDLE_IDENTIFIER: 2,
         TEST_BUNDLE_IDENTIFIER: 2,
+        "de.patrickschiller.sourcebraid.uitests": 2,
     }
     for identifier, count in expected_identifiers.items():
         if identifiers.count(identifier) != count:
@@ -232,7 +240,7 @@ def validate_source(root: Path = REPOSITORY_ROOT) -> ReleaseReport:
     validate_info_plists(root, errors)
     validate_entitlements(root, errors)
     for relative in (APP_PRIVACY, SHARE_PRIVACY):
-        validate_privacy_manifest(root / relative, errors)
+        validate_privacy_manifest(root / relative, errors, archive_reader=relative == APP_PRIVACY)
     icon_sha256 = validate_icon(root, errors)
 
     if errors:
@@ -276,7 +284,7 @@ def validate_app_bundle(app_bundle: Path, source: ReleaseReport) -> ReleaseRepor
         app_bundle / "PrivacyInfo.xcprivacy",
         extension_bundle / "PrivacyInfo.xcprivacy",
     ):
-        validate_privacy_manifest(privacy_path, errors)
+        validate_privacy_manifest(privacy_path, errors, archive_reader=privacy_path.parent == app_bundle)
 
     if errors:
         raise ReleaseValidationError("\n".join(f"- {error}" for error in errors))

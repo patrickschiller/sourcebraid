@@ -7,6 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		6D92AC9703BA4356B0E87DA9 /* SourceBraidTheme.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5C8E20934E3047468D63A6CD /* SourceBraidTheme.swift */; };
 		B00000000000000000000001 /* SourceBraidApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = F00000000000000000000001 /* SourceBraidApp.swift */; };
 		B00000000000000000000002 /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = F00000000000000000000002 /* ContentView.swift */; };
 		B00000000000000000000003 /* SettingsViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = F00000000000000000000003 /* SettingsViewModel.swift */; };
@@ -40,6 +41,38 @@
 		B00000000000000000000203 /* ClipBuilder.swift in Sources */ = {isa = PBXBuildFile; fileRef = F00000000000000000000008 /* ClipBuilder.swift */; };
 		B00000000000000000000204 /* XCTest.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = F00000000000000000000031 /* XCTest.framework */; };
 		B00000000000000000000205 /* SourceBraidEnvironment.swift in Sources */ = {isa = PBXBuildFile; fileRef = F00000000000000000000004 /* SourceBraidEnvironment.swift */; };
+		FBCF3766C0A45D48154A05C5 /* ArchiveModels.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8D31E4CBC12DCA3D14E025D9; };
+		CC08A525244DC853D0370721 /* ArchiveModels.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8D31E4CBC12DCA3D14E025D9; };
+		5918B34114D05C0E99920599 /* ArchiveReadClient.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1104A53F92CE6D789A7D8B4D; };
+		4A8E3294375F1C84FCA708AE /* ArchiveReadClient.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1104A53F92CE6D789A7D8B4D; };
+		248390A58594DD2989B2E108 /* ArchiveCache.swift in Sources */ = {isa = PBXBuildFile; fileRef = 42D71334BA3F08CE18DBA83D; };
+		04075D135D02C17E388AD929 /* ArchiveCache.swift in Sources */ = {isa = PBXBuildFile; fileRef = 42D71334BA3F08CE18DBA83D; };
+		7487996838F4B51A46070278 /* MarkdownRenderer.swift in Sources */ = {isa = PBXBuildFile; fileRef = B203382383156CAC86B35A80; };
+		5D6D6AF7D8BA89F556105BC7 /* MarkdownRenderer.swift in Sources */ = {isa = PBXBuildFile; fileRef = B203382383156CAC86B35A80; };
+		E05A126C028619D8D8C0402A /* ArchiveTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 65743FAB481022E252E69EC6; };
+        BA13A196CC3345A1EBB9A2D3 = {isa = PBXBuildFile; productRef = 19855FE49461C2A81ED1D580; };
+        3DE99C97D4E9F99867B4A69A = {isa = PBXBuildFile; productRef = EF88BFF49FDB3DCE1F5552E9; };
+		9754F2F9CC186845A9A04156 /* ArchiveLibrary.swift in Sources */ = {isa = PBXBuildFile; fileRef = BA8EA69274EF4911620C7A23; };
+		505197DDADAB2DF1A6C241AA /* ArchiveReaderView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7B9CFDD72F50F33994F58D84; };
+		BBE83A1D6ABCA8E4777C030E /* SettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 369E9B987913FD1BD2D46B08; };
+		C038CD8A734971FC58050F28 /* ArchiveDemo.swift in Sources */ = {isa = PBXBuildFile; fileRef = 65297D4211B044873882E140; };
+		5DD5D4361909951B244AC70C /* ArchiveSearchIndex.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7B360BF82921DCA5535DB7D7; };
+		895AD6DC84B5E6EEB9409109 /* ArchiveSearchIndex.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7B360BF82921DCA5535DB7D7; };
+		A23738486A8A26AF8C7C66E5 /* ArchiveIntelligence.swift in Sources */ = {isa = PBXBuildFile; fileRef = B3CA6EEF750615ABB2F49C3C; };
+		CDD95BE171880A981D221BE9 /* ArchiveChatView.swift in Sources */ = {isa = PBXBuildFile; fileRef = F25D9604B1EFF4ABCF8D3858; };
+		8209D88350AA15C59CA44CF5 /* ArchiveIntents.swift in Sources */ = {isa = PBXBuildFile; fileRef = 21800612607253016DEA2762; };
+		BC8B2C526D3BD4AC9A0DE713 /* ArchiveLibrary.swift in Sources */ = {isa = PBXBuildFile; fileRef = BA8EA69274EF4911620C7A23; };
+		B007CFBC5AED9B7CA07995A5 /* ArchiveDemo.swift in Sources */ = {isa = PBXBuildFile; fileRef = 65297D4211B044873882E140; };
+		1EE5F28F47E52BAB29E444BB /* ArchiveIntelligence.swift in Sources */ = {isa = PBXBuildFile; fileRef = B3CA6EEF750615ABB2F49C3C; };
+		B6913B7D4FA1042F2AA650EF /* KeychainStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = D1F39A94C8918A57F8D97F1B; };
+		A0920D12B0C8451445246809 /* ArchiveChatTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3EAD6C3B0E74BA5A74BD728D; };
+		E00000000000000000000001 = {isa = PBXBuildFile; fileRef = E00000000000000000000002; };
+		E386330F97E0A9F1FA343421 = {isa = PBXBuildFile; fileRef = FFF7E51EC70CFB7966EF03F8; };
+		6C84BB344B4E1367C68CBB1E = {isa = PBXBuildFile; fileRef = FE7B92C17012BBBE45D84C8C; };
+		1C51DD952698BC1420F7DDAB = {isa = PBXBuildFile; fileRef = 3735DECBB708A2101B4D05B1; };
+		B0C3533CA8C449BD881F2267 /* ArchiveBackgroundRefresh.swift in Sources */ = {isa = PBXBuildFile; fileRef = 46639AB677964DFEAFE72A67; };
+		96305D5D4EB6471CBC008FCB /* ArchiveBackgroundRefresh.swift in Sources */ = {isa = PBXBuildFile; fileRef = 46639AB677964DFEAFE72A67; };
+		F69D6DC84FF34ECAA46C5372 /* ArchiveRefreshTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = DFA41156727F4D05AD15F991; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -50,6 +83,7 @@
 			remoteGlobalIDString = A00000000000000000000200;
 			remoteInfo = SourceBraidShare;
 		};
+		E00000000000000000000004 = {isa = PBXContainerItemProxy; containerPortal = A00000000000000000000001; proxyType = 1; remoteGlobalIDString = A00000000000000000000100; remoteInfo = SourceBraid; };
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXCopyFilesBuildPhase section */
@@ -67,6 +101,7 @@
 /* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
+		5C8E20934E3047468D63A6CD /* SourceBraidTheme.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SourceBraidTheme.swift; sourceTree = "<group>"; };
 		F00000000000000000000001 /* SourceBraidApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SourceBraidApp.swift; sourceTree = "<group>"; };
 		F00000000000000000000002 /* ContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentView.swift; sourceTree = "<group>"; };
 		F00000000000000000000003 /* SettingsViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsViewModel.swift; sourceTree = "<group>"; };
@@ -96,6 +131,28 @@
 		F00000000000000000000109 /* WebPageCapture.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WebPageCapture.swift; sourceTree = "<group>"; };
 		F00000000000000000000110 /* WebPageCapture.js */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.javascript; path = WebPageCapture.js; sourceTree = "<group>"; };
 		F00000000000000000000201 /* ClipBuilderTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ClipBuilderTests.swift; sourceTree = "<group>"; };
+		8D31E4CBC12DCA3D14E025D9 /* ArchiveModels.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "SourceBraid/Archive/ArchiveModels.swift"; sourceTree = SOURCE_ROOT; };
+		1104A53F92CE6D789A7D8B4D /* ArchiveReadClient.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "SourceBraid/Archive/ArchiveReadClient.swift"; sourceTree = SOURCE_ROOT; };
+		42D71334BA3F08CE18DBA83D /* ArchiveCache.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "SourceBraid/Archive/ArchiveCache.swift"; sourceTree = SOURCE_ROOT; };
+		B203382383156CAC86B35A80 /* MarkdownRenderer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "SourceBraid/Archive/MarkdownRenderer.swift"; sourceTree = SOURCE_ROOT; };
+		65743FAB481022E252E69EC6 /* ArchiveTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "SourceBraidTests/ArchiveTests.swift"; sourceTree = SOURCE_ROOT; };
+		BA8EA69274EF4911620C7A23 /* ArchiveLibrary.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "SourceBraid/Archive/ArchiveLibrary.swift"; sourceTree = SOURCE_ROOT; };
+		7B9CFDD72F50F33994F58D84 /* ArchiveReaderView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "SourceBraid/Archive/ArchiveReaderView.swift"; sourceTree = SOURCE_ROOT; };
+		369E9B987913FD1BD2D46B08 /* SettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "SourceBraid/App/SettingsView.swift"; sourceTree = SOURCE_ROOT; };
+		65297D4211B044873882E140 /* ArchiveDemo.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "SourceBraid/Archive/ArchiveDemo.swift"; sourceTree = SOURCE_ROOT; };
+		7B360BF82921DCA5535DB7D7 /* ArchiveSearchIndex.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "SourceBraid/Archive/ArchiveSearchIndex.swift"; sourceTree = SOURCE_ROOT; };
+		B3CA6EEF750615ABB2F49C3C /* ArchiveIntelligence.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "SourceBraid/Archive/ArchiveIntelligence.swift"; sourceTree = SOURCE_ROOT; };
+		F25D9604B1EFF4ABCF8D3858 /* ArchiveChatView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "SourceBraid/Archive/ArchiveChatView.swift"; sourceTree = SOURCE_ROOT; };
+		21800612607253016DEA2762 /* ArchiveIntents.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "SourceBraid/Archive/ArchiveIntents.swift"; sourceTree = SOURCE_ROOT; };
+		D1F39A94C8918A57F8D97F1B /* KeychainStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "SourceBraid/Shared/KeychainStore.swift"; sourceTree = SOURCE_ROOT; };
+		3EAD6C3B0E74BA5A74BD728D /* ArchiveChatTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "SourceBraidTests/ArchiveChatTests.swift"; sourceTree = SOURCE_ROOT; };
+		E00000000000000000000002 = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SourceBraidUITests/ArchiveUITests.swift; sourceTree = SOURCE_ROOT; };
+		E00000000000000000000003 = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; path = SourceBraidUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+		FFF7E51EC70CFB7966EF03F8 = {isa = PBXFileReference; lastKnownFileType = text; path = ThirdPartyNotices.txt; sourceTree = "<group>"; };
+		FE7B92C17012BBBE45D84C8C = {isa = PBXFileReference; lastKnownFileType = text.json.xcstrings; path = Localizable.xcstrings; sourceTree = "<group>"; };
+		3735DECBB708A2101B4D05B1 = {isa = PBXFileReference; lastKnownFileType = text.json.xcstrings; path = AppShortcuts.xcstrings; sourceTree = "<group>"; };
+		46639AB677964DFEAFE72A67 /* ArchiveBackgroundRefresh.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "SourceBraid/Archive/ArchiveBackgroundRefresh.swift"; sourceTree = SOURCE_ROOT; };
+		DFA41156727F4D05AD15F991 /* ArchiveRefreshTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "SourceBraidTests/ArchiveRefreshTests.swift"; sourceTree = SOURCE_ROOT; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -103,6 +160,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+                BA13A196CC3345A1EBB9A2D3 /* Markdown in Frameworks */,
 				B00000000000000000000011 /* Security.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -119,19 +177,39 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+                3DE99C97D4E9F99867B4A69A /* Markdown in Frameworks */,
 				B00000000000000000000204 /* XCTest.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
+		E00000000000000000000102 = {isa = PBXFrameworksBuildPhase; buildActionMask = 2147483647; files = (); runOnlyForDeploymentPostprocessing = 0; };
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
 		A00000000000000000000002 = {
 			isa = PBXGroup;
 			children = (
+				DFA41156727F4D05AD15F991 /* ArchiveRefreshTests.swift */,
+				46639AB677964DFEAFE72A67 /* ArchiveBackgroundRefresh.swift */,
+				8D31E4CBC12DCA3D14E025D9 /* ArchiveModels.swift */,
+				1104A53F92CE6D789A7D8B4D /* ArchiveReadClient.swift */,
+				42D71334BA3F08CE18DBA83D /* ArchiveCache.swift */,
+				B203382383156CAC86B35A80 /* MarkdownRenderer.swift */,
+				65743FAB481022E252E69EC6 /* ArchiveTests.swift */,
+				BA8EA69274EF4911620C7A23 /* ArchiveLibrary.swift */,
+				7B9CFDD72F50F33994F58D84 /* ArchiveReaderView.swift */,
+				369E9B987913FD1BD2D46B08 /* SettingsView.swift */,
+				65297D4211B044873882E140 /* ArchiveDemo.swift */,
+				7B360BF82921DCA5535DB7D7 /* ArchiveSearchIndex.swift */,
+				B3CA6EEF750615ABB2F49C3C /* ArchiveIntelligence.swift */,
+				F25D9604B1EFF4ABCF8D3858 /* ArchiveChatView.swift */,
+				21800612607253016DEA2762 /* ArchiveIntents.swift */,
+				D1F39A94C8918A57F8D97F1B /* KeychainStore.swift */,
+				3EAD6C3B0E74BA5A74BD728D /* ArchiveChatTests.swift */,
 				A00000000000000000000010 /* SourceBraid */,
 				A00000000000000000000020 /* SourceBraidShare */,
 				A00000000000000000000030 /* SourceBraidTests */,
+				E00000000000000000000002,
 				A00000000000000000000004 /* Frameworks */,
 				A00000000000000000000003 /* Products */,
 			);
@@ -143,6 +221,7 @@
 				F00000000000000000000020 /* SourceBraid.app */,
 				F00000000000000000000021 /* SourceBraidShare.appex */,
 				F00000000000000000000022 /* SourceBraidTests.xctest */,
+				E00000000000000000000003,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -170,6 +249,7 @@
 			isa = PBXGroup;
 			children = (
 				F00000000000000000000001 /* SourceBraidApp.swift */,
+				5C8E20934E3047468D63A6CD /* SourceBraidTheme.swift */,
 				F00000000000000000000002 /* ContentView.swift */,
 				F00000000000000000000003 /* SettingsViewModel.swift */,
 			);
@@ -192,6 +272,9 @@
 		A00000000000000000000013 /* Resources */ = {
 			isa = PBXGroup;
 			children = (
+				FFF7E51EC70CFB7966EF03F8,
+				FE7B92C17012BBBE45D84C8C,
+				3735DECBB708A2101B4D05B1,
 				F00000000000000000000010 /* Assets.xcassets */,
 				F00000000000000000000011 /* Info.plist */,
 				F00000000000000000000012 /* SourceBraid.entitlements */,
@@ -243,7 +326,8 @@
 				A00000000000000000000041 /* PBXTargetDependency */,
 			);
 			name = SourceBraid;
-			productName = SourceBraid;
+			packageProductDependencies = (19855FE49461C2A81ED1D580, );
+            productName = SourceBraid;
 			productReference = F00000000000000000000020 /* SourceBraid.app */;
 			productType = "com.apple.product-type.application";
 		};
@@ -277,10 +361,12 @@
 			dependencies = (
 			);
 			name = SourceBraidTests;
-			productName = SourceBraidTests;
+			packageProductDependencies = (EF88BFF49FDB3DCE1F5552E9, );
+            productName = SourceBraidTests;
 			productReference = F00000000000000000000022 /* SourceBraidTests.xctest */;
 			productType = "com.apple.product-type.bundle.unit-test";
 		};
+		E00000000000000000000100 = {isa = PBXNativeTarget; buildConfigurationList = E00000000000000000000110; buildPhases = (E00000000000000000000101, E00000000000000000000102, E00000000000000000000103, ); buildRules = (); dependencies = (E00000000000000000000005, ); name = SourceBraidUITests; productName = SourceBraidUITests; productReference = E00000000000000000000003; productType = "com.apple.product-type.bundle.ui-testing"; };
 /* End PBXNativeTarget section */
 
 /* Begin PBXProject section */
@@ -291,6 +377,7 @@
 				LastSwiftUpdateCheck = 2700;
 				LastUpgradeCheck = 2700;
 				TargetAttributes = {
+ E00000000000000000000100 = {CreatedOnToolsVersion = 27.1; TestTargetID = A00000000000000000000100; };
 					A00000000000000000000100 = {
 						CreatedOnToolsVersion = 27.0;
 					};
@@ -307,17 +394,20 @@
 			developmentRegion = en;
 			hasScannedForEncodings = 0;
 			knownRegions = (
+				de,
 				en,
 				Base,
 			);
 			mainGroup = A00000000000000000000002;
 			productRefGroup = A00000000000000000000003 /* Products */;
+			packageReferences = (3885006A346373887A6217C2, );
 			projectDirPath = "";
 			projectRoot = "";
 			targets = (
 				A00000000000000000000100 /* SourceBraid */,
 				A00000000000000000000200 /* SourceBraidShare */,
 				A00000000000000000000300 /* SourceBraidTests */,
+				E00000000000000000000100,
 			);
 		};
 /* End PBXProject section */
@@ -327,6 +417,9 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				E386330F97E0A9F1FA343421,
+				6C84BB344B4E1367C68CBB1E,
+				1C51DD952698BC1420F7DDAB,
 				B00000000000000000000010 /* Assets.xcassets in Resources */,
 				B00000000000000000000013 /* PrivacyInfo.xcprivacy in Resources */,
 			);
@@ -349,6 +442,7 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
+		E00000000000000000000103 = {isa = PBXResourcesBuildPhase; buildActionMask = 2147483647; files = (); runOnlyForDeploymentPostprocessing = 0; };
 /* End PBXResourcesBuildPhase section */
 
 /* Begin PBXSourcesBuildPhase section */
@@ -356,7 +450,21 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				B0C3533CA8C449BD881F2267 /* ArchiveBackgroundRefresh.swift in Sources */,
+				8209D88350AA15C59CA44CF5 /* ArchiveIntents.swift in Sources */,
+				CDD95BE171880A981D221BE9 /* ArchiveChatView.swift in Sources */,
+				A23738486A8A26AF8C7C66E5 /* ArchiveIntelligence.swift in Sources */,
+				5DD5D4361909951B244AC70C /* ArchiveSearchIndex.swift in Sources */,
+				C038CD8A734971FC58050F28 /* ArchiveDemo.swift in Sources */,
+				BBE83A1D6ABCA8E4777C030E /* SettingsView.swift in Sources */,
+				505197DDADAB2DF1A6C241AA /* ArchiveReaderView.swift in Sources */,
+				9754F2F9CC186845A9A04156 /* ArchiveLibrary.swift in Sources */,
+				7487996838F4B51A46070278 /* MarkdownRenderer.swift in Sources */,
+				248390A58594DD2989B2E108 /* ArchiveCache.swift in Sources */,
+				5918B34114D05C0E99920599 /* ArchiveReadClient.swift in Sources */,
+				FBCF3766C0A45D48154A05C5 /* ArchiveModels.swift in Sources */,
 				B00000000000000000000001 /* SourceBraidApp.swift in Sources */,
+				6D92AC9703BA4356B0E87DA9 /* SourceBraidTheme.swift in Sources */,
 				B00000000000000000000002 /* ContentView.swift in Sources */,
 				B00000000000000000000003 /* SettingsViewModel.swift in Sources */,
 				B00000000000000000000004 /* SourceBraidEnvironment.swift in Sources */,
@@ -390,6 +498,19 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				F69D6DC84FF34ECAA46C5372 /* ArchiveRefreshTests.swift in Sources */,
+				96305D5D4EB6471CBC008FCB /* ArchiveBackgroundRefresh.swift in Sources */,
+				A0920D12B0C8451445246809 /* ArchiveChatTests.swift in Sources */,
+				B6913B7D4FA1042F2AA650EF /* KeychainStore.swift in Sources */,
+				1EE5F28F47E52BAB29E444BB /* ArchiveIntelligence.swift in Sources */,
+				B007CFBC5AED9B7CA07995A5 /* ArchiveDemo.swift in Sources */,
+				BC8B2C526D3BD4AC9A0DE713 /* ArchiveLibrary.swift in Sources */,
+				895AD6DC84B5E6EEB9409109 /* ArchiveSearchIndex.swift in Sources */,
+				E05A126C028619D8D8C0402A /* ArchiveTests.swift in Sources */,
+				5D6D6AF7D8BA89F556105BC7 /* MarkdownRenderer.swift in Sources */,
+				04075D135D02C17E388AD929 /* ArchiveCache.swift in Sources */,
+				4A8E3294375F1C84FCA708AE /* ArchiveReadClient.swift in Sources */,
+				CC08A525244DC853D0370721 /* ArchiveModels.swift in Sources */,
 				B00000000000000000000201 /* ClipBuilderTests.swift in Sources */,
 				B00000000000000000000202 /* SourceBraidConfiguration.swift in Sources */,
 				B00000000000000000000203 /* ClipBuilder.swift in Sources */,
@@ -397,6 +518,7 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
+		E00000000000000000000101 = {isa = PBXSourcesBuildPhase; buildActionMask = 2147483647; files = (E00000000000000000000001,); runOnlyForDeploymentPostprocessing = 0; };
 /* End PBXSourcesBuildPhase section */
 
 /* Begin PBXTargetDependency section */
@@ -405,7 +527,17 @@
 			target = A00000000000000000000200 /* SourceBraidShare */;
 			targetProxy = A00000000000000000000040 /* PBXContainerItemProxy */;
 		};
+		E00000000000000000000005 = {isa = PBXTargetDependency; target = A00000000000000000000100; targetProxy = E00000000000000000000004; };
 /* End PBXTargetDependency section */
+
+/* Begin XCRemoteSwiftPackageReference section */
+        3885006A346373887A6217C2 = {isa = XCRemoteSwiftPackageReference; repositoryURL = "https://github.com/swiftlang/swift-markdown.git"; requirement = {kind = exactVersion; version = 0.9.0; }; };
+/* End XCRemoteSwiftPackageReference section */
+
+/* Begin XCSwiftPackageProductDependency section */
+        19855FE49461C2A81ED1D580 = {isa = XCSwiftPackageProductDependency; package = 3885006A346373887A6217C2; productName = Markdown; };
+        EF88BFF49FDB3DCE1F5552E9 = {isa = XCSwiftPackageProductDependency; package = 3885006A346373887A6217C2; productName = Markdown; };
+/* End XCSwiftPackageProductDependency section */
 
 /* Begin XCBuildConfiguration section */
 		A00000000000000000000051 /* Debug */ = {
@@ -451,7 +583,7 @@
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				CODE_SIGN_ENTITLEMENTS = SourceBraid/Resources/SourceBraid.entitlements;
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 10;
+				CURRENT_PROJECT_VERSION = 11;
 				DEVELOPMENT_TEAM = H76K2HQUFB;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = NO;
@@ -461,7 +593,7 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 1.0.1;
+				MARKETING_VERSION = 1.1.0;
 				PRODUCT_BUNDLE_IDENTIFIER = de.patrickschiller.sourcebraid;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
@@ -480,7 +612,7 @@
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				CODE_SIGN_ENTITLEMENTS = SourceBraid/Resources/SourceBraid.entitlements;
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 10;
+				CURRENT_PROJECT_VERSION = 11;
 				DEVELOPMENT_TEAM = H76K2HQUFB;
 				GENERATE_INFOPLIST_FILE = NO;
 				INFOPLIST_FILE = SourceBraid/Resources/Info.plist;
@@ -489,7 +621,7 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 1.0.1;
+				MARKETING_VERSION = 1.1.0;
 				PRODUCT_BUNDLE_IDENTIFIER = de.patrickschiller.sourcebraid;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
@@ -507,7 +639,7 @@
 				APPLICATION_EXTENSION_API_ONLY = YES;
 				CODE_SIGN_ENTITLEMENTS = SourceBraidShare/SourceBraidShare.entitlements;
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 10;
+				CURRENT_PROJECT_VERSION = 11;
 				DEVELOPMENT_TEAM = H76K2HQUFB;
 				GENERATE_INFOPLIST_FILE = NO;
 				INFOPLIST_FILE = SourceBraidShare/Info.plist;
@@ -515,7 +647,7 @@
 					"$(inherited)",
 					"@executable_path/../../Frameworks",
 				);
-				MARKETING_VERSION = 1.0.1;
+				MARKETING_VERSION = 1.1.0;
 				PRODUCT_BUNDLE_IDENTIFIER = de.patrickschiller.sourcebraid.share;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SKIP_INSTALL = YES;
@@ -534,7 +666,7 @@
 				APPLICATION_EXTENSION_API_ONLY = YES;
 				CODE_SIGN_ENTITLEMENTS = SourceBraidShare/SourceBraidShare.entitlements;
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 10;
+				CURRENT_PROJECT_VERSION = 11;
 				DEVELOPMENT_TEAM = H76K2HQUFB;
 				GENERATE_INFOPLIST_FILE = NO;
 				INFOPLIST_FILE = SourceBraidShare/Info.plist;
@@ -542,7 +674,7 @@
 					"$(inherited)",
 					"@executable_path/../../Frameworks",
 				);
-				MARKETING_VERSION = 1.0.1;
+				MARKETING_VERSION = 1.1.0;
 				PRODUCT_BUNDLE_IDENTIFIER = de.patrickschiller.sourcebraid.share;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SKIP_INSTALL = YES;
@@ -595,6 +727,30 @@
 			};
 			name = Release;
 		};
+		E00000000000000000000111 = {isa = XCBuildConfiguration; buildSettings = {
+				CODE_SIGNING_ALLOWED = NO;
+				GENERATE_INFOPLIST_FILE = YES;
+				PRODUCT_BUNDLE_IDENTIFIER = de.patrickschiller.sourcebraid.uitests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SUPPORTED_PLATFORMS = iphonesimulator;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				TEST_TARGET_NAME = SourceBraid;
+			};
+			name = Debug;
+		};
+		E00000000000000000000112 = {isa = XCBuildConfiguration; buildSettings = {
+				CODE_SIGNING_ALLOWED = NO;
+				GENERATE_INFOPLIST_FILE = YES;
+				PRODUCT_BUNDLE_IDENTIFIER = de.patrickschiller.sourcebraid.uitests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SUPPORTED_PLATFORMS = iphonesimulator;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				TEST_TARGET_NAME = SourceBraid;
+			};
+			name = Release;
+		};
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
@@ -634,6 +790,7 @@
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
 		};
+		E00000000000000000000110 = {isa = XCConfigurationList; buildConfigurations = (E00000000000000000000111, E00000000000000000000112, ); defaultConfigurationIsVisible = 0; defaultConfigurationName = Release; };
 /* End XCConfigurationList section */
 	};
 	rootObject = A00000000000000000000001 /* Project object */;
