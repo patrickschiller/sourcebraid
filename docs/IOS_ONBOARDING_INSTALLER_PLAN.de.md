@@ -70,9 +70,11 @@ Erstellung und Token-Erneuerung wurden in 1.1.0 **nicht** ergänzt.
 App-Store-Veröffentlichung: durch den Maintainer bestätigt. Quellversion:
 durch Git-Tag, Versionsfelder und lokalen Build geprüft. Daraus folgt keine
 eigenständige Prüfung des im Store ausgelieferten Binärpakets. Im iOS-Tag sind
-Chrome, Codex und MCP noch auf 1.0.1; ihre im Arbeitsverzeichnis vorbereiteten
-1.1.0-Änderungen sind ein separater Stand. Sie belegen keine öffentliche
-Plugin-Verfügbarkeit. Diese Folgearbeiten bleiben bei der Planerstellung erhalten.
+Chrome, Codex und MCP noch auf 1.0.1. Die während der Überprüfung separat
+eingecheckten Folgearbeiten in `467542a` bereiten diese Komponenten auf 1.1.0
+vor; die iOS-Laufzeitquellen bleiben gegenüber dem iOS-Tag unverändert.
+Dieser zusätzliche Commit belegt keine öffentliche Plugin-Verfügbarkeit.
+Die Folgearbeiten werden durch diesen Plan nicht verändert.
 
 | Bereich | Heute vorhanden | Für einfache Einrichtung fehlt |
 | --- | --- | --- |
@@ -392,8 +394,10 @@ Das bestehende Keychain-Item ist nicht synchronisierbar und gerätegebunden.
 Ein neu eingerichtetes iPad übernimmt deshalb kein iPhone-Token. Der Standard
 bleibt: auf dem zweiten Gerät anmelden und dasselbe Archiv auswählen.
 Authentifizierungsgeheimnisse gehören weder in `SceneStorage` noch in
-Konfigurationsdateien. Nur nicht geheime Schritte/Eingaben können einen
-Fenster- oder Prozessneustart überdauern.
+Konfigurationsdateien. Dort beziehungsweise in der Wiederherstellung des
+Assistenten werden ausschließlich nicht geheime Schritte und Eingaben gespeichert.
+Dauerhafte Zugangsdaten und Broker-Sitzungsnachweise bleiben in der Keychain;
+nicht gesicherte Anmeldeversuche beginnen nach Prozessverlust neu.
 [Apple: Gerätegebundene Keychain](https://developer.apple.com/documentation/security/ksecattraccessibleafterfirstunlockthisdeviceonly)
 
 Abmeldung und Widerruf invalidieren ausstehende Login-/Refresh-Ergebnisse.
@@ -402,6 +406,12 @@ Ein dauerhaft gespeicherter Zustand `signedOut` unterbindet Hintergrundjobs
 auch nach App-Neustart. „Offline mit gültiger lokaler Verbindung“ und
 „abgemeldet“ bleiben unterschiedliche Zustände; lesbarer Cache darf nicht
 bei jedem Netzfehler verschwinden.
+
+Insbesondere bleibt die lokale Verbindung zum Offline-Lesen und Suchen nutzbar,
+wenn lediglich das kurzlebige Access Token abgelaufen und der Auth-Dienst nicht
+erreichbar ist. Netzwerk-Token-Gültigkeit und lokale Zugriffsfreigabe sind
+getrennte Bedingungen. Explizites Abmelden oder Entfernen lokaler Daten behält
+seine bisherige Wirkung; ein fehlgeschlagener Refresh löscht keinen Cache.
 
 ## 7. Archiv-Erstellung und Berechtigungen
 
@@ -459,6 +469,12 @@ global angefordertes Workflow-Recht nicht nachträglich optional. Für die erste
 Version: PDF-Setup über einen getrennten, eng begrenzten Einrichtungsweg; später
 gegebenenfalls eigene Setup-App. Jede zusätzliche App erhöht die Bedienkomplexität
 und muss einen nachweisbaren Nutzen haben.
+
+Auch „Nur lesen“ in der Oberfläche reduziert ein bereits erteiltes GitHub-Recht
+nicht. Bestehende Contents-Read-PATs bleiben für diesen Modus unterstützt. Die
+Capture-GitHub-App fordert Contents-Schreibrechte; eine garantiert nur lesende
+OAuth-Anmeldung braucht eine entsprechend getrennte Rechte-Registrierung und
+wird nicht als bereits gelöste Eigenschaft des Capture-Logins versprochen.
 
 Vorhandene Archive werden nur nach Auswahl verbunden. Persönliche Konten sind
 der erste voll unterstützte Einrichtungsweg; Organisationen, SSO und ausstehende
@@ -698,6 +714,33 @@ Dateien. Capture-Code bleibt auf sein bestehendes Format konzentriert.
 
 ## 12. Tests und verbindliche Abnahmekriterien
 
+### Erneut ausgeführte Prüfungen am 15. Oktober 2026
+
+| Prüfung | Ergebnis dieser Überprüfung |
+| --- | --- |
+| `python3 scripts/validate_ios_release.py` | Bestanden, 1.1.0/Build 11 |
+| Generischer Simulator-Build, App und Extension, ohne Signierung | Bestanden mit Xcode 27.1 (27A9275) |
+| Validator auf erzeugtem Simulator-App-Bundle | Bestanden, 1.1.0/Build 11 |
+| Bestehende Unit-/Integrationstests auf iPad Pro 13-inch (M5), Runtime 27.0 | **47 bestanden, 0 Fehler** |
+| Bestehende UI-Suite auf demselben iPad-Simulator | **7 bestanden, 0 Fehler** |
+
+Build und Tests verwendeten die iOS-Quellen des Tags, eigene Derived Data
+unter `/private/tmp/sourcebraid-installer-review-20261015-derived` und serielle
+Simulator-Ausführung. Testnachweis:
+`/private/tmp/sourcebraid-installer-review-20261015-ipad.xcresult`, dazu
+`sourcebraid-installer-review-20261015-ipad.log` und
+`sourcebraid-installer-review-20261015-build.log` im selben temporären Verzeichnis.
+Diese Artefakte bleiben außerhalb des Repositorys. Xcodes Zugriff auf Simulator
+und Paketcache war erst außerhalb der Sandbox möglich; der erste blockierte
+Versuch ist kein Produktfehler.
+
+Die UI-Suite nutzt synthetische Debug-Daten. Sie beweist keine echte GitHub-
+Anmeldung, Share-Extension-Ersteinrichtung, schmale iPad-Fenster, mehrere
+aktive Fenster oder Mindest-OS-Funktion. Physische Geräte und ein echter
+App-Store-Binärvergleich wurden in dieser Überprüfung nicht ausgeführt.
+Node-/Python-Kernsuiten und MCP-Tests wurden für diese reine Planänderung nicht
+erneut gestartet. Die bisherigen Release-Nachweise bleiben separat bestehen.
+
 ### Automatisiert
 
 - Zustandsübergänge, Entwurf/Übernahme, Abbruch und Migration alter Einstellungen.
@@ -709,6 +752,19 @@ Dateien. Capture-Code bleibt auf sein bestehendes Format konzentriert.
   Namenskollision, Timeout nach Commit und wiederholter Bootstrap.
 - Reiner Lesezugriff, verweigerte Writes, Branch-Schutz, PDF ohne Workflow.
 - Keine Geheimnisse in Logs, Diagnoseexporten, URLs, Paketen oder Screenshots.
+- Eingaben während einer laufenden Verbindungsprüfung ändern: Ergebnis und
+  Übernahme müssen am geprüften Entwurf bleiben; veraltete Ergebnisse verwerfen.
+- Prozessabbruch zwischen Credential-Vorbereitung und Aktivierung; nach Neustart
+  entweder vollständige alte oder vollständige neue Verbindung, niemals eine Mischung.
+- Abmelden → App beenden → neu starten: keine neuen Hintergrundabrufe ohne
+  aktive Verbindung. Späte Refresh-Antworten dürfen die Abmeldung nicht aufheben.
+- PAT → GitHub App im selben Archiv: Cache, geladene Beiträge und Kurzbefehls-
+  Identitäten bleiben erhalten; keine erneute Vollindexierung als Setup-Pflicht.
+- Access Token abgelaufen und Gerät offline: geladene Beiträge und lokale Suche
+  bleiben ohne Netz-Refresh nutzbar; neue Netzwerkaktionen zeigen den nötigen
+  Wiederverbindungszustand. Explizite Abmeldung bleibt davon getrennt.
+- Leeres initialisiertes Archiv → Capture → Rückkehr: Beitrag erscheint durch
+  gezielten Abruf auch ohne Hintergrundlauf und ohne manuellen Refresh-Trick.
 
 ### Auf physischen Geräten und mit GitHub-Testkonten
 
@@ -720,6 +776,15 @@ Dateien. Capture-Code bleibt auf sein bestehendes Format konzentriert.
   Neuinstallation und Keychain-Zugriff vor dem ersten Entsperren.
 - Safari-Teilen, andere Share-Quellen, iPhone/iPad, VoiceOver, große Schrift,
   Deutsch und Englisch sowie die älteste unterstützte iOS-Version.
+- iPad im Vollbild und in schmalen/breiten Fenstern, Größenwechsel während
+  Anmeldung, Hardware-Tastatur und Fokus, Browser-Rückkehr zum auslösenden Fenster.
+- Falls mehrere App-Fenster freigegeben werden: zweiter Anmeldeversuch, Fenster
+  schließen, veralteten Assistenten bestätigen und Abmeldung während Refresh.
+  Ohne Mehrfensterfreigabe diese Fähigkeit nicht als getestet bewerben.
+- Callback getrennt auf OS 17.0–17.3 und 17.4+ prüfen. Ein Test unter Runtime
+  27.0 ersetzt diese Verfügbarkeitsprüfung nicht.
+- iPhone zuerst / iPad danach und iPad zuerst / iPhone danach: dasselbe Archiv,
+  unabhängige Anmeldung und keine versehentliche zweite Repository-Erstellung.
 - Fünf Personen ohne GitHub-Erfahrung testen den Ablauf. Zielwert: mindestens
   vier schaffen den ersten Capture ohne persönliche Hilfe; Setup-Zeit und
   Abbruchstellen werden mit Einwilligung beobachtet. Das ist ein vorgeschlagenes
@@ -759,6 +824,13 @@ Nutzerkonto liegt, ein Capture erfolgreich zurückgelesen wird und Abbruch,
 Erneuerung sowie bestehende Archive zuverlässig behandelt werden. PDF und
 Zusatzintegrationen besitzen eigene Abnahmen.
 
+Diese Kriterien gelten auch für ein allein eingerichtetes iPad. Ein Upgrade von
+1.1.0 darf weder erneute Pflichteinrichtung noch Cache-Verlust erzwingen. Der
+reine Lesemodus hat eine eigene Abnahme ohne Schreibvorgang. Mindest-OS,
+Accessibility und physische Share-Extension-Prüfungen müssen für den neuen
+Installer nachgewiesen werden; die Veröffentlichung von 1.1.0 schließt die
+in der Gerätecheckliste dokumentierten offenen Fälle nicht automatisch.
+
 ## 13. Vor Veröffentlichung zu klären
 
 1. **Betrieb:** Wer verantwortet Auth-Dienst, Domain, Secrets, Monitoring ohne
@@ -775,7 +847,9 @@ Zusatzintegrationen besitzen eigene Abnahmen.
 6. **Release:** Nur öffentliche Allowlist-Dateien übernehmen, keine privaten
    Quellen oder Historie; erforderliche Checks und DCO-Sign-off beachten.
 
-Der nächste konkrete Umsetzungsschritt ist **O00**: ein kleiner, isolierter
-Nachweis von Anmeldung, Refresh und privater Archiv-Erstellung mit minimalen
-Rechten. Danach können Assistent und Authentifizierung gegen einen geprüften
-Vertrag implementiert werden.
+Der nächste konkrete Umsetzungsschritt ist **O00**, parallel zu den lokalen
+Verbindungsgrundlagen aus **O01**: Anmeldung, Refresh und private Archiv-
+Erstellung mit minimalen Rechten nachweisen, gleichzeitig die 1.1.0-Verbindung
+gegen fehlgeschlagene oder veraltete Einstellungsversuche absichern. Danach
+werden Authentifizierung und Assistent auf iPhone und iPad gegen denselben
+geprüften Vertrag implementiert.

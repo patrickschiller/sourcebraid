@@ -1,13 +1,20 @@
-# SourceBraid: Setup assistant and GitHub connection in iOS
+# SourceBraid: Installer plan for iOS and iPadOS after version 1.1.0
 
 **SourceBraid — Weave the web into Markdown.**
 
-As of: **October 12, 2026** · Status: **Implementation proposal; not implemented or approved for release**
+As of: **October 15, 2026 · Revision 2** · Baseline: **iOS/iPadOS 1.1.0, build 11**
+· Status: **New implementation plan; installer not yet implemented**
 · [Deutsche Version](IOS_ONBOARDING_INSTALLER_PLAN.de.md)
+
+This revision replaces the October 12 draft. The maintainer has confirmed
+the App Store release of 1.1.0. The reviewed source baseline is tag
+`ios-v1.1.0`, commit `e55f1fc17483096c4c05286713d6725b951d4d06`, compared
+with `bb7c77a`. This plan does not preselect a version number for the next
+installer release.
 
 ## 1. Recommendation and goal
 
-**Yes: the iOS app should become the main entry point for SourceBraid.** The
+**The released iPhone/iPad app becomes the main setup route.** The
 “installer” is primarily a guided setup assistant inside the app. It connects
 GitHub, creates a private archive or connects an existing one, checks that it
 can be used, and guides the user to their first saved clip. Chrome and
@@ -32,29 +39,59 @@ Recommended technical direction:
 - Existing PAT configurations continue to work. Manual entry moves to
   “Advanced setup.”
 
+The reader, search, chat interface, and refresh functionality from 1.1.0 are
+reused. The installer adds their entry flow and connection management. An
+update must not force existing users through mandatory setup again.
+
 This document plans the work. It does not register a GitHub App, operate a new
-service, or change existing privacy commitments. It complements the
-[iOS reader plan](IOS_READER_INTELLIGENCE_DUO_PLAN.md); that plan’s local
-development candidate and device acceptance remain a separate workstream.
+service, or change existing privacy commitments. The
+[release notes](IOS_RELEASE_1.1.0.md),
+[reader plan](IOS_READER_INTELLIGENCE_DUO_PLAN.md), and
+[outstanding device checks](IOS_DEVICE_ACCEPTANCE.md) remain references for
+the existing feature set.
 
 ## 2. Current repository state
 
-The following findings refer to the inspected local working tree, including
-existing uncommitted iOS changes. They do not state which features are already
-available in the App Store.
+### Release boundaries and changes since the previous plan
+
+The iOS runtime sources match `ios-v1.1.0`. The release contains 58 changed
+files compared with its predecessor. The new foundation available for reuse
+includes:
+
+- “Latest” with seven clips, the Markdown reader, and local full-text search.
+- Startup from the cache without downloading all text again; an empty cache
+  initially loads at most seven article bodies. Search coverage may explicitly
+  be partial.
+- Bounded background refresh plus cancellation and cache coordination.
+- Adaptive iPhone/iPad navigation, optional local chat, and read-only Shortcuts.
+  Apple Intelligence remains independent of setup.
+
+The Share Extension already existed. GitHub sign-in, repository creation,
+and token renewal were **not** added in 1.1.0.
+
+App Store publication: confirmed by the maintainer. Source version: checked
+through the Git tag, version fields, and a local build. This does not establish
+an independent check of the binary distributed through the store. In the iOS
+tag, Chrome, Codex, and MCP are still at 1.0.1. The follow-up work committed
+separately during the review in `467542a` prepares these components for 1.1.0;
+the iOS runtime sources remain unchanged from the iOS tag. This additional
+commit does not demonstrate public plugin availability. This plan does not
+change that follow-up work.
 
 | Area | Available today | Missing for simple setup |
 | --- | --- | --- |
 | [iOS settings](../ios/SourceBraid/App/SettingsView.swift), [ViewModel](../ios/SourceBraid/App/SettingsViewModel.swift) | Form for owner, repository, branch, archive folder, and token | Guided sign-in, archive selection, creation, understandable states |
 | [GitHubClient](../ios/SourceBraid/Shared/GitHubClient.swift) | Repository query, capture writes | Complete checks for branch, privacy, write capability, and PDF support |
 | [Configuration](../ios/SourceBraid/Shared/SourceBraidConfiguration.swift), [Keychain](../ios/SourceBraid/Shared/KeychainStore.swift) | Shared settings and one token for app/Share Extension | Authentication type, expiry, refresh, account binding, and safe migration |
-| [Reader](../ios/SourceBraid/Archive/ArchiveLibrary.swift) | Reading, search, and local cache management in the development candidate | Friendly state for a new, still-empty archive |
+| [Reader](../ios/SourceBraid/Archive/ArchiveLibrary.swift) | Released reading, search, cache startup, and latest seven | Handle a new empty archive correctly; explicitly read back the first capture |
+| [Background refresh](../ios/SourceBraid/Archive/ArchiveBackgroundRefresh.swift) | Bounded requests and coordinated cache writes | Respect connection state across restarts; integrate renewable credentials |
+| [Shortcuts](../ios/SourceBraid/Archive/ArchiveIntents.swift) | Search and open already downloaded entries | Adopt the new credential model while preserving local identities and offline behavior |
 | [Setup script](../scripts/setup_github.py), [package builder](../scripts/build_setup_package.py) | Private repository, support files, and configuration without a token | Python and an authenticated `gh` are required; manual PAT creation remains the final step |
 | [Chrome extension](../chrome-extension/sourcebraid/popup.js) | Manual settings, capture, and plugin configuration export without a token | Sign-in and import of a configuration prepared by iOS |
 | [Hosted ChatGPT](../chatgpt-mcp/src/auth.mjs) | Prepared OAuth service with per-user grants | GitHub sign-in instead of a separate PAT; deployment and public release approval |
 | [Local Codex plugin](../codex-plugin/sourcebraid/scripts/sourcebraid.py) | Python standard library, local search, existing GitHub credentials | Optional simpler configuration import; not part of basic iOS setup |
 
-Two specific weaknesses belong in the first implementation step:
+### Specific implementation findings
 
 1. “Test connection” currently saves the new configuration before checking the
    network. A failed attempt can therefore switch the existing archive and
@@ -63,6 +100,35 @@ Two specific weaknesses belong in the first implementation step:
 2. The current connection check reads only repository metadata. This proves
    neither that a branch exists nor that a capture succeeds. “Connected,”
    “Reading available,” and “Saving verified” must become separate states.
+3. Fields and Save remain usable during the check. After the network call,
+   the success message uses the inputs that are current at that time. It can
+   therefore name a different repository from the one tested. An immutable
+   draft with a revision check must keep request, result, and activation together.
+4. A missing archive folder still produces a 404 error. The new empty list
+   does not repair this. Bootstrap and the true “no clips yet” state must be
+   distinguished from missing access or an incorrect branch.
+5. Returning to the app after a capture restores an existing cache without
+   automatically loading a new GitHub snapshot. The assistant must explicitly
+   fetch the first capture; waiting for background refresh is not a reliable
+   way to complete setup.
+6. The block on background requests after sign-out currently exists only in
+   memory. Saved repository fields remain; after a restart, scheduling can
+   resume even though the token was removed. Persistent connection state must
+   constrain scheduling and execution.
+
+These findings are in `SettingsViewModel.testConnection`,
+`GitHubClient.testConnection`, `ArchiveReadClient.snapshot`,
+`ArchiveLibrary.configure`, and `ArchiveBackgroundRefresh.schedule`.
+They are findings of this plan’s review and were not fixed in product code here.
+
+### Evidence from this review
+
+- Source validator: **passed for 1.1.0/build 11**.
+- Unsigned generic simulator build with **Xcode 27.1 / 27A9275 passed**;
+  the generated app bundle also passes the validator.
+- The current iPad test run and its limitations are recorded in section 12.
+- Earlier figures in the [release record](IOS_RELEASE_1.1.0.md) remain
+  historical evidence. They are not presented as tests rerun for this review.
 
 The setup script is a good reference for allowed files and repeatability.
 However, its blanket enabling of GitHub Actions with `allowed_actions: all`
@@ -85,6 +151,10 @@ should **not** be carried into the new assistant.
   back.
 - Provide a “Connections” area that remains accessible for renewal and repair.
 - Complete German and English text, VoiceOver, and Dynamic Type.
+- Take existing users directly to the reader; offer PAT migration as optional.
+- Allow complete setup on an iPad without prior iPhone setup.
+- Connect the existing archive on a second device instead of creating a
+  duplicate. Each installation signs in to GitHub independently.
 
 ### Deliberately deferred
 
@@ -130,12 +200,12 @@ or configuration export.
 
 | Step | Display and action | What SourceBraid handles |
 | --- | --- | --- |
-| 1. Welcome | “Your own knowledge archive”; “Set up” or demo | Brief explanation of GitHub and private ownership |
+| 1. Welcome | “Your own knowledge archive”; “Set up” | Brief explanation of GitHub and private ownership; existing users skip this step |
 | 2. Connect GitHub | “Connect to GitHub”; alternatively “Create a GitHub account” | Browser sign-in, return, and verification of the signed-in account |
 | 3. Choose archive | “New private archive” or “Existing archive” | Suggest `sourcebraid-archive`, check for name collisions, and offer existing choices |
 | 4. Confirm access | GitHub displays SourceBraid and the repositories to authorize | Guide selection of exactly the archive; verify the actual installation afterward |
 | 5. Prepare archive | “Preparing archive” with named substeps | Determine the branch, initialize the archive folder with `.gitkeep`, preserve existing files |
-| 6. First save | Short guide for Safari → Share → SourceBraid | Save an actual capture and reopen it in the app |
+| 6. First save | Short guide for Safari → Share → SourceBraid | Save an actual capture, explicitly fetch it, and open it in the existing reader |
 | 7. Done | “Your archive is ready” | Optionally connect PDF, Chrome, or ChatGPT; all can be skipped |
 
 The order of archive creation and installation authorization depends on the
@@ -155,13 +225,59 @@ correct provenance is the strongest evidence for successful completion.
 Read-only access remains a usable mode with the message “Authorization to
 save is missing.”
 
-## 6. Technical architecture for iOS
+### Entry points for new and existing installations
+
+| Starting point | Entry flow | Success |
+| --- | --- | --- |
+| New iPhone or iPad without configuration | Assistant replaces “Connect your archive → Settings” and the empty reader placeholder | Private archive connected; first capture retrievable |
+| Update of a working 1.1.0 installation | Directly to “Latest,” with an optional notice in “Connections” | Existing archive and cache remain usable |
+| Second device / reinstallation | Prominently offer “Connect existing archive” | Select the same repository and receive separate credentials |
+| Expired or revoked credential | Repair the connection instead of creating a new archive | Confirm identity and renew access |
+| Read-only permissions | Reader and search with clear labeling | Reading usable independently of capture |
+
+The existing synthetic demo is a debug/test mode, not a released customer
+feature. A public preview would be separate work and is not required for
+this installer.
+
+### iPhone and iPadOS
+
+A shared `OnboardingCoordinator` controls the same functional flow. On iPhone
+and in narrow iPad windows, one step is displayed at a time; a wide iPad
+window can show progress and explanation alongside the current form.
+Navigation state, scroll position, and inputs survive rotation, resizing,
+and return from the browser. No fixed screen widths or fullscreen requirement.
+
+Keyboard input, Tab navigation, visible focus, VoiceOver, large text, and
+portrait/landscape orientations are part of acceptance. Existing adaptive
+navigation is reused; an iPad is not tested merely as an enlarged iPhone.
+
+`WindowGroup` alone does not prove support for multiple simultaneously usable
+app windows, and this is not an implicit new release promise. O00 checks scene
+configuration and actual window support. The connection coordinator permits
+at most one active sign-in/activation across the app. Other supported windows
+show the operation instead of starting another. Late results from a closed
+or superseded assistant must not overwrite a newer connection.
+
+## 6. Technical architecture for iOS and iPadOS
 
 Apple provides `ASWebAuthenticationSession` as a system mechanism for web
 sign-in. We use it instead of a custom password form or the capture WebView.
 Implementation preserves the existing iOS 17 support and checks callback API
 availability.
 [Apple: ASWebAuthenticationSession](https://developer.apple.com/documentation/authenticationservices/aswebauthenticationsession)
+
+The presentation anchor comes from the window that initiated sign-in. The
+session and presentation delegate are retained until completion; do not use
+a global “first window” from all scenes. A startup failure or cancellation
+returns to the existing draft.
+[Apple: Web sign-in](https://developer.apple.com/documentation/authenticationservices/authenticating-a-user-through-a-web-service)
+
+The newer HTTPS callback requires iOS/iPadOS 17.4 and an associated domain.
+For the still-supported OS versions 17.0–17.3, a tested older custom-scheme
+callback with PKCE and state binding is required. Callback APIs and
+Associated Domains are new configuration, not part of 1.1.0. Raising the
+minimum version is not planned here.
+[Apple: Callback API](https://developer.apple.com/documentation/authenticationservices/aswebauthenticationsession/callback)
 
 ```mermaid
 flowchart LR
@@ -219,12 +335,46 @@ operational metadata, retention periods, hosting, and secret rotation must be
 defined before release. The existing Cloudflare infrastructure is a possible
 hosting route, not an already available native sign-in solution.
 
-### Lifecycle and Share Extension
+### A consistent connection instead of a single token string
+
+The new connection receives a stable local ID and a revision. A
+`CredentialProvider` supplies credentials together with their associated
+GitHub/archive identity. Settings, reader, and extension must not combine
+a new owner and an old token read at different times.
+
+Keychain and App Group defaults do not form a shared database transaction.
+A new credential version is therefore first prepared and checked separately,
+then activated through a coordinated update of an active reference. Partially
+written states must be detected after process termination; the last valid
+connection remains active until successful activation. A concrete
+commit/recovery contract belongs in O01.
+
+The same archive with renewed credentials retains its cache and Shortcut IDs.
+An explicit archive switch uses the existing invalidation and cache cleanup
+only after successful activation. All running operations check their
+connection revision before applying a result. During a switch, a capture
+already in progress is completed or cancelled in a controlled way, never
+retried against the newly selected repository.
+
+### Lifecycle of all credential consumers
 
 The shared Keychain receives a versioned credential model with authentication
 type, stable GitHub user ID, app/installation association, access and refresh
 tokens, and expiry times. Nonsecret archive configuration remains separate.
 Existing Keychain and App Group identities are preserved.
+
+| Consumer in 1.1.0 | Adaptation for renewable credentials |
+| --- | --- |
+| `SettingsViewModel` and assistant | Validate an immutable draft; activate only the same revision |
+| `ArchiveLibrary` / `ArchiveReadClient` | Obtain credentials before requests; switch tokens within the same archive without deleting the cache |
+| `ArchiveBackgroundRefresh` | Schedule only with a persistently authorized connection; bounded refresh or clean cancellation, no login dialog |
+| `GitHubClient` / `ShareViewModel` | Load matching configuration and credentials; detect switches during image fetching/upload |
+| `ArchiveIntents` | Preserve local device authentication and cache access; no interactive sign-in or repository creation from Shortcuts |
+
+The existing `ArchiveRefreshCoordinator` protects cache writes within the app
+process. It does not replace a cross-process token lock shared with the Share
+Extension. The new credential model must connect both coordination layers
+without removing existing cancellation and deletion safeguards.
 
 GitHub documents defaults of eight hours for user access tokens and six
 months for refresh tokens; a successful refresh invalidates the old pair.
@@ -239,6 +389,28 @@ must not trigger a blind retry loop; if the new token pair is lost, signing
 in again is an intended recovery route. The extension has a short execution
 window: when necessary, clearly direct users to “Open SourceBraid and renew
 the connection.” A failed upload must never be reported as saved.
+
+The existing Keychain item is not synchronizable and is bound to the device.
+A newly configured iPad therefore does not inherit an iPhone token. The
+default remains: sign in on the second device and select the same archive.
+Authentication secrets belong neither in `SceneStorage` nor in configuration
+files. Only nonsecret steps and inputs are stored there or in assistant state
+restoration. Persistent credentials and broker session proofs remain in the
+Keychain; sign-in attempts that have not been securely saved restart after
+process loss.
+[Apple: Device-bound Keychain](https://developer.apple.com/documentation/security/ksecattraccessibleafterfirstunlockthisdeviceonly)
+
+Sign-out and revocation invalidate pending login/refresh results. A token
+arriving afterward must not reactivate the connection. A persistently stored
+`signedOut` state blocks background jobs even after app restart. “Offline
+with a valid local connection” and “signed out” remain different states;
+readable cache must not disappear on every network error.
+
+In particular, the local connection remains usable for offline reading and
+search when only the short-lived access token has expired and the auth service
+is unreachable. Network token validity and local access authorization are
+separate conditions. Explicit sign-out or removal of local data retains its
+existing effect; a failed refresh does not delete the cache.
 
 ## 7. Archive creation and permissions
 
@@ -295,12 +467,41 @@ optional. For the first version, PDF setup uses a separate, narrowly scoped
 setup route; a separate setup app may follow later. Each additional app
 increases usability complexity and must provide a demonstrable benefit.
 
+Likewise, “Read only” in the interface does not reduce an already granted
+GitHub permission. Existing Contents-read PATs remain supported for this mode.
+The capture GitHub App requests Contents write permission; guaranteed
+read-only OAuth sign-in needs a correspondingly separate permission
+registration and is not promised as an already solved property of capture
+sign-in.
+
 Existing archives are connected only after selection. Personal accounts are
 the first fully supported setup route; organizations, SSO, and pending admin
 approvals receive their own states. Rules and branch protection are not
 disabled to force a capture through.
 
 ## 8. Initialization and PDF conversion
+
+### First capture in the released reader
+
+1. Create the new archive with an initial commit and `.gitkeep`; explicitly
+   display the empty state. A 404 caused by missing authorization remains an error.
+2. Have the user save a public example of their choice or their own authorized
+   content through the actual Share Extension.
+3. Associate the successful capture with archive identity, path, and available
+   commit/file evidence; no additional token in the return notification.
+4. On return, explicitly read the saved path or perform a bounded refresh of
+   the archive snapshot. Current cache-only startup is insufficient here.
+5. Open the clip in the existing reader and set “Saving verified.” A failed
+   read leaves the step incomplete without immediately repeating the upload
+   and creating duplicate captures.
+
+The assistant waits neither for a complete search index nor for an
+OS-scheduled background job. The seven-body initial download limit remains;
+targeted capture verification has a separate limit. For large existing
+archives, setup must not trigger a full download. “Archive connected,”
+“Saving verified,” and “Search coverage” are independent indicators.
+
+### Repeatable bootstrap
 
 Bootstrap receives an explicit file list and becomes repeatable:
 
@@ -342,6 +543,9 @@ rather than reported as complete.
 ## 9. Connect Chrome, ChatGPT, and Codex as additions
 
 ### Chrome
+
+The existing share button in the reader exports Markdown content. Exporting
+repository settings from iOS remains a planned new feature.
 
 After basic iOS setup, the app can provide a configuration without credentials.
 Existing keys remain compatible:
@@ -417,6 +621,27 @@ unconfigured → authenticating → choosingArchive → authorizingArchive
 `repairRequired` are resumable states. PDF and additional integrations are
 separate capabilities, not required states in this sequence.
 
+`readReady` is an independently usable endpoint for read-only operation.
+`captureVerified` requires actual evidence of writing and reading back.
+“Setup complete” is therefore always stored together with the selected
+read-only or capture mode; incomplete search coverage blocks neither.
+
+### Migration from 1.1.0
+
+1. Read the legacy configuration and existing PAT without rewriting them.
+   Working installations continue to open in the reader.
+2. In “Connections,” optionally offer “Set up GitHub sign-in”; carry over
+   owner, repository, branch, and root from the existing connection.
+3. Check new sign-in and archive access in the separate draft. Cancellation
+   preserves the old PAT and the complete previous connection state.
+4. Activate the successful connection once, with recovery support; switch all
+   consumers to the same revision. Within the same archive, preserve the cache
+   and `cacheKey:path` Shortcut identities.
+5. Remove the old PAT locally only after activation is secure. Explain GitHub
+   revocation separately, as the PAT may still be used in Chrome.
+6. If errors occur later, repair the new connection first. No silent fallback
+   to an already revoked PAT and no creation of a new archive.
+
 | Situation | User guidance / required behavior |
 | --- | --- |
 | Sign-in cancelled | Return to the previous page; existing connection remains active |
@@ -445,27 +670,75 @@ App Store review, operator approvals, and waiting times are excluded.
 
 | Package | Work and affected areas | Outcome / acceptance | Rough size |
 | --- | --- | --- | --- |
-| O00 – Feasibility | Test GitHub App, web flow/PKCE/refresh, creation permission, and selected repositories | Written API/permission evidence, decision between archive routes A and B, and hosting contract | 2–3 days |
-| O01 – Assistant and transition | New onboarding views, SettingsViewModel, draft state, guided PAT route | Existing PAT users retain access; errors do not destroy a working configuration | 3–5 days |
-| O02 – Sign-in | Auth service, AuthenticationServices, callback configuration, credential model | Login/cancellation/refresh/revocation, including negative security tests | 4–7 days |
+| O00 – Feasibility after 1.1.0 | Test GitHub App, web flow/PKCE/refresh, creation permission, callbacks from OS 17 onward, and iPad scene configuration | Written API/permission evidence, decision between archive routes A and B, and hosting contract | 2–3 days |
+| O01 – Connection and migration | Immutable draft, revision-based activation, CredentialProvider for all consumers, legacy PAT migration, persistent signed-out state | Old connection survives errors; late results and background jobs do not reactivate it | 4–6 days |
+| O02 – Sign-in | Auth service, AuthenticationServices, window-bound callbacks, cross-process refresh | Login/cancellation/refresh/revocation, including restart and negative security tests | 5–8 days |
 | O03 – Archive | Repository selection/creation, branch detection, idempotent bootstrap, empty reader | Fresh private archive and existing archive successfully verified | 3–5 days |
-| O04 – First save | Share Extension, refresh coordination, capture readback, repair UI | Physical device saves and reads the first real capture | 2–4 days |
+| O04 – Assistant on iPhone and iPad | First-run entry, update/second-device route, narrow/wide windows, actual Share Extension, targeted capture readback | iPhone and iPad independently reach their first capture; existing reader is preserved | 4–6 days |
 | O05 – Release acceptance | DE/EN, accessibility, migration, privacy text, operations, and device checks | First version ready for approval without mandatory additional integrations | 3–5 days |
 | O06 – PDF | Separate permission/setup route and conversion status | Complete synthetic PDF conversion; normal archive usable independently | Estimate separately afterward |
 | O07 – Chrome | Configuration import, own sign-in, optional pairing later | Same archive usable, no token forwarding | Estimate separately afterward |
 | O08 – ChatGPT/Codex | Read-only GitHub connection for the MCP service, local import | Separate permissions and working account isolation | Estimate separately afterward |
 
-O00–O05 total approximately **17–29 person-days**. O00 may change this range.
-A guided PAT assistant is a useful early intermediate step but does not yet
-meet the goal of “no manual token creation.” It must not count as completion
-of this product improvement.
+O00–O05 total approximately **21–33 person-days**. The higher range compared
+with the previous draft accounts for migration of released installations,
+background consumers, iPad windows, and targeted capture readback. O00 may
+change this estimate.
+
+O00 and the locally testable parts of O01 can be prepared in parallel. O02
+builds on their connection contract, and O03 on verified authentication.
+O04 connects these components; O05 accepts the first complete version. PDF
+and additional integrations follow independently.
+
+A guided PAT route remains available but is not a mandatory new intermediate
+release. A small early fix for “Test connection” could be released separately.
+It does not yet meet the goal of “no manual token creation” and does not
+replace the installer.
 
 Proposed new iOS components: `OnboardingCoordinator`,
 `GitHubAuthorizationClient`, `GitHubRepositorySetupClient`, and
 `CredentialProvider`. These names are drafts, not existing files.
 Capture code remains focused on its existing format.
 
+| Existing area | Planned change |
+| --- | --- |
+| `ContentView.swift`, `SettingsView.swift` | First-run entry and connections; preserve existing reader/tab navigation |
+| `SettingsViewModel.swift`, `SourceBraidConfiguration.swift` | Draft, legacy decoding, immutable test request, and revision-based activation |
+| `KeychainStore.swift`, App Group | Versioned credentials and cross-process coordination; preserve identities |
+| `GitHubClient.swift`, `ArchiveReadClient.swift` | CredentialProvider and targeted connection/capability checks |
+| `ArchiveLibrary.swift`, `ArchiveBackgroundRefresh.swift`, `ArchiveIntents.swift` | Preserve existing cache/cancellation mechanisms; integrate lifecycle and readiness |
+| `ShareViewModel.swift` | Consistent connection, refresh limit, and capture evidence |
+| `Info.plist`, entitlements, project, localized text | Callback/domain configuration, availability, new screens, and DE/EN |
+| New auth service | Its own sources, tests, and public release allowlist; do not export the private website |
+
 ## 12. Tests and mandatory acceptance criteria
+
+### Checks rerun on October 15, 2026
+
+| Check | Result of this review |
+| --- | --- |
+| `python3 scripts/validate_ios_release.py` | Passed, 1.1.0/build 11 |
+| Generic simulator build, app and extension, without signing | Passed with Xcode 27.1 (27A9275) |
+| Validator on the generated simulator app bundle | Passed, 1.1.0/build 11 |
+| Existing unit/integration tests on iPad Pro 13-inch (M5), runtime 27.0 | **47 passed, 0 failures** |
+| Existing UI suite on the same iPad simulator | **7 passed, 0 failures** |
+
+Build and tests used the tag’s iOS sources, dedicated Derived Data under
+`/private/tmp/sourcebraid-installer-review-20261015-derived`, and serial
+simulator execution. Test evidence:
+`/private/tmp/sourcebraid-installer-review-20261015-ipad.xcresult`, plus
+`sourcebraid-installer-review-20261015-ipad.log` and
+`sourcebraid-installer-review-20261015-build.log` in the same temporary directory.
+These artifacts remain outside the repository. Xcode could access the simulator
+and package cache only outside the sandbox; the first blocked attempt is not
+a product failure.
+
+The UI suite uses synthetic debug data. It does not prove real GitHub sign-in,
+first-time Share Extension setup, narrow iPad windows, multiple active windows,
+or minimum-OS functionality. Physical devices and an actual App Store binary
+comparison were not tested in this review. Node/Python core suites and MCP
+tests were not rerun for this documentation-only change. Previous release
+evidence remains separate.
 
 ### Automated
 
@@ -478,6 +751,19 @@ Capture code remains focused on its existing format.
   timeout after commit, and repeated bootstrap.
 - Read-only access, denied writes, branch protection, PDF without a workflow.
 - No secrets in logs, diagnostic exports, URLs, packages, or screenshots.
+- Change inputs during a running connection check: result and activation must
+  remain tied to the tested draft; discard outdated results.
+- Process termination between credential preparation and activation: after
+  restart, either the complete old or complete new connection, never a mixture.
+- Sign out → quit app → restart: no new background requests without an active
+  connection. Late refresh responses must not undo sign-out.
+- PAT → GitHub App within the same archive: preserve cache, downloaded clips,
+  and Shortcut identities; no full reindexing required for setup.
+- Access token expired and device offline: downloaded clips and local search
+  remain usable without a network refresh; new network actions show the required
+  reconnection state. Explicit sign-out remains separate.
+- Empty initialized archive → capture → return: the clip appears through a
+  targeted fetch even without a background run or manual refresh workaround.
 
 ### On physical devices and with GitHub test accounts
 
@@ -489,6 +775,15 @@ Capture code remains focused on its existing format.
   reinstallation, and Keychain access before the first unlock.
 - Safari sharing, other share sources, iPhone/iPad, VoiceOver, large text,
   German and English, and the oldest supported iOS version.
+- iPad fullscreen and in narrow/wide windows, resizing during sign-in,
+  hardware keyboard and focus, browser return to the initiating window.
+- If multiple app windows are approved: second sign-in attempt, closing a
+  window, confirming an outdated assistant, and sign-out during refresh.
+  Without multiwindow approval, do not advertise this capability as tested.
+- Check callbacks separately on OS 17.0–17.3 and 17.4+. Testing on runtime
+  27.0 does not replace this availability check.
+- iPhone first / iPad second and iPad first / iPhone second: same archive,
+  independent sign-in, and no accidental creation of a second repository.
 - Five people without GitHub experience test the flow. Target: at least four
   complete their first capture without personal assistance; setup time and
   abandonment points are observed with consent. This is a proposed product
@@ -528,6 +823,13 @@ verified to belong to the user’s account; a capture is successfully read
 back; and cancellation, renewal, and existing archives are handled reliably.
 PDF and additional integrations have their own acceptance criteria.
 
+These criteria also apply to an independently configured iPad. Upgrading from
+1.1.0 must not force mandatory setup again or cache loss. Read-only mode has
+its own acceptance without a write operation. Minimum-OS, accessibility, and
+physical Share Extension checks must be demonstrated for the new installer;
+the release of 1.1.0 does not automatically close outstanding cases documented
+in the device checklist.
+
 ## 13. Questions to resolve before release
 
 1. **Operations:** Who owns the auth service, domain, secrets, monitoring
@@ -544,7 +846,9 @@ PDF and additional integrations have their own acceptance criteria.
 6. **Release:** Include only public allowlisted files, no private sources or
    history; observe required checks and DCO sign-off.
 
-The next concrete implementation step is **O00**: a small, isolated proof
-of sign-in, refresh, and private archive creation with minimal permissions.
-The assistant and authentication can then be implemented against a verified
-contract.
+The next concrete implementation step is **O00**, in parallel with the local
+connection foundations from **O01**: verify sign-in, refresh, and private
+archive creation with minimal permissions while protecting the 1.1.0
+connection against failed or outdated settings attempts. Authentication and
+the assistant on iPhone and iPad are then implemented against the same
+verified contract.
