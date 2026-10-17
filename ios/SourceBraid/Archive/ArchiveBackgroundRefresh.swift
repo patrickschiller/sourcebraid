@@ -21,6 +21,16 @@ private enum ArchiveRefreshError: LocalizedError {
     var errorDescription: String? { archiveText("An archive refresh is already running.", "Das Archiv wird bereits aktualisiert.") }
 }
 
+struct ArchiveRefreshRecovery: Sendable {
+    let manifest: ArchiveCache.Manifest
+    let indexedCount: Int
+}
+
+struct ArchiveRefreshFailure: Error {
+    let cause: any Error
+    let recovery: ArchiveRefreshRecovery?
+}
+
 /// One writer per archive across windows and scheduled refreshes. Data removal blocks
 /// new writers, cancels the existing writer, and waits before deleting the cache.
 @MainActor
@@ -40,12 +50,26 @@ enum ArchiveRefreshCoordinator {
         guard !pauses.values.contains(where: { $0 == nil || $0 == identity }) else { throw CancellationError() }
         guard jobs[identity] == nil else { throw ArchiveRefreshError.busy }
         let id = UUID()
-        let task = Task { try await ArchiveRefreshEngine.run(client: client, cache: cache, index: index, scope: scope, progress: progress) }
+        let task = Task {
+            do { return try await ArchiveRefreshEngine.run(client: client, cache: cache, index: index, scope: scope, progress: progress) }
+            catch {
+                // Recovery may open the disposable search database. Keep that I/O
+                // inside the tracked job, so data removal waits for it as well as
+                // the engine. A paused archive must never be reopened by recovery.
+                var recovery: ArchiveRefreshRecovery?
+                if !isPaused(identity), let manifest = try? await cache.load(),
+                   !isPaused(identity), manifest.snapshot?.identity == identity {
+                    let count = (try? await index?.count()) ?? 0
+                    if !isPaused(identity) { recovery = .init(manifest: manifest, indexedCount: count) }
+                }
+                throw ArchiveRefreshFailure(cause: error, recovery: recovery)
+            }
+        }
         jobs[identity] = Job(id: id, cancel: { task.cancel() }, finished: Task { _ = try? await task.value })
         defer { if jobs[identity]?.id == id { jobs.removeValue(forKey: identity) } }
         return try await withTaskCancellationHandler {
             let result = try await task.value
-            try Task.checkCancellation()
+            if Task.isCancelled { throw ArchiveRefreshFailure(cause: CancellationError(), recovery: .init(manifest: result.manifest, indexedCount: result.indexedCount)) }
             return result
         } onCancel: { task.cancel() }
     }
@@ -90,6 +114,10 @@ enum ArchiveRefreshCoordinator {
     }
 
     static func resume(_ token: UUID) { pauses.removeValue(forKey: token) }
+
+    private static func isPaused(_ identity: ArchiveIdentity) -> Bool {
+        pauses.values.contains { $0 == nil || $0 == identity }
+    }
 }
 
 struct ArchiveRefreshResult: Sendable {
@@ -132,14 +160,19 @@ private enum ArchiveRefreshEngine {
             let rhs = metadata[$1.path]?.sha == $1.sha ? metadata[$1.path]! : ClipMetadataReader.read("", file: $1)
             return ArchiveClip.newestFirst(lhs, rhs)
         }
+        // A previous launch may have committed only part of its initial seed.
+        // Resume up to seven total loaded clips, rather than fetching seven more
+        // every time an interrupted launch returns to the foreground.
+        let loadedCount = markdown.filter { metadata[$0.path]?.sha == $0.sha && indexed[$0.path] == $0.sha }.count
+        let fileLimit = scope == .bootstrap ? max(0, scope.fileLimit - loadedCount) : scope.fileLimit
         var attempted = 0, processed = 0, failed = 0, consumedBytes = 0
         for file in pending {
             try Task.checkCancellation()
-            guard attempted < scope.fileLimit, consumedBytes < scope.byteLimit else { break }
+            guard attempted < fileLimit, consumedBytes < scope.byteLimit else { break }
             // Declared sizes bound a scheduled batch before any body request is made.
             if file.size > scope.byteLimit - consumedBytes { continue }
             attempted += 1
-            progress("\(attempted) / \(min(pending.count, scope.fileLimit))")
+            progress("\(attempted) / \(min(pending.count, fileLimit))")
             do {
                 guard file.size >= 0, file.size <= ArchiveReadClient.markdownLimit else { throw ArchiveError.tooLarge }
                 let available = scope.byteLimit - consumedBytes

@@ -1,5 +1,6 @@
 import Foundation
 import Markdown
+import WebKit
 
 enum MarkdownRenderer {
     static func escape(_ text: String) -> String {
@@ -29,6 +30,10 @@ enum MarkdownRenderer {
         hr{border:0;border-top:1px solid var(--separator)}::selection{background:var(--muted-surface);color:var(--ink)}input{accent-color:var(--accent)}
         li>p:first-of-type{display:inline}li>input{margin-inline-end:.4em}
         img{max-width:100%;height:auto}.image-placeholder{display:block;padding:8px;background:var(--muted-surface);color:var(--secondary);border:1px dashed var(--separator)}
+        .mermaid-diagram{margin:1em 0;border:1px solid var(--separator);border-radius:8px;padding:12px;overflow:hidden}
+        .mermaid-preview{overflow:auto;max-height:75vh}.mermaid-preview svg{display:block;max-width:100%;height:auto;margin:auto}
+        .mermaid-status,.mermaid-diagram summary{font-size:.85em;color:var(--secondary)}.mermaid-diagram details{margin-top:8px}
+        .mermaid-diagram pre{margin-bottom:0}.mermaid-preview[hidden]{display:none}
         </style></head><body><article>\(content)</article></body></html>
         """
     }
@@ -49,7 +54,23 @@ enum MarkdownRenderer {
         func render(_ node: any Markup) -> String {
             if let text = node as? Markdown.Text { return escape(text.string) }
             if let code = node as? InlineCode { return "<code>\(escape(code.code))</code>" }
-            if let code = node as? CodeBlock { return "<pre\(sourceID(node))><code>\(escape(code.code))</code></pre>" }
+            if let code = node as? CodeBlock {
+                // The info string is data, never an HTML attribute or executable script.
+                let language = code.language?.split(whereSeparator: { $0.isWhitespace }).first?.lowercased()
+                if language == "mermaid" {
+                    let label = archiveText("Mermaid diagram", "Mermaid-Diagramm")
+                    let status = archiveText("Diagram preview unavailable. The original Mermaid source is shown below.", "Diagrammvorschau nicht verfügbar. Der originale Mermaid-Quelltext steht unten.")
+                    let source = archiveText("Mermaid source", "Mermaid-Quelltext")
+                    return """
+                    <figure\(sourceID(node)) class="mermaid-diagram" data-mermaid>
+                    <div class="mermaid-preview" role="img" aria-label="\(escape(label))" hidden></div>
+                    <p class="mermaid-status" role="status">\(escape(status))</p>
+                    <details open><summary>\(escape(source))</summary><pre><code>\(escape(code.code))</code></pre></details>
+                    </figure>
+                    """
+                }
+                return "<pre\(sourceID(node))><code>\(escape(code.code))</code></pre>"
+            }
             if let html = node as? HTMLBlock { return "<pre>\(escape(html.rawHTML))</pre>" }
             if let html = node as? InlineHTML { return escape(html.rawHTML) }
             if node is LineBreak { return "<br>" }
@@ -120,5 +141,28 @@ enum MarkdownRenderer {
         static func raster(_ path: String) -> Bool {
             ["png", "jpg", "jpeg", "gif", "webp", "heic"].contains(URL(fileURLWithPath: path).pathExtension.lowercased())
         }
+    }
+}
+
+// Only this app-owned, offline bundle executes, in a separate JavaScript world.
+// The Markdown document keeps allowsContentJavaScript=false and script-src 'none'.
+enum MermaidRenderer {
+    static let contentWorld = WKContentWorld.world(name: "SourceBraid.Mermaid")
+
+    @MainActor static func render(in webView: WKWebView, bundle: Bundle = .main,
+                                  progress: ((String) -> Void)? = nil) async throws {
+        try Task.checkCancellation()
+        guard let engine = bundle.url(forResource: "mermaid.tiny", withExtension: "js", subdirectory: "Mermaid"),
+              let adapter = bundle.url(forResource: "sourcebraid-mermaid", withExtension: "js", subdirectory: "Mermaid") else {
+            // HTML already contains the accessible, original-source fallback.
+            return
+        }
+        progress?("Loading bundled Mermaid engine")
+        let script = try String(contentsOf: engine, encoding: .utf8) + "\n" + String(contentsOf: adapter, encoding: .utf8)
+        _ = try await webView.evaluateJavaScript(script + "\nvoid 0;", in: nil, contentWorld: contentWorld)
+        try Task.checkCancellation()
+        progress?("Rendering synthetic Mermaid diagrams")
+        _ = try await webView.callAsyncJavaScript("return await globalThis.SourceBraidMermaid.renderAll();", arguments: [:], in: nil, contentWorld: contentWorld)
+        progress?("Mermaid render completed")
     }
 }

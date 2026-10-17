@@ -438,7 +438,7 @@ werden getrennt verfolgt; die Freigabe belegt keinen erfolgreichen Cloud-Build
 oder Store-Release. Siehe [Release-Hinweise 1.1.0](docs/IOS_RELEASE_1.1.0.de.md),
 [Umsetzungs- und Testprotokoll](docs/IOS_IMPLEMENTATION_TESTING.de.md)
 und [verbleibende Geräteprüfungen](docs/IOS_DEVICE_ACCEPTANCE.de.md). Native
-Navigation für Neueste/Suche/Chat und begrenzte Hintergrundaktualisierung stehen
+Navigation für Zuletzt/Suche/Chat und begrenzte Hintergrundaktualisierung stehen
 im [UI- und Refresh-Konzept](docs/IOS_READER_REFRESH_UX.de.md).
 
 ## Android-Roadmap

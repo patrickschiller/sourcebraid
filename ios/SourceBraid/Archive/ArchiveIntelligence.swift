@@ -7,17 +7,45 @@ import FoundationModels
 enum IntelligenceState: CaseIterable, Equatable {
     case ready, unsupportedOS, deviceNotEligible, disabled, modelNotReady, unsupportedLanguage, unknown
     var canGenerate: Bool { self == .ready }
+    var title: String {
+        switch self {
+        case .ready: return archiveText("Local chat is ready", "Lokaler Chat ist bereit")
+        case .unsupportedOS: return archiveText("iOS update required", "iOS-Update erforderlich")
+        case .deviceNotEligible: return archiveText("Local model unavailable on this device", "Lokales Modell auf diesem Gerät nicht verfügbar")
+        case .disabled: return archiveText("Apple Intelligence is turned off", "Apple Intelligence ist ausgeschaltet")
+        case .modelNotReady: return archiveText("Local model is not ready", "Lokales Modell ist nicht bereit")
+        case .unsupportedLanguage: return archiveText("Language is not supported", "Sprache wird nicht unterstützt")
+        case .unknown: return archiveText("Local chat is unavailable", "Lokaler Chat ist nicht verfügbar")
+        }
+    }
     var message: String {
         switch self {
         case .ready: return archiveText("Apple Intelligence · on device", "Apple Intelligence · auf dem Gerät")
         case .unsupportedOS: return archiveText("Chat requires iOS 26 or later. Reading and search are available.", "Chat benötigt iOS 26 oder neuer. Lesen und Suche sind verfügbar.")
-        case .deviceNotEligible: return archiveText("This device does not support the local model.", "Dieses Gerät unterstützt das lokale Modell nicht.")
-        case .disabled: return archiveText("Enable Apple Intelligence in system Settings to use chat.", "Für den Chat Apple Intelligence in den Systemeinstellungen aktivieren.")
-        case .modelNotReady: return archiveText("The local model is not ready yet. Try again after its download.", "Das lokale Modell ist noch nicht bereit. Nach dem Download erneut versuchen.")
-        case .unsupportedLanguage: return archiveText("The current language is not supported by the local model.", "Die aktuelle Sprache wird vom lokalen Modell nicht unterstützt.")
-        case .unknown: return archiveText("The local model is currently unavailable.", "Das lokale Modell ist derzeit nicht verfügbar.")
+        case .deviceNotEligible: return archiveText("iOS reports that this device is not eligible for the on-device language model.", "iOS meldet, dass dieses Gerät nicht für das lokale Sprachmodell berechtigt ist.")
+        case .disabled: return archiveText("iOS reports that Apple Intelligence is not enabled.", "iOS meldet, dass Apple Intelligence nicht aktiviert ist.")
+        case .modelNotReady: return archiveText("iOS reports that the on-device language model is not ready. A download or setup may still be pending.", "iOS meldet, dass das lokale Sprachmodell nicht bereit ist. Ein Download oder die Einrichtung kann noch ausstehen.")
+        case .unsupportedLanguage: return archiveText("The local model is available, but does not support the language currently checked by SourceBraid.", "Das lokale Modell ist verfügbar, unterstützt aber die von SourceBraid aktuell geprüfte Sprache nicht.")
+        case .unknown: return archiveText("iOS returned an availability status that SourceBraid cannot identify. Check again after returning from Settings.", "iOS hat einen Verfügbarkeitsstatus gemeldet, den SourceBraid nicht zuordnen kann. Nach der Rückkehr aus den Einstellungen erneut prüfen.")
         }
     }
+
+    var recoverySteps: [IntelligenceRecoveryStep] {
+        switch self {
+        case .ready: return []
+        case .unsupportedOS: return [.updateOS]
+        case .deviceNotEligible: return [.checkRequirements]
+        case .disabled: return [.checkAppleIntelligence, .matchLanguages]
+        case .modelNotReady: return [.checkAppleIntelligence, .matchLanguages, .prepareModel]
+        case .unsupportedLanguage: return [.matchLanguages]
+        case .unknown: return [.checkAppleIntelligence, .updateOS]
+        }
+    }
+
+    static var supportURL: URL {
+        URL(string: archiveText("https://support.apple.com/en-us/121115", "https://support.apple.com/de-de/121115"))!
+    }
+
     static func current() -> Self {
 #if canImport(FoundationModels)
         if #available(iOS 26, *) {
@@ -36,6 +64,30 @@ enum IntelligenceState: CaseIterable, Equatable {
         }
 #endif
         return .unsupportedOS
+    }
+}
+
+enum IntelligenceRecoveryStep: String, Identifiable {
+    case checkAppleIntelligence, matchLanguages, prepareModel, checkRequirements, updateOS
+    var id: Self { self }
+    var message: String {
+        switch self {
+        case .checkAppleIntelligence:
+            return archiveText("Open Settings → Apple Intelligence & Siri and check that Apple Intelligence is enabled.",
+                               "Öffne Einstellungen → Apple Intelligence & Siri und prüfe, ob Apple Intelligence aktiviert ist.")
+        case .matchLanguages:
+            return archiveText("Check the device and Siri languages in Settings. Both must use the same supported language. Wait for any language download to finish.",
+                               "Prüfe in den Einstellungen die Geräte- und Siri-Sprache. Beide müssen auf dieselbe unterstützte Sprache eingestellt sein. Warte gegebenenfalls den Sprachdownload ab.")
+        case .prepareModel:
+            return archiveText("Connect the device to Wi-Fi and power, make sure it has free storage, and allow time for iOS to prepare the model. Then return here and check again.",
+                               "Verbinde das Gerät mit WLAN und Strom, sorge für freien Speicher und gib iOS Zeit, das Modell vorzubereiten. Kehre danach zurück und prüfe erneut.")
+        case .checkRequirements:
+            return archiveText("Check Apple's supported devices, languages and regions. Hardware support alone does not guarantee model availability.",
+                               "Prüfe bei Apple die unterstützten Geräte, Sprachen und Regionen. Geeignete Hardware allein garantiert keine Modellverfügbarkeit.")
+        case .updateOS:
+            return archiveText("Check Settings → General → Software Update for a compatible iOS update.",
+                               "Prüfe unter Einstellungen → Allgemein → Softwareupdate, ob ein passendes iOS-Update verfügbar ist.")
+        }
     }
 }
 
@@ -65,7 +117,8 @@ struct LocalArchiveAnswering: ArchiveAnswering {
 
 @MainActor
 final class ArchiveChat: ObservableObject {
-    @Published var state: IntelligenceState
+    @Published private(set) var state: IntelligenceState
+    @Published private(set) var availabilityCheckedAt = Date()
     @Published var draft = ""
     @Published var wholeArchive = false
     @Published private(set) var messages: [ArchiveChatMessage] = []
@@ -80,7 +133,10 @@ final class ArchiveChat: ObservableObject {
         self.service = service; self.availability = availability; state = availability()
     }
 
-    func checkAvailability() { state = availability() }
+    func checkAvailability() {
+        state = availability()
+        availabilityCheckedAt = Date()
+    }
     func reset() {
         task?.cancel(); epoch = UUID(); isWorking = false; messages = []; draft = ""; error = ""
         checkAvailability()
@@ -126,6 +182,9 @@ final class ArchiveChat: ObservableObject {
                 guard !sources.isEmpty else { throw ArchiveError.noEvidence }
                 try Task.checkCancellation()
                 guard library.generation == libraryEpoch else { throw CancellationError() }
+                // Retrieval can take time. Never start generation using a stale readiness check.
+                checkAvailability()
+                guard state.canGenerate else { throw ArchiveError.unavailable }
                 let result = try await service.answer(question: question, history: history, sources: sources, recent: recent) { text in
                     guard requestEpoch == self.epoch, library.generation == libraryEpoch,
                           let index = self.messages.firstIndex(where: { $0.id == answerID }) else { return }

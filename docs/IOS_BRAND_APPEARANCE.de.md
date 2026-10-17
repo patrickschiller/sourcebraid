@@ -5,7 +5,7 @@
 Diese lokale Anpassung gibt der iOS-/iPadOS-App eine zurückhaltende Identität,
 inspiriert von [sourcebraid.com](https://sourcebraid.com/). Warme Papierflächen,
 dunkelgrüne Schrift und ein einzelner Petrol-Akzent übertragen den Charakter
-der Webseite auf native Apple-Steuerelemente. **Neueste** mit sieben Einträgen,
+der Webseite auf native Apple-Steuerelemente. **Zuletzt** mit sieben Einträgen,
 Navigation, Reader und Hintergrundaktualisierung folgen weiterhin dem
 [Reader-Konzept](IOS_READER_REFRESH_UX.de.md).
 
@@ -66,7 +66,7 @@ Sichtprüfung; die Palettenberechnung prüft nicht jede zusammengesetzte Ansicht
 
 ## Prüfgrenze
 
-Neueste, Suche, Chat, Einstellungen und gerendertes Markdown im hellen/dunklen
+Zuletzt, Suche, Chat, Einstellungen und gerendertes Markdown im hellen/dunklen
 Modus, mit erhöhtem Kontrast und vergrößerter Schrift prüfen. Dabei Datum und
 Platzhalter, gewählte Tabs, Links, Eingabe-/Sendesteuerung, Quellen, Codeblöcke
 und Tabellen auf Lesbarkeit prüfen. Den Eingaberahmen mit und ohne Fokus,

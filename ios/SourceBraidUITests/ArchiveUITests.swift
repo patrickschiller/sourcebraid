@@ -27,6 +27,23 @@ final class ArchiveUITests: XCTestCase {
         let attachment = XCTAttachment(screenshot: app.screenshot()); attachment.name = name; attachment.lifetime = .keepAlways; add(attachment)
     }
 
+    func testOfflineMermaidRenderingAndSecurity() {
+        app.launchEnvironment["SOURCEBRAID_MERMAID_PROBE"] = "1"
+        app.launch()
+        let status = app.staticTexts["archive.mermaid.probe.result"]
+        let complete = XCTNSPredicateExpectation(predicate: NSPredicate { _, _ in
+            status.exists && (status.label.hasPrefix("good=") || status.label.hasPrefix("Mermaid probe failed:"))
+        }, object: nil)
+        let result = XCTWaiter.wait(for: [complete], timeout: 25)
+        capture("Synthetic Mermaid probe stage")
+        XCTAssertEqual(result, .completed, status.label)
+        XCTAssertEqual(status.label,
+            "good=3;failed=true;limited=true;unsafe=0;count=6;pageScript=false;isolated=true")
+        XCTAssertTrue(app.webViews["archive.mermaid.probe.web"].exists)
+        XCTAssertTrue(app.webViews.staticTexts["Synthetic Mermaid checks"].exists)
+        capture("Synthetic offline Mermaid rendering")
+    }
+
     private func tapUniqueVisible(_ query: XCUIElementQuery) {
         let ready = XCTNSPredicateExpectation(predicate: NSPredicate { _, _ in
             query.allElementsBoundByIndex.filter { $0.isHittable }.count == 1
@@ -74,6 +91,49 @@ final class ArchiveUITests: XCTestCase {
         }
     }
 
+    func testDifferentClipsOpenAfterReturningToList() {
+        launch()
+        // Start below the newest item: this regression concerns successive
+        // selections, not which article happened to be loaded first.
+        verifySuccessiveReaderSelections([5, 6, 7, 5])
+    }
+
+    func testDifferentSearchResultsOpenAfterReturningToList() {
+        launch()
+        app.buttons["Search"].firstMatch.tap()
+        XCTAssertTrue(app.searchFields.firstMatch.waitForExistence(timeout: 5))
+        verifySuccessiveReaderSelections([7, 6, 5])
+    }
+
+    private func verifySuccessiveReaderSelections(_ numbers: [Int]) {
+        for number in numbers {
+            let row = app.buttons["archive.clip.clips/2026/10/2026-10-12-demo-\(number).md"]
+            XCTAssertTrue(row.waitForExistence(timeout: 5))
+            if !row.isHittable { app.swipeDown() }
+            row.tap()
+            let web = app.webViews["archive.reader.web"]
+            let opened = web.waitForExistence(timeout: 10)
+            if !opened { capture("Synthetic reader stalled after selection \(number)") }
+            let loading = app.descendants(matching: .any).matching(identifier: "archive.reader.loading").firstMatch
+            let phase = opened ? "loaded" : (loading.exists ? (loading.value as? String ?? "Unknown loading phase") : "No loading marker")
+            XCTAssertTrue(opened, "Reader remained loading for selection \(number): \(phase)")
+            XCTAssertTrue(web.staticTexts["Markdown-Reader"].waitForExistence(timeout: 5))
+            XCTAssertTrue(web.staticTexts["Synthetic document body \(number)."].waitForExistence(timeout: 5),
+                "Rendered body must belong to selection \(number)")
+            XCTAssertTrue(app.staticTexts["Synthetic article \(number)"].exists)
+            XCTAssertTrue(app.descendants(matching: .any).matching(identifier: "Original source").firstMatch.exists)
+            app.buttons["Reader options"].tap(); app.buttons["Raw Markdown"].tap()
+            let raw = app.scrollViews["archive.reader.raw"]
+            XCTAssertTrue(raw.waitForExistence(timeout: 5))
+            let ownSource = raw.staticTexts.matching(NSPredicate(format: "label CONTAINS %@", "https://example.invalid/synthetic-\(number)")).firstMatch
+            XCTAssertTrue(ownSource.exists, "Raw source must belong to selection \(number)")
+            capture("Synthetic successive reader selection \(number)")
+            app.buttons["Reader options"].tap(); app.buttons["Raw Markdown"].tap()
+            XCTAssertTrue(web.waitForExistence(timeout: 5))
+            if !row.isHittable { returnToSelection() }
+        }
+    }
+
     func testSearchAndSettings() {
         launch()
         app.buttons["Search"].firstMatch.tap()
@@ -107,7 +167,7 @@ final class ArchiveUITests: XCTestCase {
         app.launchArguments = ["-AppleLanguages", "(de)", "-AppleLocale", "de_DE"]
         app.launchEnvironment["SOURCEBRAID_CHAT_EXAMPLE"] = "1"
         launch()
-        XCTAssertTrue(app.navigationBars["Neueste"].exists)
+        XCTAssertTrue(app.navigationBars["Zuletzt"].exists)
         XCTAssertTrue(app.staticTexts["Synthetischer Beitrag 7"].exists)
         capture("\(prefix) latest seven")
         let usesCompactNavigation = selectAndRead()
@@ -212,10 +272,132 @@ final class ArchiveUITests: XCTestCase {
         app.buttons["archive.chat.dismissKeyboard"].tap()
         XCTAssertTrue(app.keyboards.firstMatch.waitForNonExistence(timeout: 5))
         XCTAssertEqual(input.value as? String, draft, "Dismissing the keyboard must retain all draft lines")
-        app.buttons["Latest"].firstMatch.tap()
+        app.buttons["Recent"].firstMatch.tap()
         XCTAssertTrue(last.waitForExistence(timeout: 5))
         app.buttons["Chat"].firstMatch.tap()
         XCTAssertEqual(input.value as? String, draft, "Switching tabs must retain all draft lines")
         capture("Synthetic chat full height")
+    }
+}
+
+final class IntelligenceDiagnosticsUITests: XCTestCase {
+    func testModelPreparationGuidanceKeepsReaderAvailable() {
+        continueAfterFailure = false
+        let app = XCUIApplication()
+        app.launchEnvironment = ["SOURCEBRAID_DEMO": "1", "SOURCEBRAID_INTELLIGENCE_STATE": "modelNotReady"]
+        defer { app.terminate() }
+        for language in ["en", "de"] {
+            let german = language == "de"
+            app.launchArguments = ["-AppleLanguages", "(\(language))", "-AppleLocale", german ? "de_DE" : "en_US"]
+            app.launch()
+            let clip = app.buttons["archive.clip.clips/2026/10/2026-10-12-demo-7.md"]
+            XCTAssertTrue(clip.waitForExistence(timeout: 20))
+            app.buttons["Chat"].firstMatch.tap()
+            XCTAssertTrue(app.staticTexts[german ? "Lokales Modell ist nicht bereit" : "Local model is not ready"].waitForExistence(timeout: 5))
+            XCTAssertFalse(app.descendants(matching: .any)["archive.chat.input"].exists)
+            let recheck = app.buttons["archive.chat.checkAvailability"]
+            XCTAssertTrue(recheck.isHittable, "The main readiness action must be reachable without scrolling")
+            let help = app.descendants(matching: .any)["archive.chat.appleHelp"].firstMatch
+            XCTAssertTrue(help.isHittable, "Apple's setup guide must be reachable without scrolling")
+            recheck.tap()
+            XCTAssertTrue(app.staticTexts.matching(NSPredicate(format: "label CONTAINS %@", german ? "Downloadfortschritt" : "download progress")).firstMatch.exists)
+            let attachment = XCTAttachment(screenshot: app.screenshot())
+            attachment.name = "\(language)-intelligence-diagnostics"
+            attachment.lifetime = .keepAlways
+            add(attachment)
+            app.buttons[german ? "Zuletzt" : "Recent"].firstMatch.tap()
+            clip.tap()
+            XCTAssertTrue(app.webViews["archive.reader.web"].waitForExistence(timeout: 10))
+            app.terminate()
+        }
+    }
+}
+
+/// Explicitly invoked native capture workflow. All articles are original
+/// fictional examples; no user archive or generated AI answer is photographed.
+final class AppStoreScreenshotTests: XCTestCase {
+    private var app: XCUIApplication!
+
+    override func setUpWithError() throws {
+        try XCTSkipUnless(ProcessInfo.processInfo.environment["SOURCEBRAID_APP_STORE_CAPTURE"] == "1",
+            "Opt in with TEST_RUNNER_SOURCEBRAID_APP_STORE_CAPTURE=1 for store screenshots")
+        continueAfterFailure = false
+        app = XCUIApplication()
+        app.launchEnvironment = ["SOURCEBRAID_DEMO": "1", "SOURCEBRAID_STORE_DEMO": "1"]
+        XCUIDevice.shared.orientation = .portrait
+        XCUIDevice.shared.appearance = .light
+    }
+
+    override func tearDown() {
+        app?.terminate()
+        XCUIDevice.shared.orientation = .portrait
+        XCUIDevice.shared.appearance = .light
+    }
+
+    func testEnglishProductScreenshots() { captureProduct(language: "en", locale: "en_US") }
+    func testGermanProductScreenshots() { captureProduct(language: "de", locale: "de_DE") }
+    func testEnglishIntelligenceDiagnostics() { captureDiagnostics(language: "en", locale: "en_US") }
+    func testGermanIntelligenceDiagnostics() { captureDiagnostics(language: "de", locale: "de_DE") }
+
+    private func captureDiagnostics(language: String, locale: String) {
+        app.launchEnvironment["SOURCEBRAID_INTELLIGENCE_STATE"] = "modelNotReady"
+        app.launchArguments = ["-AppleLanguages", "(\(language))", "-AppleLocale", locale]
+        app.launch()
+        XCTAssertTrue(app.buttons["archive.clip.clips/2026/10/2026-10-17-demo-7.md"].waitForExistence(timeout: 20))
+        app.buttons["Chat"].firstMatch.tap()
+        XCTAssertTrue(app.descendants(matching: .any)["archive.chat.diagnostics"].firstMatch.waitForExistence(timeout: 10))
+        XCTAssertTrue(app.buttons["archive.chat.checkAvailability"].exists)
+        XCTAssertFalse(app.descendants(matching: .any)["archive.chat.input"].exists)
+        capture("\(language)-05-intelligence-diagnostics-preview")
+    }
+
+    private func captureProduct(language: String, locale: String) {
+        let german = language == "de"
+        let clip = "archive.clip.clips/2026/10/2026-10-17-demo-7.md"
+        let heading = german ? "Die Idee bleibt. Die Quelle auch." : "Keep the idea. Keep the source."
+        app.launchArguments = ["-AppleLanguages", "(\(language))", "-AppleLocale", locale]
+        app.launch()
+        let latest = app.buttons[clip]
+        XCTAssertTrue(latest.waitForExistence(timeout: 20))
+        let refresh = app.buttons["archive.refresh"]
+        let loaded = XCTNSPredicateExpectation(predicate: NSPredicate { _, _ in
+            refresh.label == (german ? "Aktualisieren" : "Refresh")
+        }, object: nil)
+        XCTAssertEqual(XCTWaiter.wait(for: [loaded], timeout: 15), .completed)
+        capture("\(language)-02-latest")
+
+        latest.tap()
+        let reader = app.webViews["archive.reader.web"]
+        XCTAssertTrue(reader.staticTexts[heading].waitForExistence(timeout: 10))
+        capture("\(language)-01-reader")
+
+        let compact = !latest.isHittable
+        app.buttons[german ? "Reader-Optionen" : "Reader options"].tap()
+        app.buttons[german ? "Markdown-Quelltext" : "Raw Markdown"].tap()
+        XCTAssertTrue(app.scrollViews["archive.reader.raw"].waitForExistence(timeout: 5))
+        capture("\(language)-04-markdown")
+
+        if compact {
+            let back = app.descendants(matching: .any).matching(identifier: "BackButton")
+            let visible = back.allElementsBoundByIndex.filter { $0.isHittable }
+            XCTAssertEqual(visible.count, 1)
+            visible.first?.tap()
+            XCTAssertTrue(latest.waitForExistence(timeout: 5))
+        }
+        app.buttons[german ? "Suche" : "Search"].firstMatch.tap()
+        let search = app.searchFields.firstMatch
+        XCTAssertTrue(search.waitForExistence(timeout: 5))
+        search.tap()
+        search.typeText("offline\n")
+        XCTAssertTrue(latest.waitForExistence(timeout: 10))
+        XCTAssertTrue(app.buttons["archive.clip.clips/2026/10/2026-10-17-demo-1.md"].waitForNonExistence(timeout: 5))
+        capture("\(language)-03-offline-search")
+    }
+
+    private func capture(_ name: String) {
+        let attachment = XCTAttachment(screenshot: app.screenshot())
+        attachment.name = name
+        attachment.lifetime = .keepAlways
+        add(attachment)
     }
 }
