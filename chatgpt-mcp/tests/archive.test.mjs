@@ -68,6 +68,33 @@ test('search returns saved provenance and fetch returns complete verified Markdo
   assert.equal(fetched.metadata.head_sha, HEAD);
 });
 
+test('iOS capture dates survive listing and fetch with local-plugin precedence', async () => {
+  const timestamp = '2026-10-15T07:45:12.345Z';
+  const cases = [
+    { fields: `capture_date: "2026-10-15"\ncaptured_at: "${timestamp}"`, expected: '2026-10-15' },
+    { fields: `date: "2026-10-14"\ncapture_date: "2026-10-15"\ncaptured_at: "${timestamp}"`, expected: '2026-10-14' },
+    { fields: `date: ""\ncapture_date: "2026-10-15"\ncaptured_at: "${timestamp}"`, expected: '2026-10-15' },
+    { fields: `captured_at: "${timestamp}"`, expected: timestamp },
+    { fields: `date: ""\ncapture_date: ""\ncaptured_at: "${timestamp}"`, expected: timestamp },
+    { fields: 'publication_date: "2026-10-10"', expected: '' },
+  ];
+  for (const { fields, expected } of cases) {
+    const text = `---\ntitle: "Synthetic iOS capture"\nurl: "https://example.com/ios-capture"\n${fields}\ncapture_method: "ios-share-safari"\ntags: ["review"]\n---\nSynthetic saved article.\n`;
+    const entry = { ...clip('ios-capture.md'), size: Buffer.byteLength(text) };
+    const fixture = mockGitHub({
+      [`/repos/${props.repo}/git/trees/${ROOT}`]: { tree: [entry], truncated: false },
+      [`/repos/${props.repo}/git/trees/${ROOT}?recursive=1`]: { tree: [entry], truncated: false },
+      [`/repos/${props.repo}/git/blobs/${CLIP}`]: { size: entry.size, encoding: 'base64', content: Buffer.from(text).toString('base64') },
+    });
+    const listing = await callArchiveTool('sourcebraid_list', {}, props, fixture.fetch);
+    assert.equal(listing.sources[0].date, expected, fields);
+    const fetched = await callArchiveTool('fetch', { id: 'web-clips/ios-capture.md' }, props, fixture.fetch);
+    assert.equal(fetched.metadata.date, expected, fields);
+    assert.equal(fetched.text, text);
+    assert.equal(fetched.url, 'https://example.com/ios-capture');
+  }
+});
+
 test('private repository and identity are revalidated on every call', async () => {
   for (const overrides of [{ [`/repos/${props.repo}`]: { private: false, full_name: props.repo } }, { '/user': { id: 43, login: 'other-user' } }]) {
     const fixture = mockGitHub(overrides);

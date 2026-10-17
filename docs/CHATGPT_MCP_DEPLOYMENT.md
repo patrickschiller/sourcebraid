@@ -1,6 +1,6 @@
 # SourceBraid ChatGPT service — deployment / Bereitstellung
 
-Release candidate: **1.0.1**. The repository prepares a Cloudflare Worker for
+Release candidate: **1.1.0**. The repository prepares a Cloudflare Worker for
 `https://mcp.sourcebraid.com/mcp`. This is a deployment target, **not a claim that
 the service or directory listing is already live**. Deploying creates paid or
 metered infrastructure; the maintainer must approve the account and domain.
@@ -46,11 +46,18 @@ npm test
 npm run build
 ```
 
-Or extract the checked `sourcebraid-chatgpt-mcp-v1.0.1.zip` into a new directory
+Or extract the checked `sourcebraid-chatgpt-mcp-v1.1.0.zip` into a new directory
 and run the same npm commands there. The ZIP has `package.json` at its root.
 `npm run build` is a **dry run** and does not publish. Source archives contain
 neither installed dependencies nor credentials. The release's `SHA256SUMS`
 and `RELEASE_MANIFEST.json` identify the actual reviewed files.
+
+The separate `sourcebraid-chatgpt-plugin-v1.1.0.zip` is the OpenAI portal upload.
+It contains root `plugin.json`, `mcp.json`, and the listing icon; it connects to
+the deployed service and does not contain or deploy the Worker. The complete
+release builder creates both packages. After live acceptance, follow the
+[submission kit](../marketing/OPENAI_MCP_SUBMISSION.md) to upload the plugin ZIP,
+verify the domain, connect OAuth, and inspect the automated metadata/tool checks.
 
 The locked development toolchain follows stable Wrangler `4.131.1`, including
 its own pinned Miniflare `5.20260911.0-alpha` dependency. Miniflare is only the
@@ -111,7 +118,7 @@ curl --include --request POST https://mcp.sourcebraid.com/mcp \
   --data '{"jsonrpc":"2.0","id":1,"method":"tools/list"}'
 ```
 
-Expect healthy version `1.0.1`, HTTPS OAuth endpoints, resource exactly
+Expect healthy version `1.1.0`, HTTPS OAuth endpoints, resource exactly
 `https://mcp.sourcebraid.com/mcp`, scope `archive:read`, and **401 with
 WWW-Authenticate** for the unauthenticated request. Health checks do not prove
 GitHub authorization works.
@@ -193,6 +200,9 @@ zusätzlich zu den Bedingungen der beteiligten Dienste.
 2. Mit Node.js ab 22.13 im Ordner `chatgpt-mcp` die oben aufgeführten Befehle
    `npm ci`, `npm test`, `npm run build` ausführen. Alternativ das geprüfte
    MCP-Quell-ZIP in einen neuen Ordner entpacken. Der Build veröffentlicht nichts.
+   Das separate `sourcebraid-chatgpt-plugin-v1.1.0.zip` mit `plugin.json`,
+   `mcp.json` und Icon ist für das OpenAI-Portal bestimmt. Es verbindet sich mit
+   dem bereitgestellten Dienst und enthält keinen Worker-Quellcode.
    Die gepinnte stabile Wrangler-Toolchain enthält eine als Alpha bezeichnete
    Miniflare-Testlaufzeit; diese wird nicht als Produktionsabhängigkeit ausgeliefert.
 3. In `wrangler.jsonc` HTTPS-Origin/Route, persistente `OAUTH_KV`-Zuordnung und
@@ -209,7 +219,8 @@ zusätzlich zu den Bedingungen der beteiligten Dienste.
    alle Reviewer-Fälle, zwei getrennte GitHub-Identitäten, Token-Erneuerung,
    Trennen/Neuverbindung und Widerruf live in ChatGPT prüfen. Commit,
    Worker-Version und Ergebnisse ohne Geheimnisse dokumentieren. Erst danach
-   scannen und einreichen.
+   das Portal-ZIP hochladen, Domain und OAuth-Verbindung prüfen, Metadaten und
+   Werkzeuge scannen und gemäß Einreichungskit zur Prüfung einreichen.
 
 ### Grenzen und Betrieb
 

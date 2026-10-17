@@ -5,6 +5,9 @@ xcuserdata/
 *.xcuserstate
 ios/build/
 
+# Local handoff notes stay outside version control.
+/HANDOFF.md
+
 # Release archives are published separately.
 dist/
 

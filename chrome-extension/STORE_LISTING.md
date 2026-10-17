@@ -161,7 +161,7 @@ the archive view uses the real Markdown and path builders.
 
 ## Submission sequence
 
-Build `dist/sourcebraid-chrome-v1.0.1.zip` through `python3 scripts/build_chrome_package.py`
+Build `dist/sourcebraid-chrome-v1.1.0.zip` through `python3 scripts/build_chrome_package.py`
 or the full `python3 scripts/build_release.py` command. Upload that ZIP to the
 [Chrome Developer Dashboard](https://chrome.google.com/webstore/devconsole).
 Complete the listing, privacy practices and protected test instructions above;

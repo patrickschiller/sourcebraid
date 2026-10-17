@@ -58,6 +58,9 @@ rg -n '\{\{[A-Z0-9_]+\}\}' marketing
 
 ## Files
 
+- Publishing checklist / Veröffentlichungscheckliste:
+  [English](PUBLISHING_CHECKLIST.md) · [Deutsch](PUBLISHING_CHECKLIST.de.md),
+  with the dated 1.0.1 audit, local setup, owners, and outstanding store gates;
 - [`GITHUB.md`](GITHUB.md): repository metadata, topics, and community setup;
 - [`LAUNCH_CHECKLIST.md`](LAUNCH_CHECKLIST.md): release gates and launch order;
 - [`OPENAI_MCP_SUBMISSION.md`](OPENAI_MCP_SUBMISSION.md): primary ChatGPT

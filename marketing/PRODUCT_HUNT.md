@@ -2,7 +2,8 @@
 
 Publish only when the product is immediately installable through at least one
 public destination. Remove unavailable platform links rather than promising
-them in the listing.
+them in the listing. Include the prepared hosted ChatGPT integration only after
+deployment, live verification, and publication.
 
 ## Main listing
 
@@ -17,7 +18,7 @@ Tagline:
 Description:
 
 > Save web pages, papers, wikis, Gists, and PDFs as durable Markdown in a private
-> GitHub repository you control, then search the archive from ChatGPT and Codex.
+> GitHub repository you control, then search the archive with local Codex tools.
 
 Primary URL:
 
@@ -28,7 +29,7 @@ Additional links:
 - Repository: {{REPOSITORY_URL}}
 - Chrome: {{CHROME_STORE_URL}}
 - iPhone and iPad: {{APP_STORE_URL}}
-- ChatGPT and Codex: {{PLUGIN_URL}}
+- Local Codex plugin: {{PLUGIN_URL}}
 
 Choose no more than three current Product Hunt categories that reflect the
 shipped product. Prefer the closest equivalents of productivity, knowledge
@@ -39,8 +40,9 @@ management, and open source; verify the live taxonomy during submission.
 1. 45-60 second capture-to-search demo;
 2. Chrome capture with tags and notes;
 3. readable Markdown and provenance in the private synthetic repository;
-4. ChatGPT or Codex search result;
-5. simple data-flow graphic explaining that there is no central content server.
+4. local Codex search result, or a verified live ChatGPT result after publication;
+5. data-flow graphic showing direct capture to GitHub and, if shown, the hosted
+   ChatGPT service's processing of requested sources on Cloudflare.
 
 ## Maker comment
 
@@ -50,14 +52,17 @@ management, and open source; verify the live taxonomy during submission.
 >
 > SourceBraid captures web pages, papers, wikis, Gists, and PDFs as Markdown in
 > a private GitHub repository selected by the user. It preserves provenance,
-> stores relevant assets next to the document, and uses normal Git commits. A
-> ChatGPT/Codex plugin adds full-text search, fetching, and guarded archive
-> management without making a SourceBraid database the source of truth.
+> stores relevant assets next to the document, and uses normal Git commits. The
+> local Codex plugin adds full-text search, fetching, and archive management
+> with a fresh preview and explicit confirmation for deletion or metadata
+> migration. The separate hosted ChatGPT integration is prepared for read-only
+> search and retrieval.
 >
-> The privacy boundary shaped the architecture: SourceBraid has no central
-> content server. The capture clients communicate with source websites and the
-> GitHub repository the user configured. The Markdown files and Git history are
-> authoritative; the local SQLite search index is disposable and rebuildable.
+> Capture clients write directly to the GitHub repository the user configured.
+> The prepared ChatGPT service processes requested sources through a Cloudflare
+> Worker and stores OAuth connection records separately in Workers KV; it does
+> not maintain an archive-content database. The Markdown files and Git history
+> are authoritative; the local Codex SQLite index is disposable and rebuildable.
 >
 > The project is MIT-licensed. I would especially value feedback on first-run
 > GitHub setup, the permission explanation, and which research workflows deserve

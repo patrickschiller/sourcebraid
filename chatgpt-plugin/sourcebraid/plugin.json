@@ -1,0 +1,45 @@
+{
+  "$schema": "https://agent-plugins.org/schemas/1.0.0/plugin.schema.json",
+  "name": "sourcebraid",
+  "version": "1.1.0",
+  "description": "Search and read sources in your private GitHub Markdown archive through SourceBraid's read-only hosted MCP service.",
+  "author": {
+    "name": "Patrick Schiller",
+    "url": "https://github.com/patrickschiller"
+  },
+  "homepage": "https://sourcebraid.com",
+  "repository": "https://github.com/patrickschiller/sourcebraid",
+  "license": "MIT",
+  "extensions": {
+    "com.openai": {
+      "interface": {
+        "displayName": "SourceBraid",
+        "shortDescription": "Search your Markdown archive.",
+        "longDescription": "Search, list and read saved sources in one private GitHub Markdown archive you control. Original source links remain available for citations. Connect through SourceBraid's HTTPS consent page with a dedicated fine-grained GitHub token restricted to Contents: Read-only for one repository; never paste a token into chat. Search results disclose indexing and coverage limits, and documents are limited to 200 KiB. This connection cannot write, delete or build a local index. Requested sources pass through SourceBraid on Cloudflare to ChatGPT. OAuth grant data, including encrypted GitHub credentials, is stored in Cloudflare KV; there is no permanent SourceBraid content database. Markdown files and Git history remain authoritative.",
+        "developerName": "Patrick Schiller",
+        "category": "Productivity",
+        "capabilities": ["Read"],
+        "websiteURL": "https://sourcebraid.com",
+        "supportURL": "https://github.com/patrickschiller/sourcebraid/issues",
+        "privacyPolicyURL": "https://github.com/patrickschiller/sourcebraid/blob/main/PRIVACY.md",
+        "termsOfServiceURL": "https://github.com/patrickschiller/sourcebraid/blob/main/TERMS.md",
+        "defaultPrompt": [
+          "Search my SourceBraid archive for Markdown ownership and cite the sources.",
+          "List sources in my SourceBraid archive and help me choose one to read.",
+          "Find my saved sources about retrieval and summarize them with original links."
+        ],
+        "brandColor": "#166B68",
+        "composerIcon": "./assets/sourcebraid-icon.png",
+        "logo": "./assets/sourcebraid-icon.png"
+      },
+      "publication": {
+        "translations": {
+          "de": {
+            "subtitle": "Durchsuche dein Markdownarchiv",
+            "description": "Durchsuche und lies gespeicherte Quellen in einem privaten GitHub-Markdown-Archiv mit ursprünglichen Quell-Links. Verbinde es auf der HTTPS-Zustimmungsseite von SourceBraid mit einem eigenen Fine-grained-GitHub-Token: nur Contents-Leserechte für genau ein Repository, niemals im Chat eingeben. Die Suche weist Index- und Abdeckungsgrenzen aus; Dokumente sind auf 200 KiB begrenzt. Diese Verbindung schreibt, löscht und indexiert nicht lokal. Angeforderte Quellen durchlaufen SourceBraid auf Cloudflare und ChatGPT. OAuth-Grant-Daten einschließlich verschlüsselter GitHub-Zugangsdaten liegen in Cloudflare KV; eine dauerhafte SourceBraid-Inhaltsdatenbank gibt es nicht. Markdown-Dateien und Git-Historie bleiben maßgeblich."
+          }
+        }
+      }
+    }
+  }
+}

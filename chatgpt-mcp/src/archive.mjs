@@ -172,9 +172,10 @@ function metadata(text, path, archive, head) {
   const repositoryUrl = `https://github.com/${archive.repo}/blob/${head}/${path.split('/').map(encodeURIComponent).join('/')}`;
   let sourceUrl = '';
   try { const url = new URL(fields.url); if (['https:', 'http:'].includes(url.protocol) && !url.username && !url.password) sourceUrl = url.href; } catch { /* Source provenance can be absent. */ }
+  const capturedDate = [fields.date, fields.capture_date, fields.captured_at].find(value => typeof value === 'string' && value) || '';
   return { title: typeof fields.title === 'string' && fields.title ? fields.title : path,
     url: sourceUrl || repositoryUrl, source_url: sourceUrl, repository_url: repositoryUrl,
-    date: typeof fields.date === 'string' ? fields.date : '',
+    date: capturedDate,
     source: typeof fields.source === 'string' ? fields.source : typeof fields.site === 'string' ? fields.site : '',
     tags: Array.isArray(fields.tags) ? fields.tags.filter(tag => typeof tag === 'string') : [] };
 }

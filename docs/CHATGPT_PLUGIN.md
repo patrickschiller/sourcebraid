@@ -2,8 +2,8 @@
 
 SourceBraid has two runtime paths: a hosted, read-only MCP service for ChatGPT
 and the complete local Codex plugin for search, index maintenance, and guarded
-archive changes. The hosted service is prepared in `chatgpt-mcp/` but has not
-been deployed or approved for a public OpenAI listing.
+archive changes. Both target release **1.1.0**. The hosted service is prepared in
+`chatgpt-mcp/` but has not been deployed or approved for a public OpenAI listing.
 
 ## Primary ChatGPT release: hosted MCP
 
@@ -13,6 +13,15 @@ The intended endpoint is `https://mcp.sourcebraid.com/mcp`. Use the
 verified production service as **With MCP**, with the actual HTTPS endpoint,
 domain verification, authentication setup, and protected review credentials.
 A local build or a planned URL is not evidence that the service is live.
+
+Build the release bundle with `python3 scripts/build_release.py`, or build the
+portal package alone with `python3 scripts/build_chatgpt_plugin_package.py`. Upload
+`sourcebraid-chatgpt-plugin-v1.1.0.zip` to the OpenAI plugin portal; its root
+`plugin.json` and `mcp.json` declare the listing and remote MCP connection, and
+the ZIP includes the referenced icon. Deploy the Worker from
+`sourcebraid-chatgpt-mcp-v1.1.0.zip` separately. Complete domain verification,
+OAuth connection, metadata/tool checks, and reviewer details before submitting
+for review. The local skills ZIP described below serves a separate runtime.
 
 After deployment, the connection flow uses OAuth 2.1 authorization codes with
 PKCE S256. The user enters a fine-grained GitHub PAT on SourceBraid's HTTPS
@@ -64,12 +73,12 @@ and [authentication guide](https://developers.openai.com/plugins/build/auth).
 
 ## Codex installation from GitHub
 
-After the reviewed `v1.0.1` tag is published, add the tag-bound GitHub
+After the reviewed `v1.1.0` tag is published, add the tag-bound GitHub
 marketplace and install the plugin:
 
 ```bash
 codex plugin marketplace add patrickschiller/sourcebraid \
-  --ref v1.0.1 \
+  --ref v1.1.0 \
   --sparse .agents/plugins \
   --sparse codex-plugin/sourcebraid
 codex plugin add sourcebraid@sourcebraid
@@ -89,8 +98,8 @@ flags, SourceBraid environment variables, or
 
 Read-only tasks need repository read access. Guarded deletion or metadata
 migration additionally needs Contents write access and fresh confirmation. The
-local SQLite cache is separated by repository, branch, and root folder; this
-release rebuilds it automatically under its safer cache namespace. Requested
+local SQLite cache is separated by repository, branch, and root folder. Older
+cache layouts trigger a fresh initial build under the current namespace. Requested
 results are processed by the active Codex environment under its terms and data
 settings. Local archive copies are not uploaded to the hosted MCP service.
 
@@ -102,8 +111,8 @@ ordinary ChatGPT to a private archive. It is not the primary ChatGPT submission.
 
 ```bash
 python3 scripts/build_plugin_package.py
-unzip -l dist/sourcebraid-plugin-skills-v1.0.1.zip
-shasum -a 256 dist/sourcebraid-plugin-skills-v1.0.1.zip
+unzip -l dist/sourcebraid-plugin-skills-v1.1.0.zip
+shasum -a 256 dist/sourcebraid-plugin-skills-v1.1.0.zip
 ```
 
 Its local review material remains in
@@ -120,11 +129,18 @@ local Codex cache. Local credentials and caches can be removed separately.
 ## Deutsch
 
 Die primäre ChatGPT-Anbindung ist ein gehosteter MCP-Dienst mit reinem
-Lesezugriff. `https://mcp.sourcebraid.com/mcp` ist als Ziel vorbereitet, aber
-noch nicht bereitgestellt oder öffentlich freigegeben. Nach Bereitstellung
-erfolgt die Verbindung über OAuth 2.1 mit PKCE S256. Der Fine-grained-GitHub-PAT
+Lesezugriff für Version **1.1.0**. `https://mcp.sourcebraid.com/mcp` ist als Ziel
+vorbereitet, aber noch nicht bereitgestellt oder öffentlich freigegeben. Nach
+Bereitstellung erfolgt die Verbindung über OAuth 2.1 mit PKCE S256. Der Fine-grained-GitHub-PAT
 gehört ausschließlich auf die HTTPS-Zustimmungsseite von SourceBraid und erhält
 Contents-Leserechte für genau ein privates Repository; niemals in den Chat.
+
+Im OpenAI-Portal wird `sourcebraid-chatgpt-plugin-v1.1.0.zip` mit `plugin.json`,
+`mcp.json` und Icon hochgeladen. `sourcebraid-chatgpt-mcp-v1.1.0.zip` liefert
+separat den Worker-Quellcode zur Bereitstellung. Beide Dateien entstehen mit
+`python3 scripts/build_release.py`. Vor der Einreichung müssen Domainprüfung,
+OAuth-Verbindung, Metadaten-/Werkzeugprüfungen und Reviewer-Angaben vollständig
+sein. Der Paketbau veröffentlicht weder Dienst noch Verzeichniseintrag.
 
 Die gehosteten Werkzeuge suchen, rufen Quellen ab, listen sie auf und zeigen
 den Status. Suchgrenzen und unvollständige Ergebnisse werden ausgewiesen.

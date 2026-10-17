@@ -235,13 +235,21 @@ class ReleaseVersionTests(unittest.TestCase):
 
         ios_versions = set(re.findall(r"MARKETING_VERSION = ([^;]+);", project))
         mcp_version = re.search(r'^SERVER_VERSION = "([^"]+)"$', mcp, re.MULTILINE)
-        self.assertEqual(chrome["version"], "1.0.1")
+        self.assertEqual(chrome["version"], "1.1.0")
         self.assertEqual(plugin["version"], chrome["version"])
         # iOS ships independently under ios-v* tags; v* tags version the
         # Chrome/Codex/MCP submission bundle together.
         self.assertEqual(ios_versions, {"1.1.0"})
         self.assertIsNotNone(mcp_version)
         self.assertEqual(mcp_version.group(1), chrome["version"])
+        hosted = json.loads((REPOSITORY_ROOT / "chatgpt-mcp/package.json").read_text())
+        hosted_plugin = json.loads((REPOSITORY_ROOT / "chatgpt-plugin/sourcebraid/plugin.json").read_text())
+        hosted_runtime = (REPOSITORY_ROOT / "chatgpt-mcp/src/auth.mjs").read_text()
+        hosted_version = re.search(r"^export const VERSION = '([^']+)';$", hosted_runtime, re.MULTILINE)
+        self.assertEqual(hosted["version"], chrome["version"])
+        self.assertEqual(hosted_plugin["version"], chrome["version"])
+        self.assertIsNotNone(hosted_version)
+        self.assertEqual(hosted_version.group(1), chrome["version"])
 
     def test_repo_marketplace_exposes_the_versioned_plugin(self):
         marketplace_path = REPOSITORY_ROOT / ".agents" / "plugins" / "marketplace.json"

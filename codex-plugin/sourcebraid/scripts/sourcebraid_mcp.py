@@ -19,7 +19,7 @@ import sourcebraid as core  # noqa: E402
 
 
 SERVER_NAME = "sourcebraid"
-SERVER_VERSION = "1.0.1"
+SERVER_VERSION = "1.1.0"
 PROTOCOL_VERSION = "2025-06-18"
 DEFAULT_SEARCH_LIMIT = 10
 

@@ -20,15 +20,17 @@ Git-Historie, die auch ohne SourceBraid nützlich bleiben.
 ## So funktioniert SourceBraid
 
 SourceBraid verbindet Capture-Clients, ein privates GitHub-Repository als
-dauerhaft maßgebliche Datenquelle und zwei Zugriffswege. Das lokale Codex-Plugin
-unterstützt Suche und Archivverwaltung. Die gehostete ChatGPT-Integration mit
-reinem Lesezugriff ist für Bereitstellung und Prüfung vorbereitet; sie ist noch
-kein öffentlich verfügbarer Dienst. Chrome-Erweiterung und iOS-App schreiben
+dauerhaft maßgebliche Datenquelle und drei Zugriffswege. Die iOS-App bietet
+einen lokalen Reader, Offline-Suche und optionalen Chat auf dem Gerät. Das lokale
+Codex-Plugin unterstützt Suche und Archivverwaltung. Die gehostete
+ChatGPT-Integration mit reinem Lesezugriff ist für Bereitstellung und Prüfung
+vorbereitet; sie ist noch kein öffentlich verfügbarer Dienst.
+Chrome-Erweiterung und iOS-App schreiben
 Captures direkt in das konfigurierte GitHub-Repository. Gehostete
 ChatGPT-Anfragen laufen künftig über den SourceBraid-Worker bei Cloudflare,
 ohne eine dauerhafte Inhaltsdatenbank anzulegen.
 
-Der lokale SQLite-Index ist nur ein jederzeit neu aufbaubarer Such-Cache.
+Lokale SQLite-Indizes sind nur jederzeit neu aufbaubare Such-Caches.
 Maßgeblich bleiben die Markdown-Dateien und die Git-Historie.
 
 ```mermaid
@@ -56,6 +58,8 @@ flowchart TD
     Q --> R["Lokales Codex: suchen, abrufen, auflisten oder sicher löschen"]
     K --> S["Vorbereiteter gehosteter MCP: GitHub-Lesezugriff"]
     S --> T["ChatGPT nach Bereitstellung und Prüfung"]
+    K --> U["iOS: lokaler Cache und Volltextsuche"]
+    U --> V["Beiträge und PDFs lesen; optionaler Chat auf dem Gerät"]
 ```
 
 Der Ablauf im Einzelnen:
@@ -87,6 +91,9 @@ Der Ablauf im Einzelnen:
    bleibt der zuletzt synchronisierte Index lesbar. Der vorbereitete
    ChatGPT-Dienst sucht und liest über GitHub, nennt Suchgrenzen ausdrücklich
    und bietet weder lokalen Index noch Löschwerkzeuge.
+   Die iOS-App liest heruntergeladene Beiträge offline, durchsucht deren Text
+   und bietet auf unterstützten Geräten optionalen Apple-Intelligence-Chat mit
+   Quellenlinks.
 
 Die Trennung zwischen GitHub-Archiv und lokalem Such-Cache ist für größere
 Sammlungen entscheidend: Auch bei vielen Tausend Dokumenten muss eine normale
@@ -246,8 +253,8 @@ Gist-Tab mit aktiver GitHub-Sitzung geladen werden.
 
 ## Chrome-Installation aus dem Quellcode
 
-Bis der Eintrag im Chrome Web Store live ist, lässt sich die geprüfte
-Erweiterung aus diesem Checkout laden:
+Chrome-Version **1.1.0** ist für die Einreichung im Chrome Web Store vorbereitet.
+Bis der Eintrag live ist, lässt sich die Erweiterung aus diesem Checkout laden:
 
 1. `chrome://extensions` öffnen.
 2. **Entwicklermodus** aktivieren.
@@ -290,7 +297,7 @@ Datei bereit. Sie lässt sich lokal so bauen:
 
 ```bash
 python3 scripts/build_setup_package.py
-python3 dist/sourcebraid-github-setup-v1.0.1.py --help
+python3 dist/sourcebraid-github-setup-v1.1.0.py --help
 ```
 
 ## GitHub-Token
@@ -318,12 +325,19 @@ Optionale API-Einstellungen:
 
 ## SourceBraid in ChatGPT und Codex
 
-Die primäre ChatGPT-Veröffentlichung nutzt den gehosteten MCP-Dienst unter
+Die vorbereitete ChatGPT-Version **1.1.0** nutzt den gehosteten MCP-Dienst unter
 [`chatgpt-mcp/`](chatgpt-mcp/). Vorgesehener Endpunkt ist
 `https://mcp.sourcebraid.com/mcp`; Bereitstellung, Live-Authentifizierungstests
 und OpenAI-Prüfung samt Veröffentlichung stehen noch aus. Die Schritte stehen
 in der [Bereitstellungsanleitung](docs/CHATGPT_MCP_DEPLOYMENT.md) und im
 [OpenAI-MCP-Einreichungskit](marketing/OPENAI_MCP_SUBMISSION.md).
+
+Das Release-Bundle enthält `sourcebraid-chatgpt-plugin-v1.1.0.zip` für den Upload
+im OpenAI-Plugin-Portal. Es enthält Plugin-Metadaten, die Remote-MCP-Konfiguration
+und das Listing-Icon. `sourcebraid-chatgpt-mcp-v1.1.0.zip` enthält den
+Worker-Quellcode zur Bereitstellung. Beide entstehen mit
+`python3 scripts/build_release.py`; der Paketbau stellt keinen Dienst bereit
+und veröffentlicht keinen Eintrag.
 
 Nach Bereitstellung verbinden sich Nutzer über die HTTPS-Zustimmungsseite von
 SourceBraid mit einem Fine-grained-GitHub-Token: **Contents: Read-only** für
@@ -334,8 +348,8 @@ indexieren. Die Suche auf dem Standardbranch nutzt GitHub Code Search und
 prüft Treffer an einem festgehaltenen Commit. Indexierungsverzögerungen,
 Suchgrenzen und ein gegebenenfalls begrenzter Fallback werden ausgewiesen.
 
-Das lokale Codex-Plugin bleibt die Variante mit voller Archivverwaltung. Es
-benötigt Python 3 und lokale GitHub-Authentifizierung. Ein reines Skills-ZIP
+Das lokale Codex-Plugin **1.1.0** bleibt die Variante mit voller Archivverwaltung.
+Es benötigt Python 3 und lokale GitHub-Authentifizierung. Ein reines Skills-ZIP
 verschafft gewöhnlichem ChatGPT allein keinen Zugriff auf lokale Dateien oder
 Zugangsdaten.
 
@@ -347,12 +361,12 @@ codex plugin marketplace add .
 codex plugin add sourcebraid@sourcebraid
 ```
 
-Sobald der geprüfte Tag `v1.0.1` veröffentlicht ist, lautet die an diesen Tag
+Sobald der geprüfte Tag `v1.1.0` veröffentlicht ist, lautet die an diesen Tag
 gebundene Installation von GitHub:
 
 ```bash
 codex plugin marketplace add patrickschiller/sourcebraid \
-  --ref v1.0.1 \
+  --ref v1.1.0 \
   --sparse .agents/plugins \
   --sparse codex-plugin/sourcebraid
 codex plugin add sourcebraid@sourcebraid
@@ -394,7 +408,7 @@ Der Index liegt getrennt pro Repository, Branch und Archivordner unter
 Eine Suche prüft höchstens alle 15 Minuten, ob sich der Remote-Head geändert
 hat; wenn GitHub nicht erreichbar ist, bleibt der lokale Index nutzbar.
 `search --scan` ist ein expliziter Diagnose-Fallback auf Basis von `rg`.
-Der sicherere Cache-Pfad dieser Version löst einen erneuten Erstaufbau aus;
+Bei einem älteren Cache-Layout wird der Index im aktuellen Cache-Pfad neu aufgebaut;
 Markdown-Dateien und Git-Historie bleiben unverändert.
 
 Neue Captures schreiben stabile URL-Hash-Shards wie
@@ -429,13 +443,19 @@ Nach einmaliger Einrichtung von Repository und Token können URLs, ausgewählter
 Text, Safari-Artikel mit relevanten Bild-Assets, PDFs und andere Dateien über
 das Teilen-Menü an das konfigurierte private Archiv gesendet werden.
 
-Der iOS-Release-Kandidat **1.1.0** ergänzt einen Markdown-Reader, die neuesten
-sieben Beiträge, Offline-Downloads und Volltextsuche, optionalen lokalen
-Apple-Intelligence-Chat mit Quellenlinks sowie adaptive iPad-/iPhone-Duo-Navigation.
-Der Maintainer hat die Veröffentlichung nach einem eigenen Funktionstest am
-15. Oktober 2026 freigegeben. Xcode-Cloud-Distribution und App-Store-Verfügbarkeit
-werden getrennt verfolgt; die Freigabe belegt keinen erfolgreichen Cloud-Build
-oder Store-Release. Siehe [Release-Hinweise 1.1.0](docs/IOS_RELEASE_1.1.0.de.md),
+Der Maintainer hat am 15. Oktober 2026 bestätigt, dass iOS **1.1.0** im App Store
+veröffentlicht ist. Die Version ergänzt einen Markdown-Reader, die neuesten
+sieben Beiträge, Offline-Downloads und Volltextsuche, native PDF-Vorschauen,
+optionalen lokalen Apple-Intelligence-Chat mit Quellenlinks, schreibgeschützte
+App-Kurzbefehle sowie adaptive iPad-/iPhone-Duo-Navigation.
+
+Reader und Suche unterstützen iOS/iPadOS ab 17. Chat benötigt zusätzlich
+iOS/iPadOS ab 26, unterstützte Hardware, aktivierte Apple Intelligence und ein
+verfügbares Systemmodell in einer unterstützten Sprache. Die Suche erfasst
+heruntergeladene Texte; anfangs kann die Archivabdeckung unvollständig sein.
+iOS bestimmt die Hintergrund-Ausführungszeit. Die Veröffentlichung erklärt
+die verbleibenden Geräteprüfungen nicht für bestanden.
+Siehe [Release-Hinweise 1.1.0](docs/IOS_RELEASE_1.1.0.de.md),
 [Umsetzungs- und Testprotokoll](docs/IOS_IMPLEMENTATION_TESTING.de.md)
 und [verbleibende Geräteprüfungen](docs/IOS_DEVICE_ACCEPTANCE.de.md). Native
 Navigation für Neueste/Suche/Chat und begrenzte Hintergrundaktualisierung stehen
