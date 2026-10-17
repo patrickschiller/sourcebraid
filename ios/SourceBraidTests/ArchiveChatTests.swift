@@ -86,12 +86,81 @@ final class ArchiveChatTests: XCTestCase {
             chat.draft = "Summary"; chat.send(library: library)
             XCTAssertTrue(chat.messages.isEmpty)
             XCTAssertFalse(chat.isWorking)
-            XCTAssertFalse(state.message.isEmpty)
+            XCTAssertEqual(chat.draft, "Summary", "An unavailable model must not consume a question")
         }
         let chat = ArchiveChat(service: model, availability: { .ready })
         chat.draft = String(repeating: "x", count: 1201); chat.send(library: library)
         XCTAssertFalse(chat.error.isEmpty)
         XCTAssertTrue(model.received.isEmpty)
+    }
+
+    func testAvailabilityRefreshKeepsConversationAndDraftThroughRecovery() async throws {
+        let library = try await library(), model = FakeArchiveAnswering()
+        var availability = IntelligenceState.ready
+        let chat = ArchiveChat(service: model, availability: { availability })
+        chat.draft = "Summary"; chat.send(library: library); await chat.waitForAnswer()
+        let messageIDs = chat.messages.map(\.id)
+        XCTAssertEqual(messageIDs.count, 2)
+        // The preserved archive-scope question must match the synthetic corpus,
+        // otherwise retrieval correctly stops before the answering service.
+        let followUp = "Markdown scrolling"
+        chat.draft = followUp
+        chat.wholeArchive = true
+
+        for state in [IntelligenceState.disabled, .modelNotReady, .unsupportedLanguage, .ready] {
+            availability = state
+            chat.checkAvailability()
+            XCTAssertEqual(chat.state, state)
+            XCTAssertEqual(chat.messages.map(\.id), messageIDs)
+            XCTAssertEqual(chat.draft, followUp)
+            XCTAssertTrue(chat.wholeArchive)
+            XCTAssertFalse(chat.isWorking)
+        }
+        XCTAssertEqual(model.received.count, 1, "A readiness check must not make a model request")
+        chat.send(library: library); await chat.waitForAnswer()
+        XCTAssertEqual(model.received.count, 2)
+        XCTAssertFalse(chat.messages.last?.incomplete ?? true)
+    }
+
+    func testSendRefreshesReadinessBeforeConsumingDraft() async throws {
+        let library = try await library(), model = FakeArchiveAnswering()
+        var availability = IntelligenceState.ready
+        let chat = ArchiveChat(service: model, availability: { availability })
+        availability = .modelNotReady // The app still displays the earlier ready state.
+        chat.draft = "Keep this question"
+        chat.send(library: library)
+        XCTAssertEqual(chat.state, .modelNotReady)
+        XCTAssertEqual(chat.draft, "Keep this question")
+        XCTAssertTrue(chat.messages.isEmpty)
+        XCTAssertTrue(model.received.isEmpty)
+        XCTAssertFalse(chat.isWorking)
+    }
+
+    func testReadinessLostDuringRetrievalPreventsGeneration() async throws {
+        let library = try await library(), model = FakeArchiveAnswering()
+        var checks = 0
+        let chat = ArchiveChat(service: model, availability: {
+            checks += 1
+            return checks < 3 ? .ready : .modelNotReady
+        })
+        chat.draft = "Preserve my submitted question"
+        chat.send(library: library); await chat.waitForAnswer()
+        XCTAssertEqual(chat.state, .modelNotReady)
+        XCTAssertTrue(model.received.isEmpty)
+        XCTAssertFalse(chat.isWorking)
+        XCTAssertEqual(chat.messages.first?.text, "Preserve my submitted question")
+        XCTAssertTrue(chat.messages.last?.incomplete == true)
+        XCTAssertTrue(chat.messages.last?.sources.isEmpty == true)
+    }
+
+    func testDiagnosticActionsDistinguishPreparationFromEligibilityAndLanguage() {
+        XCTAssertTrue(IntelligenceState.modelNotReady.recoverySteps.contains(.prepareModel))
+        XCTAssertTrue(IntelligenceState.modelNotReady.recoverySteps.contains(.matchLanguages))
+        XCTAssertFalse(IntelligenceState.disabled.recoverySteps.contains(.prepareModel), "Disabled Intelligence first needs enabling, not a claimed model download")
+        XCTAssertEqual(IntelligenceState.deviceNotEligible.recoverySteps, [.checkRequirements])
+        XCTAssertEqual(IntelligenceState.unsupportedLanguage.recoverySteps, [.matchLanguages])
+        XCTAssertEqual(IntelligenceState.unsupportedOS.recoverySteps, [.updateOS])
+        XCTAssertTrue(IntelligenceState.ready.recoverySteps.isEmpty)
     }
 
     func testStopDiscardsPartialAnswer() async throws {

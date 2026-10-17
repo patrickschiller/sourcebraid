@@ -6,7 +6,7 @@ struct ArchiveChatView: View {
     let openSource: (SourceExcerpt, ArchiveSnapshot) -> Void
     var body: some View {
         Group {
-            if chat.state.canGenerate {
+            if chat.state.canGenerate || !chat.messages.isEmpty {
                 ArchiveChatHistory(chat: chat, selectedTitle: library.selected?.title, indexedCount: library.indexedCount,
                     clipCount: library.inventoryClipCount, hasSelection: library.selected != nil, summarize: {
                         chat.wholeArchive = false
@@ -15,11 +15,9 @@ struct ArchiveChatView: View {
                     }, openSource: openSource)
                 .safeAreaInset(edge: .bottom) { ArchiveChatComposer(chat: chat, send: { chat.send(library: library) }) }
             } else {
-                VStack {
-                    ContentUnavailableView(archiveText("Apple Intelligence", "Apple Intelligence"), systemImage: "sparkles", description: Text(chat.state.message))
-                    Button(archiveText("Check availability again", "Verfügbarkeit erneut prüfen")) { chat.checkAvailability() }
-                        .buttonStyle(.bordered)
-                }.padding()
+                ScrollView {
+                    ArchiveIntelligenceDiagnostics(chat: chat).padding().padding(.bottom, 80)
+                }
             }
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
@@ -29,7 +27,55 @@ struct ArchiveChatView: View {
                 Button { chat.reset() } label: { Label(archiveText("Clear chat", "Chat leeren"), systemImage: "trash") }
             }
         }
-        .onAppear { if library.selected == nil && chat.messages.isEmpty { chat.wholeArchive = true } }
+        .onAppear {
+            chat.checkAvailability()
+            if library.selected == nil && chat.messages.isEmpty { chat.wholeArchive = true }
+        }
+    }
+}
+
+private struct ArchiveIntelligenceDiagnostics: View {
+    @ObservedObject var chat: ArchiveChat
+    private var checkedLanguage: String {
+        Locale.current.localizedString(forIdentifier: Locale.current.identifier) ?? Locale.current.identifier
+    }
+    var body: some View {
+        VStack(alignment: .leading, spacing: 20) {
+            Label("Apple Intelligence", systemImage: "sparkles")
+                .font(.subheadline.weight(.semibold)).foregroundStyle(.tint)
+                .accessibilityIdentifier("archive.chat.diagnostics")
+            VStack(alignment: .leading, spacing: 8) {
+                Text(chat.state.title).font(.title2.bold()).foregroundStyle(SourceBraidTheme.ink)
+                Text(chat.state.message).foregroundStyle(SourceBraidTheme.secondaryInk)
+            }
+            Button(archiveText("Check availability again", "Verfügbarkeit erneut prüfen")) { chat.checkAvailability() }
+                .buttonStyle(.borderedProminent)
+                .accessibilityIdentifier("archive.chat.checkAvailability")
+            Link(archiveText("Apple's setup and availability guide", "Apples Hilfe zu Einrichtung und Verfügbarkeit"), destination: IntelligenceState.supportURL)
+                .accessibilityIdentifier("archive.chat.appleHelp")
+            VStack(alignment: .leading, spacing: 16) {
+                ForEach(Array(chat.state.recoverySteps.enumerated()), id: \.element.id) { index, step in
+                    HStack(alignment: .top, spacing: 12) {
+                        Text("\(index + 1). ").fontWeight(.semibold).foregroundStyle(.tint)
+                        Text(step.message).foregroundStyle(SourceBraidTheme.ink)
+                    }
+                }
+            }
+            VStack(alignment: .leading, spacing: 8) {
+                Text(archiveText("Language checked: \(checkedLanguage)", "Geprüfte Sprache: \(checkedLanguage)"))
+                if chat.state == .modelNotReady {
+                    Text(archiveText("SourceBraid cannot read download progress or start the system model download.",
+                                     "SourceBraid kann den Downloadfortschritt nicht auslesen oder den Download des Systemmodells starten."))
+                }
+                Text(archiveText("Reading and search remain available. Your chat and draft are kept.",
+                                 "Lesen und Suche bleiben verfügbar. Dein Chat und Entwurf bleiben erhalten."))
+                Text(archiveText("Checked at ", "Geprüft um ") + chat.availabilityCheckedAt.formatted(date: .omitted, time: .shortened))
+            }
+            .font(.footnote).foregroundStyle(SourceBraidTheme.secondaryInk)
+        }
+        .frame(maxWidth: 620, alignment: .leading)
+        .frame(maxWidth: .infinity, alignment: .center)
+        .padding(.vertical, 12)
     }
 }
 
@@ -45,7 +91,7 @@ private struct ArchiveChatScope: View {
                 Text(archiveText("Archive", "Archiv")).tag(true)
             }.pickerStyle(.segmented)
             if !chat.wholeArchive {
-                Text(selectedTitle ?? archiveText("Select a clip in Latest first.", "Wähle zuerst einen Beitrag unter Neueste."))
+                Text(selectedTitle ?? archiveText("Select a clip in Recent first.", "Wähle zuerst einen Beitrag unter Zuletzt."))
                     .font(.subheadline).foregroundStyle(SourceBraidTheme.ink).lineLimit(2)
             }
             Text(archiveText("Apple Intelligence · on device · \(indexedCount)/\(clipCount) clips indexed",
@@ -68,6 +114,7 @@ private struct ArchiveChatHistory: View {
         ScrollViewReader { proxy in
             ScrollView {
                 LazyVStack(alignment: .leading, spacing: 20) {
+                    if !chat.state.canGenerate { ArchiveIntelligenceDiagnostics(chat: chat) }
                     ArchiveChatScope(chat: chat, selectedTitle: selectedTitle, indexedCount: indexedCount, clipCount: clipCount)
                     if chat.messages.isEmpty {
                         VStack(alignment: .leading, spacing: 16) {
@@ -146,7 +193,7 @@ private struct ArchiveChatComposer: View {
                 }
                 .buttonStyle(.borderedProminent).buttonBorderShape(.circle)
                 .foregroundStyle(SourceBraidTheme.onAccent)
-                .disabled(!chat.isWorking && chat.draft.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
+                .disabled(!chat.isWorking && (!chat.state.canGenerate || chat.draft.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty))
                 .accessibilityLabel(chat.isWorking ? archiveText("Stop answer", "Antwort stoppen") : archiveText("Send question", "Frage senden"))
             }
             .padding(6)

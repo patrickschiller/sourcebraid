@@ -13,14 +13,14 @@ freigegeben.
 Das [Konzept für die Markenfarben der App](IOS_BRAND_APPEARANCE.de.md) beschreibt
 die zurückhaltende Papier-/Grün-Palette nach dem Vorbild der SourceBraid-Webseite.
 
-Die App startet mit **Neueste** und zeigt die neuesten sieben Beiträge.
+Die App startet mit **Zuletzt** und zeigt die neuesten sieben Beiträge.
 Die native gruppierte Liste nutzt den verfügbaren Inhaltsbereich. Antippen
 öffnet den Beitrag direkt; die systemeigene
 Zurücknavigation führt zur Liste. Datumswerte erscheinen entsprechend der
 aktuellen Sprache statt als ISO-Zeitstempel. Reine Tagesdaten behalten ihren
 UTC-Kalendertag.
 
-Ab OS 18 trennt die systemeigene Tab-Leiste **Neueste**, **Suche** und **Chat**.
+Ab OS 18 trennt die systemeigene Tab-Leiste **Zuletzt**, **Suche** und **Chat**.
 OS 17 verwendet entsprechende Aktionen in der unteren Toolbar. Oben stehen
 Aktualisieren/Stopp und ein Mehr-Menü für Einstellungen, lokale Datenlöschung
 und Abmelden. Reader-Aktionen bleiben in dessen Toolbar; dort kann man auch zum
@@ -56,8 +56,9 @@ Skills bleiben außerhalb des Repositorys.
 
 | Auslöser | Arbeit |
 | --- | --- |
-| Start mit Cache / Vordergrund | Geschützten lokalen Metadatenkatalog und Suchabdeckung wiederherstellen. Keine automatische GitHub-Bestands- oder Artikelanfrage. |
+| Start mit Cache / Vordergrund nach abgeschlossenem Startpaket | Geschützten lokalen Metadatenkatalog und Suchabdeckung wiederherstellen. Keine automatische GitHub-Bestands- oder Artikelanfrage. |
 | Leerer lokaler Cache | Gepinnten Bestand mit Anfragebudget lesen und höchstens sieben Markdown-Dateien versuchen. Unvollständige Abdeckung anzeigen. |
+| Unterbrochenes Startpaket | Gespeicherte Beiträge wiederherstellen, den begrenzten Bestand erneut prüfen und nur die fehlenden Plätze bis zu sieben geladenen/indexierten Beiträgen ergänzen. |
 | Geplanter Hintergrundabruf | Neuesten Commit prüfen, Bestandsänderungen abgleichen und ein begrenztes Paket fehlender/geänderter Dateien oder Suchzeilen verarbeiten. |
 | Pull to refresh / Toolbar-Aktualisierung | Ausdrücklichen inkrementellen Abgleich starten; ausstehende Artikel innerhalb vorhandener Datei-/Cache-Grenzen vervollständigen. Stopp bleibt verfügbar. |
 | Nicht geladenen Beitrag öffnen | Diesen Beitrag gezielt laden und Metadaten/Suchzeile seiner aktuellen Version ergänzen. |
@@ -68,6 +69,20 @@ und deterministischer Fallbacks priorisiert. Die Oberfläche kennzeichnet den
 Teilbestand. Weitere Pakete ermitteln die tatsächliche Aufnahmezeit-Reihenfolge;
 ohne die erforderlichen Metadaten kann die App keine endgültigen neuesten sieben
 garantieren. Bereits vollständig gespeicherte Metadaten liefern diese sofort.
+
+Das nächste Update setzt auch ein teilweise gespeichertes Startpaket fort.
+Bisher konnte ein bereits gespeicherter Bestand nach einem Startabbruch alle
+weiteren Startdownloads unterdrücken, selbst wenn erst ein Beitrag fertig war.
+Die Fortsetzungsprüfung zählt jetzt geladene/indexierte Beiträge zusätzlich zum
+Bestand; fertige Beiträge werden wiederverwendet. Stopp oder Abbruch einer
+Aktualisierung übernimmt deren bereits atomar gespeicherten Fortschritt in die
+sichtbare Bibliothek. Der Start bleibt auf insgesamt sieben Beiträge begrenzt;
+ausdrückliches Aktualisieren vervollständigt den Rest eines großen Archivs.
+Archivformat, Berechtigungen und Cache-Budgets bleiben unverändert.
+Solange der Bestand unvollständig ist, zeigt die Fußzeile unter **Zuletzt** die
+Zahl geladener Beiträge gegenüber dem vollständigen Bestand. **Übrige Beiträge
+laden** startet dort direkt die ausdrückliche inkrementelle Aktualisierung mit
+vorhandener Fortschrittsanzeige und Stopp-Aktion.
 
 Der Katalog speichert den gepinnten Commit und jede Datei-SHA. Bei vollständigem,
 unverändertem Bestand/Index genügt während einer Aktualisierung die

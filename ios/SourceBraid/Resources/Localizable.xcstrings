@@ -167,20 +167,20 @@
         }
       }
     },
-    "Latest": {
+    "Recent": {
       "extractionState": "manual",
       "comment": "Primary archive destination in the system tab bar.",
       "localizations": {
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Latest"
+            "value": "Recent"
           }
         },
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "Neueste"
+            "value": "Zuletzt"
           }
         }
       }

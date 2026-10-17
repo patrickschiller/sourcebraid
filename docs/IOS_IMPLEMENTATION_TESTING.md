@@ -425,6 +425,139 @@ core/MCP logs. The planned iOS-only tag is `ios-v1.1.0`; Chrome/plugin/MCP stay
 Xcode Cloud 27.1 RC was verified; next Cloud build number is 11. These local
 results do not assert a successful Cloud archive/upload or App Store release.
 
+### Local Intelligence diagnostics and Store assets: October 17
+
+This working-tree update prepares a later release; the published 1.1.0/build 11
+does not contain the new diagnostic UI. Availability uses Apple's public
+`SystemLanguageModel` status and locale support. Guidance distinguishes
+disabled Intelligence, an unready model, ineligible hardware and an unsupported
+language without claiming to know download progress. Checks preserve the draft,
+conversation and scope, and run again after retrieval before generation.
+
+The generic unsigned iOS Simulator build passed, as did source and built-bundle
+release validation. On the dedicated iPhone 17 Pro simulator (iOS 27.1), all
+**51 unit/integration tests and 12 UI tests passed**. The latter include the
+seven existing regression cases, a bilingual diagnostic/recheck/reader case,
+and four explicitly opted-in screenshot cases. On iPad Pro 13-inch (M5), the
+five screenshot/diagnostic UI cases also passed.
+After visual review moved the recheck button and Apple help link above the
+long guidance, the three affected diagnostic UI cases passed again on each
+device. Both actions are asserted reachable without scrolling in both languages.
+
+The Store workflow requires both `SOURCEBRAID_DEMO=1` and
+`SOURCEBRAID_STORE_DEMO=1` in a Debug build. Seven original fictional articles
+use `example.invalid` and an explicit example-archive author; no private archive,
+credentials or generated model answer appears. Four native product views per
+locale/device are prepared: reader, Latest, offline search and raw Markdown.
+Diagnostic previews are excluded from the product upload set. Expanded
+[English](IOS_APP_STORE_METADATA.md) / [German](IOS_APP_STORE_METADATA.de.md)
+Store fields stay within Apple's length limits.
+All 16 original product captures were inspected: iPhone **1206 × 2622** and
+iPad **2064 × 2752**, RGB PNG without alpha. The recommended upload ZIP contains
+**14 images**; the two iPad Latest pictures remain optional outside it because
+their initial detail pane is empty. PNG hashes and ZIP integrity were verified.
+
+Evidence outside Git:
+`/private/tmp/sourcebraid-store-diagnostics-build.log`,
+`/private/tmp/sourcebraid-store-diagnostics-phone-verified.xcresult`,
+`/private/tmp/sourcebraid-store-diagnostics-ipad.xcresult` and matching logs.
+The final diagnostic layout evidence is in
+`/private/tmp/sourcebraid-diagnostics-{phone,ipad}-actions.xcresult` with matching
+logs and separately delivered previews.
+The screenshot capture tests are gated by the runner environment variable
+`TEST_RUNNER_SOURCEBRAID_APP_STORE_CAPTURE=1` for CLI runs. Routine tests skip
+them unless explicitly requested.
+
+Simulator injection verifies presentation and request gating, not the real
+iPhone's model preparation, Settings, Siri language or answer quality. Physical
+iPhone 17 Pro recovery and accessibility checks remain in the device checklist.
+No build/version bump, signing, App Store upload, new submission or Git push
+occurred. The new default screenshots and description need the next editable
+Store version because 1.1.0 is already public.
+
+### Store draft 1.1.1 and reader fixes: October 17
+
+After the signed-in Chrome connection became available, App Store Connect
+confirmed 1.1.0/build 11 as Ready for Distribution. A separate **1.1.1 draft**
+now contains the expanded English/German description, promotional text,
+keywords, update notes and subtitles. All **22 native product screenshots**
+were saved and verified after reloading: per language, four iPhone 17 Pro,
+four iPhone Duo and three iPad pictures. The Duo images are **1398 × 2034**
+RGB PNGs without alpha; its two product capture tests passed. The combined
+package retains the original screenshot bytes. This supersedes the earlier
+14-image preparation set above. No build was selected, submitted or released
+for 1.1.1; the public 1.1.0 listing remains unchanged.
+After the Recent/Zuletzt naming change, all 22 selected images were captured
+again, checked as original native PNGs and replaced in all six locale/device
+wells. A full reload confirmed their new asset IDs and counts. The saved
+English/German descriptions and 1.1.1 notes exactly match the local text files.
+
+The archive fix reproduces an initial refresh interrupted after one committed
+article. A later launch now fills only the missing slots up to seven; an
+explicit refresh downloads the remaining inventory. Recent shows loaded/total
+coverage and a **Load remaining clips** action. Cancellation recovery remains
+inside the coordinator's tracked job so it cannot reopen a cache after another
+scene has removed local data. A deterministic test holds cancellation cleanup
+and verifies that removal waits and leaves no recreated cache directory.
+
+A separate regression reproduces the user's clarified report in the tagged
+1.1.0 app: article 5 opens, but after Back, article 6 remains on the native
+spinner. Synthetic lifecycle tracing shows that the forced outer reader
+identity cancels the new detail task during compact navigation. Removing only
+that `.id(...)` from the released code makes the full 5 → 6 → 7 → 5 sequence
+pass, including distinct rendered bodies and raw source URLs. The working
+implementation keeps the reader stable, keys its loading task by path/SHA and
+generation, resets document-specific UI state, guards stale completions and
+offers Retry after an interrupted load. Invalid UTF-8 now reports a file error
+instead of being silently treated as cancellation.
+
+The home destination is now **Recent** / **Zuletzt**. Settings no longer shows
+the separate recently saved list; its unused settings-only state and refresh
+hook were removed. Capture storage used by the Share Extension is unchanged.
+
+Mermaid fences now use the pinned, bundled **Mermaid Tiny 12.2.0** engine in
+an isolated WebKit content world. Page scripts remain disabled, diagram
+rendering uses no remote service, and external article images retain their
+per-document opt-in. Common flowchart, sequence, state, class, ER and Gantt
+syntax is supported; invalid/unsupported/oversized input keeps its original
+source. A ten-second watchdog and WebKit termination recovery preserve the
+source-only fallback. The embedded WebView is keyed by clip path, SHA and
+inventory commit. Dependency notices are retained in the app.
+
+Final verification:
+
+- Generic unsigned iOS Simulator build passed.
+- All **58 unit/integration tests passed**, including interrupted bootstrap,
+  explicit full refresh, invalid UTF-8, genuine cancellation and cross-window
+  deletion/cancellation regressions.
+- The real WebKit UI probe passed on **iPhone 17 Pro and iPad Pro 13-inch**:
+  three visible nonempty SVGs, recovery from an invalid diagram, oversized
+  source fallback, no active/media/link elements and isolated JavaScript globals.
+- All **six targeted reader/navigation UI cases passed** with the final code:
+  successive selections from Recent and Search, Chat draft/tab preservation,
+  PDF/internal links, Mermaid/security and rotation. Another **eight UI cases**
+  passed for English/German phone reader/settings/search and native product
+  captures on iPhone 17 Pro, iPad Pro 13-inch and iPhone Duo. Rendering uses a
+  Debug-only synthetic app probe because the unit-test target has no
+  UIApplication host.
+- Source/bundle validation, pinned resource integrity and `git diff --check`
+  passed. No production archive, credentials or generated answer was used.
+
+Evidence outside Git: `/private/tmp/sourcebraid-recent-reader-final-build.log`,
+`/private/tmp/sourcebraid-recent-store-phone-v2.xcresult`,
+`/private/tmp/sourcebraid-reader-navigation-fixed.xcresult`,
+`/private/tmp/sourcebraid-recent-store-ipad.xcresult`,
+`/private/tmp/sourcebraid-recent-store-duo.xcresult` and matching logs.
+The earlier `/private/tmp/sourcebraid-1-1-1-mermaid-ipad.xcresult` records the
+iPad WebKit probe. Controlled release evidence is retained in
+`/private/tmp/sourcebraid-reader-release-repro.xcresult` and
+`/private/tmp/sourcebraid-reader-release-without-outer-id.xcresult`.
+These are local changes, not an installed physical-device update. Version/build,
+signing and Git history remain unchanged. The reader transition failure is
+reproduced separately from interrupted bootstrap and isolated by the controlled
+release experiment above. The corrected behavior on the user's physical iPhone
+still requires device acceptance.
+
 ## Next acceptance step
 
 Follow the [device checklist](IOS_DEVICE_ACCEPTANCE.md) in Xcode and on iPhone,

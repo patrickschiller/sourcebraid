@@ -239,7 +239,7 @@ class ReleaseVersionTests(unittest.TestCase):
         self.assertEqual(plugin["version"], chrome["version"])
         # iOS ships independently under ios-v* tags; v* tags version the
         # Chrome/Codex/MCP submission bundle together.
-        self.assertEqual(ios_versions, {"1.1.0"})
+        self.assertEqual(ios_versions, {"1.1.1"})
         self.assertIsNotNone(mcp_version)
         self.assertEqual(mcp_version.group(1), chrome["version"])
 

@@ -10,7 +10,6 @@ final class SettingsViewModel: ObservableObject {
     @Published var statusMessage = ""
     @Published var statusIsError = false
     @Published var isWorking = false
-    @Published var recentCaptures: [RecentCapture] = []
 
     init() {
         let configuration = SourceBraidSettings.load()
@@ -25,7 +24,6 @@ final class SettingsViewModel: ObservableObject {
             statusMessage = error.localizedDescription
             statusIsError = true
         }
-        refreshRecentCaptures()
     }
 
     var isConfigured: Bool {
@@ -53,10 +51,6 @@ final class SettingsViewModel: ObservableObject {
         }
     }
 
-    func refreshRecentCaptures() {
-        recentCaptures = RecentCaptureStore.load()
-    }
-
     private var configuration: SourceBraidConfiguration {
         SourceBraidConfiguration(owner: owner, repository: repository, branch: branch, rootFolder: rootFolder)
     }
@@ -72,7 +66,6 @@ final class SettingsViewModel: ObservableObject {
         _ = try ArchiveIdentity(configuration: configuration)
         try KeychainStore().setToken(token)
         try SourceBraidSettings.save(normalized)
-        refreshRecentCaptures()
         owner = normalized.owner
         repository = normalized.repository
         branch = normalized.branch

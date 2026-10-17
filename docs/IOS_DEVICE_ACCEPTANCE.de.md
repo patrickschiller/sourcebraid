@@ -59,8 +59,12 @@ historische Läufe mit Runtime 27.0 bleiben Nachweise ohne Duo-Abdeckung.
 - [ ] Neueste sieben mit dem vollständigen GitHub-Bestand vergleichen: UTC-
   Aufnahmezeit, Tages-Fallback, gleiche Datumswerte und undatierte Dateien.
   Ein unvollständiger Erstabruf darf keinen vollständigen Bestand behaupten.
-- [ ] Start mit **Neueste** und sieben Beiträgen; Suche/Chat nutzen native Navigation.
+- [ ] Start mit **Zuletzt** und sieben Beiträgen; Suche/Chat nutzen native Navigation.
   Antippen öffnet den Beitrag. Zurücknavigation, Auswahlmarkierung und interner Link funktionieren.
+- [ ] Verschiedene Beiträge nacheinander öffnen, etwa 5 → Zurück → 6 → Zurück
+  → 7 → Zurück → 5. Jede Auswahl muss fertig laden und ihren eigenen Inhalt,
+  Originalquelle und Markdown-Quelltext zeigen. Auch aus Suche und nach der
+  Rückkehr vom Chat prüfen.
 - [ ] Auf breitem iPad erscheinen Auswahl/Chat links und Reader rechts;
   Hoch-/Querformat, schmale Fenster, Split View und zweite App-Szene prüfen.
 - [ ] Überschriften, Fett/Kursiv, verschachtelte Listen, Aufgaben, Zitate,
@@ -114,7 +118,10 @@ Gerät Apple Intelligence aktivieren und den Modelldownload abschließen.
 
 | Fall | Erwartung / zu protokollierender Nachweis |
 | --- | --- |
-| KI deaktiviert / Modell lädt / unzulässige Sprache | Verständlicher Status, kein aktives Chat-Eingabefeld; Reader/Suche nutzbar. |
+| Gerät nicht berechtigt / iOS zu alt | Der gemeldete Grund ist von einem noch nicht bereiten Modell unterschieden; Reader/Suche bleiben nutzbar. |
+| Apple Intelligence deaktiviert | Aktivieren in den Einstellungen wird empfohlen; kein angeblich laufender Modelldownload. |
+| Modell nicht bereit | Der Status benennt die unbekannten Download-/Einrichtungsdetails ehrlich; Schritte zu aktivierter Intelligence, gleicher Geräte-/Siri-Sprache, WLAN, Strom und freiem Speicher. |
+| Nicht unterstützte Sprache | Geprüfte Sprache und Sprachhinweise sichtbar; keine Anfrage erreicht das Modell. |
 | Demo-Beitrag 5: „Welcher Wert steht in der Swift-Zeile?“ | `SourceBraid` aus dem Code; Quellenknopf öffnet den richtigen Auszug. |
 | Gleicher Fall auf Englisch | „What is the value in the Swift code?“; passende Sprache, gleicher Beleg. |
 | „Fasse diesen Beitrag zusammen.“ | Nur gelieferte Auszüge; keine Aussage, die eine vollständige Langdokument-Analyse behauptet. |
@@ -125,6 +132,30 @@ Gerät Apple Intelligence aktivieren und den Modelldownload abschließen.
 | Während Antwort Beitrag wechseln | Antwort bezieht sich weiter auf den ursprünglich übergebenen Bereich. |
 | Während Antwort stoppen / abmelden / Archiv wechseln | Keine nachträglich als geprüft dargestellte alte Antwort; Chat beim Archivwechsel geleert. |
 | Lange Quellen, Deutsch und weitere unterstützte Sprachen | Begrenzte Auszüge oder verständlicher Kontextfehler; kein stilles „vollständig gelesen“. |
+
+Die erweiterte Diagnose ist **für das nächste Update vorbereitet und nicht Teil
+der veröffentlichten 1.1.0**. Ihre Abnahme auf einem echten iPhone steht aus:
+
+- [ ] Auf einem iPhone 17 Pro die Debug-Verfügbarkeitsvorgaben entfernen und
+  tatsächliche App-/Build- und iOS-Version, Geräte- und Siri-Sprache,
+  Intelligence-Einstellung und gemeldeten Zustand protokollieren. Ein geeignetes
+  Gerät darf nicht automatisch als bereites Modell dargestellt werden.
+- [ ] Falls iOS ein noch nicht bereites Modell meldet, die Schritte mit
+  [Apples Hilfe](https://support.apple.com/de-de/121115) vergleichen. Einstellungen,
+  gleiche unterstützte Sprachen, WLAN, Strom und freien Speicher prüfen.
+  SourceBraid darf keinen Downloadprozentsatz, Downloadstart oder festen
+  Fertigstellungstermin behaupten. Den echten Zustand nach abgeschlossener
+  iOS-Vorbereitung protokollieren.
+- [ ] Chat öffnen, aus Einstellungen/Hintergrund zurückkehren und manuell
+  erneut prüfen: Jeweils den aktuellen Grund anzeigen. Bei fehlender
+  Verfügbarkeit bleibt Senden gesperrt; Lesen/Suche funktionieren weiter.
+- [ ] Nach einem echten Verfügbarkeitswechsel vorhandenen Verlauf und einen
+  ungesendeten mehrzeiligen Entwurf über erneute Prüfung und Wiederherstellung
+  behalten. Sobald das Modell bereit ist, die erhaltene Frage zu einem Beitrag
+  mit passenden Belegen senden; keine doppelte Anfrage oder automatische
+  Übermittlung. Zum Test geänderte Einstellungen danach wiederherstellen.
+- [ ] Vollständige Diagnose, erneute Prüfung und Apple-Hilfelink auf Deutsch
+  und Englisch mit großer Schrift und VoiceOver prüfen; per Scrollen erreichbar.
 
 Pro Fall Sprache, Geräte-/OS-Version, grobe Dauer, Ergebnis und Pass/Fail
 festhalten. Quellen-IDs sind strukturell prüfbar; ob ein Text die Antwort
@@ -244,6 +275,29 @@ und große private Archive bleiben Freigabesperren, soweit die jeweilige
 Release-Stufe diese Funktionen einschließt. Fehlende Nachweise als **offen**
 führen, nicht als bestanden. Keine privaten Dokumente oder Tokens in
 Screenshots, Testreports oder öffentlichen Issues.
+
+## Mermaid-Reader-Abnahme für das nächste Update
+
+Diese lokalen Änderungen sind nicht in der veröffentlichten 1.1.0 enthalten.
+Ein synthetisches Dokument mit Flussdiagramm, Sequenzdiagramm, einem ungültigen
+und anschließend gültigen Diagramm sowie einem zu großen Diagramm prüfen.
+Unterstützte Vorschauen müssen offline ohne CDN oder Diagrammdienst sichtbar
+bleiben. Fehlerhafte, nicht unterstützte und zu große Eingaben müssen ihren
+lesbaren Originalquelltext und einen klaren Hinweis behalten. Erfolgreiche
+Vorschauen bieten weiterhin einen aufklappbaren Quelltext.
+
+Mermaid Tiny 12.2.0 enthält keine Mindmaps, Architekturdiagramme oder KaTeX.
+Angeforderte ELK-Layouts verwenden Dagre. Zwei verschiedene Dokumente
+nacheinander öffnen, zum ersten zurückkehren, dunkle Darstellung und Drehung
+prüfen sowie eine Quellenzeile unterhalb eines Diagramms anspringen. Relative
+Links und Bilder müssen zum aktuellen Dokument gehören; die Leseposition muss
+nach Abschluss der Darstellung wiederhergestellt werden. Archivskripte,
+anklickbare Diagrammlinks und externe Diagrammmedien bleiben deaktiviert;
+externe Reader-Bilder benötigen weiterhin eine bewusste Auswahl.
+
+Ergebnisse auf echten Geräten, einschließlich des gemeldeten iPhone 17 Pro,
+sind weiterhin **offen**. Simulator-WebKit-Nachweise stehen getrennt im
+Implementierungsprotokoll und belegen kein Verhalten auf realer Hardware.
 
 ## Abnahmeprotokoll
 
