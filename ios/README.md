@@ -1,7 +1,7 @@
 # SourceBraid for iOS
 
 The iOS project contains a SwiftUI archive reader, configuration screens, and a
-native Share Extension. The next iOS release candidate is **1.1.1/build 12**; its
+native Share Extension. The next iOS release candidate is **1.1.1/build 13**; its
 [release record](../docs/IOS_RELEASE_1.1.1.md) separates validated local changes
 from the new cloud build and Apple review. **1.1.0/build 11** remains the
 published App Store version; its [earlier release notes](../docs/IOS_RELEASE_1.1.0.md)
@@ -33,15 +33,17 @@ Reader-only use needs `Contents: Read` for the selected GitHub repository. The S
 ## TestFlight
 
 The project uses automatic distribution signing for Apple Developer team
-`H76K2HQUFB`. The iOS release candidate is `1.1.1/build 12` for both the app and
-Share Extension, with the iOS-only tag `ios-v1.1.1`. Build 12 was selected after
-checking the existing Xcode Cloud history; its new cloud result is tracked in the
+`H76K2HQUFB`. The iOS release candidate is `1.1.1/build 13` for both the app and
+Share Extension, with the iOS-only tag `ios-v1.1.1`. Build 12 failed before
+compilation because its configured cloud environment was retired. The new
+build 13 result is tracked in the
 [release record](../docs/IOS_RELEASE_1.1.1.md). The already published
 `1.1.0/build 11` belongs to the previous release. Chrome, the local Codex plugin,
 and hosted MCP remain at `1.0.1` in this iOS release and use independent
 submission-bundle releases.
 Before every later upload, increment `CURRENT_PROJECT_VERSION` for both targets.
-The maintainer reports that the Xcode Cloud workflow uses Xcode 27.1 RC.
+The new cloud run targets the supported Xcode 27.1 environment rather than
+the retired Xcode 27.1 RC configuration.
 For the new upload, cloud archive, distribution, and App Store processing must
 each be verified from their actual results; none is implied by local validation.
 
@@ -181,15 +183,17 @@ entries retain the version and build that were actually tested.
 
 ## Deutsch: Veröffentlichung 1.1.1
 
-Der nächste iOS-Kandidat ist **1.1.1/Build 12** für App und Share Extension mit
-dem iOS-spezifischen Tag `ios-v1.1.1`. Build 12 wurde nach Prüfung der
-Xcode-Cloud-Historie gewählt; der neue Cloud-Durchlauf wird im
+Der nächste iOS-Kandidat ist **1.1.1/Build 13** für App und Share Extension mit
+dem iOS-spezifischen Tag `ios-v1.1.1`. Build 12 scheiterte vor der Kompilierung,
+weil seine konfigurierte Cloud-Umgebung nicht mehr verfügbar war. Der neue
+Durchlauf für Build 13 wird im
 [Release-Protokoll](../docs/IOS_RELEASE_1.1.1.de.md) dokumentiert. Die bereits
 veröffentlichte **1.1.0/Build 11** gehört zum vorherigen Release. Chrome,
 lokales Codex-Plugin und gehosteter MCP bleiben in diesem iOS-Release auf
 `1.0.1` und verwenden unabhängige Submission-Bundle-Releases. Deren öffentliche
 Freigabe folgt unabhängig.
-Der Xcode-Cloud-Workflow verwendet laut Maintainer Xcode 27.1 RC. Für spätere
+Der neue Cloud-Durchlauf verwendet die unterstützte Xcode-27.1-Umgebung statt
+der nicht mehr verfügbaren Xcode-27.1-RC-Konfiguration. Für spätere
 Uploads werden Cloud-Build, Distribution und App-Store-Verarbeitung anhand
 ihrer tatsächlichen Ergebnisse geprüft. Die früheren Testnachweise bleiben
 in den [Release-Hinweisen](../docs/IOS_RELEASE_1.1.0.de.md) erhalten.
