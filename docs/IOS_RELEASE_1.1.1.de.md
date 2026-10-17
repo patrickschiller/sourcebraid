@@ -11,9 +11,11 @@ Apple-Prüfung freigegeben. Dieses Protokoll beschreibt den geprüften
 Kandidaten. Die Freigabe allein belegt weder erfolgreiche Cloud-Archivierung
 und Upload noch Prüfeinreichung oder App-Store-Veröffentlichung.
 
-Der Kandidat für App und Share Extension ist **1.1.1/Build 12**. Build 12 wurde
-nach Prüfung der Xcode-Cloud-Historie gewählt; der neueste vorhandene Build
-war 11. Ein erfolgreicher Cloud-Durchlauf für Build 12 bleibt zu bestätigen.
+Der Kandidat für App und Share Extension ist **1.1.1/Build 13**. Build 12
+scheiterte vor der Kompilierung, weil seine konfigurierte Xcode-27.1-RC-/macOS-
+Umgebung nicht mehr verfügbar war. Build 13 ist für einen neuen Durchlauf mit
+der unterstützten Xcode-27.1-Umgebung vorbereitet; ein erfolgreicher
+Cloud-Durchlauf bleibt zu bestätigen.
 **1.1.0/Build 11** ist die
 vorherige, bereits veröffentlichte App-Store-Version. Ihr erfolgreicher
 Cloud-Build belegt diesen Kandidaten nicht. Chrome-Erweiterung, Codex-Plugin
