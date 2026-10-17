@@ -227,7 +227,7 @@ dem Hinweis „Zum Speichern fehlt die Freigabe“.
 | Ausgangslage | Einstieg | Erfolg |
 | --- | --- | --- |
 | Neues iPhone oder iPad ohne Konfiguration | Assistent ersetzt „Archiv verbinden → Einstellungen“ und den leeren Reader-Platzhalter | Privates Archiv verbunden; erster Capture abrufbar |
-| Update einer funktionierenden 1.1.0-Installation | Direkt „Neueste“, optionaler Hinweis in „Verbindungen“ | Bestehendes Archiv und Cache bleiben nutzbar |
+| Update einer funktionierenden 1.1.0-Installation | Direkt „Zuletzt“, optionaler Hinweis in „Verbindungen“ | Bestehendes Archiv und Cache bleiben nutzbar |
 | Zweites Gerät / Neuinstallation | „Vorhandenes Archiv verbinden“ deutlich anbieten | Dasselbe Repository auswählen, eigenes Credential erhalten |
 | Abgelaufenes oder widerrufenes Credential | Reparatur der Verbindung statt neuer Archiv-Erstellung | Identität bestätigen und Zugriff erneuern |
 | Nur Leserechte | Reader und Suche mit klarer Kennzeichnung | Lesen unabhängig von Capture nutzbar |

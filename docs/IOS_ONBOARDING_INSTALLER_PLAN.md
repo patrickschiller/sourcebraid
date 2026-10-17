@@ -230,7 +230,7 @@ save is missing.”
 | Starting point | Entry flow | Success |
 | --- | --- | --- |
 | New iPhone or iPad without configuration | Assistant replaces “Connect your archive → Settings” and the empty reader placeholder | Private archive connected; first capture retrievable |
-| Update of a working 1.1.0 installation | Directly to “Latest,” with an optional notice in “Connections” | Existing archive and cache remain usable |
+| Update of a working 1.1.0 installation | Directly to “Recent,” with an optional notice in “Connections” | Existing archive and cache remain usable |
 | Second device / reinstallation | Prominently offer “Connect existing archive” | Select the same repository and receive separate credentials |
 | Expired or revoked credential | Repair the connection instead of creating a new archive | Confirm identity and renew access |
 | Read-only permissions | Reader and search with clear labeling | Reading usable independently of capture |
