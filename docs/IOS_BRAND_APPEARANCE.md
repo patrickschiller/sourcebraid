@@ -5,7 +5,7 @@ October 12, 2026 · [Deutsch](IOS_BRAND_APPEARANCE.de.md)
 This local appearance update gives the iOS/iPadOS app a restrained identity
 inspired by [sourcebraid.com](https://sourcebraid.com/). Warm paper, deep green
 text and a single teal accent carry the website's visual character into native
-Apple controls. The seven-entry **Latest** destination, navigation, reader and
+Apple controls. The seven-entry **Recent** destination, navigation, reader and
 background-refresh behavior remain as described in the
 [reader concept](IOS_READER_REFRESH_UX.md).
 
@@ -63,7 +63,7 @@ does not verify every composited screen.
 
 ## Verification boundary
 
-Inspect Latest, Search, Chat, Settings and rendered Markdown in light/dark mode,
+Inspect Recent, Search, Chat, Settings and rendered Markdown in light/dark mode,
 increased contrast and enlarged text. Check legible dates and placeholder text,
 selected tabs, links, composer/send controls, sources, code blocks and tables.
 Check the input border with and without focus, reserved text/action space,

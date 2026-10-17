@@ -404,7 +404,7 @@ separately; approval does not establish a successful cloud build or store releas
 See the [1.1.0 release notes](docs/IOS_RELEASE_1.1.0.md),
 [implementation and test record](docs/IOS_IMPLEMENTATION_TESTING.md), and
 [remaining device checks](docs/IOS_DEVICE_ACCEPTANCE.md). Native
-Latest/Search/Chat navigation and bounded background refresh are described in
+Recent/Search/Chat navigation and bounded background refresh are described in
 the [UI and refresh concept](docs/IOS_READER_REFRESH_UX.md).
 
 ## Android roadmap

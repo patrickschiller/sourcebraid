@@ -10,8 +10,14 @@ struct ArchiveDemoReader: ArchiveReading {
     let documents: [String: Data]
     let inventory: ArchiveSnapshot
     init() throws {
-        identity = try ArchiveIdentity(configuration: .init(owner: "synthetic", repository: "fixture", branch: archiveText("main-seven", "main-seven-de"), rootFolder: "clips"))
+        let storeDemo = ProcessInfo.processInfo.environment["SOURCEBRAID_DEMO"] == "1"
+            && ProcessInfo.processInfo.environment["SOURCEBRAID_STORE_DEMO"] == "1"
+        identity = try ArchiveIdentity(configuration: .init(owner: "synthetic", repository: "fixture",
+            branch: storeDemo ? archiveText("store-examples-en", "store-examples-de") : archiveText("main-seven-reader-v2", "main-seven-reader-v2-de"), rootFolder: "clips"))
         var documents: [String: Data] = [:], files: [ArchiveFile] = []
+        if storeDemo {
+            documents = Self.storeDocuments()
+        } else {
         for number in 1...7 {
             let path = "clips/2026/10/2026-10-12-demo-\(number).md"
             let markdown = """
@@ -25,6 +31,8 @@ struct ArchiveDemoReader: ArchiveReading {
             # Markdown-Reader
 
             \(archiveText("This synthetic document checks the local reader. It contains no private content.", "Dieses synthetische Dokument prüft den lokalen Reader. Es enthält keine privaten Inhalte."))
+
+            \(archiveText("Synthetic document body", "Synthetischer Beitragsinhalt")) \(number).
 
             \(number == 7 ? archiveText("This clip demonstrates offline search in a Markdown archive.", "Dieser Beitrag zeigt die Offline-Suche in einem Markdown-Archiv.") : "")
 
@@ -58,6 +66,7 @@ struct ArchiveDemoReader: ArchiveReading {
             """
             documents[path] = Data(markdown.utf8)
         }
+        }
         documents["clips/2026/10/assets/pixel.png"] = Data(base64Encoded: "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO+jB7kAAAAASUVORK5CYII=")!
         documents["clips/2026/10/assets/synthetic.pdf"] = Self.syntheticPDF()
         for (path, bytes) in documents {
@@ -66,6 +75,99 @@ struct ArchiveDemoReader: ArchiveReading {
         }
         self.documents = documents
         inventory = ArchiveSnapshot(identity: identity, commit: String(repeating: "0", count: 40), files: files.sorted { $0.path < $1.path }, checkedAt: Date())
+    }
+
+    /// Original fictional articles used only by the explicitly opted-in store
+    /// capture workflow. No network, credentials, user archive, or model output.
+    private static func storeDocuments() -> [String: Data] {
+        let titles = archiveText(
+            "A balcony garden|A notebook for the weekend|Interfaces with room to breathe|Beyond the bookmark|Small tools, lasting value|A personal reference library|Reading notes that last",
+            "Ein Garten auf dem Balkon|Ein Notizbuch fürs Wochenende|Oberflächen mit Freiraum|Mehr als ein Lesezeichen|Kleine Werkzeuge, großer Wert|Die eigene Wissensbibliothek|Lesen, verstehen, behalten"
+        ).split(separator: "|").map(String.init)
+        let summaries = [
+            archiveText("A few herbs, good soil, and a little patience make a small balcony feel like a garden.", "Ein paar Kräuter, gute Erde und etwas Geduld machen aus einem kleinen Balkon einen Garten."),
+            archiveText("Leave space for a sketch, a useful question, and something you want to remember.", "Platz für eine Skizze, eine gute Frage und etwas, das in Erinnerung bleiben soll."),
+            archiveText("Clear hierarchy and comfortable spacing help a page stay readable.", "Klare Hierarchien und angenehme Abstände machen eine Seite gut lesbar."),
+            archiveText("Save the useful passage, keep the source, and find it again offline.", "Die wichtige Passage speichern, die Quelle behalten und offline wiederfinden."),
+            archiveText("Portable files are a good foundation for a collection that grows with you.", "Portable Dateien sind eine gute Grundlage für eine Sammlung, die mitwächst."),
+            archiveText("An offline library connects your reading, project notes, and useful references.", "Eine Offline-Bibliothek verbindet Lesestoff, Projektnotizen und hilfreiche Quellen."),
+            archiveText("Good notes make an interesting article useful long after you close the page.", "Gute Notizen machen einen interessanten Artikel auch später noch nützlich.")
+        ]
+        var result: [String: Data] = [:]
+        for number in 1...7 {
+            let title = titles[number - 1]
+            let body: String
+            if number == 7 {
+                body = archiveText("""
+                # Keep the idea. Keep the source.
+
+                A useful reading note connects **an idea**, its context, and a place to return to.
+
+                ## A small reading ritual
+
+                - Capture the passage worth keeping.
+                - Add a few words in your own voice.
+                - Revisit the original when you need context.
+
+                > The best note is the one you can find again.
+
+                ## Ready when you are
+
+                Downloaded Markdown stays readable offline. A simple text search brings the right passage back into view.
+
+                | Keep | Why it helps |
+                | --- | --- |
+                | Original link | Return to the context |
+                | Markdown text | Read with your own tools |
+                | Your notes | Connect ideas over time |
+
+                [A personal reference library](2026-10-17-demo-6.md)
+                """, """
+                # Die Idee bleibt. Die Quelle auch.
+
+                Eine gute Lesenotiz verbindet **eine Idee**, ihren Zusammenhang und einen Ort zum Wiederfinden.
+
+                ## Ein kleines Leseritual
+
+                - Die wichtige Passage festhalten.
+                - Ein paar eigene Gedanken ergänzen.
+                - Bei Bedarf zur Originalquelle zurückkehren.
+
+                > Die beste Notiz ist die, die du wiederfindest.
+
+                ## Bereit, wenn du es bist
+
+                Geladenes Markdown bleibt offline lesbar. Eine einfache Textsuche bringt die passende Passage zurück.
+
+                | Behalten | Der Nutzen |
+                | --- | --- |
+                | Original-Link | Den Kontext wiederfinden |
+                | Markdown-Text | Mit eigenen Werkzeugen lesen |
+                | Eigene Notizen | Ideen miteinander verbinden |
+
+                [Die eigene Wissensbibliothek](2026-10-17-demo-6.md)
+                """)
+            } else {
+                body = "# \(title)\n\n\(summaries[number - 1])\n\n" + archiveText(
+                    "## A little room for ideas\n\nCollect what matters, keep the original context, and make space for your next thought.\n\n- Start with one useful detail.\n- Keep the source beside your notes.\n- Return when the idea becomes relevant.\n",
+                    "## Raum für neue Gedanken\n\nSammle, was wichtig ist, bewahre den ursprünglichen Zusammenhang und halte Platz für den nächsten Gedanken frei.\n\n- Mit einem nützlichen Detail beginnen.\n- Die Quelle neben den Notizen behalten.\n- Zurückkehren, wenn die Idee wieder relevant wird.\n")
+            }
+            let markdown = """
+            ---
+            title: "\(title)"
+            author: "\(archiveText("SourceBraid example archive", "SourceBraid-Beispielarchiv"))"
+            captured_at: "2026-10-17T1\(number):00:00Z"
+            url: "https://example.invalid/sourcebraid/\(number)"
+            capture_method: "\(archiveText("Original fictional sample", "Eigener fiktiver Beispieltext"))"
+            tags: ["example", "markdown"]
+            ---
+            \(body)
+
+            *\(archiveText("Original fictional sample content. No private archive data.", "Eigener fiktiver Beispieltext. Keine privaten Archivdaten."))*
+            """
+            result["clips/2026/10/2026-10-17-demo-\(number).md"] = Data(markdown.utf8)
+        }
+        return result
     }
     func snapshot() async throws -> ArchiveSnapshot { inventory }
     func read(_ file: ArchiveFile, limit: Int) async throws -> Data {

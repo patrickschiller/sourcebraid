@@ -53,8 +53,11 @@ historical runs on runtime 27.0 remain non-Duo evidence.
 
 - [ ] Compare latest-seven ordering against the complete inventory: UTC capture
   timestamps, day/filename fallback, ties and undated files. Partial sync is labeled.
-- [ ] Start at **Latest** with seven clips; Search/Chat use native navigation.
+- [ ] Start at **Recent** with seven clips; Search/Chat use native navigation.
   Tap a row to open the document. Back, selection indication and relative links work.
+- [ ] Open different clips in succession, for example 5 → Back → 6 → Back → 7
+  → Back → 5. Each selection must finish loading and show its own body, original
+  source and raw Markdown. Repeat from Search and after returning from Chat.
 - [ ] Wide iPad has selection/chat left and reader right. Test rotation,
   narrow windows, Split View, and a second app scene.
 - [ ] Verify headings, emphasis, nested lists, tasks, quotes, code, wide tables,
@@ -105,7 +108,10 @@ the model download.
 
 | Case | Expected evidence |
 | --- | --- |
-| Disabled / model loading / unsupported language | Reason shown, no active chat input, reader/search usable. |
+| Device not eligible / iOS too old | The reported reason is distinguished from a model that is not ready; reader/search remain usable. |
+| Apple Intelligence disabled | Enabling it in Settings is suggested; the app does not claim a model download is running. |
+| Model not ready | The status remains honest about unknown download/setup progress; steps cover enabling Intelligence, matching device/Siri languages, Wi-Fi, power and free storage. |
+| Unsupported language | The checked language and language guidance are shown; no request reaches the model. |
 | Demo clip 5: “What is the value in the Swift code?” | `SourceBraid`, with a source button opening its supporting excerpt. |
 | German equivalent | “Welcher Wert steht in der Swift-Zeile?”; same evidence, suitable language. |
 | Summarize selected clip | Only supplied excerpts; no claim of complete long-document analysis. |
@@ -116,6 +122,27 @@ the model download.
 | Select another clip while streaming | Answer continues to address the originally submitted scope. |
 | Stop/sign out/change archive while streaming | No late verified old answer; archive changes clear chat. |
 | Long sources and multiple supported languages | Bounded excerpts or understandable context failure, without a silent completeness claim. |
+
+The expanded diagnostics are **prepared for the next update, not part of the
+published 1.1.0**. Their physical iPhone acceptance remains pending:
+
+- [ ] On an iPhone 17 Pro, remove Debug availability overrides and record the
+  actual app/build, iOS version, device and Siri languages, Intelligence setting
+  and reported state. Device eligibility alone must not be presented as readiness.
+- [ ] If iOS reports that the model is not ready, compare the displayed steps
+  with [Apple's guide](https://support.apple.com/en-us/121115). Check Settings,
+  matching supported languages, Wi-Fi, power and available storage. SourceBraid
+  must not display a download percentage, claim to start a download or promise
+  a completion time. Record the real state after iOS finishes preparation.
+- [ ] Enter Chat, return from Settings/background and use the manual recheck;
+  each should show the current reason. Check that sending remains blocked when
+  unavailable and that reading/search still work.
+- [ ] After a real availability change, keep an existing conversation and an
+  unsent multiline draft through refresh and recovery. Once ready, send the
+  preserved question against a clip with matching evidence; no duplicate request
+  or automatic submission should occur. Restore any settings changed for testing.
+- [ ] Check the full diagnosis, recheck action and Apple help link in German
+  and English with large text and VoiceOver; scrolling must keep them reachable.
 
 Record device/OS/language, rough duration, result and pass/fail. Verify the
 answer against the actual excerpt; structural citation checks do not establish
@@ -226,6 +253,27 @@ Real Duo transitions, minimum OS 17, AI answer quality, Shortcuts/Siri and large
 archive measurements remain release gates for stages that include them.
 Missing evidence is **pending**, never passed. Keep private documents and
 tokens out of screenshots, reports and public issues.
+
+## Mermaid reader acceptance for the next update
+
+These local changes are not included in the published 1.1.0. In a synthetic
+document, verify a flowchart, a sequence diagram, an invalid diagram followed
+by a valid one, and an oversized diagram. Supported diagrams must remain
+visible offline without contacting a CDN or diagram service. Invalid,
+unsupported and oversized input must leave readable original source and a clear
+message; successful previews retain an expandable source section.
+
+Mermaid Tiny 12.2.0 omits mindmaps, architecture diagrams and KaTeX. Requested
+ELK layouts fall back to Dagre. Test two different documents in succession,
+reopen the first, switch to dark appearance, rotate, and navigate to a source
+line below a diagram. Check source links/images resolve against the current
+document, and that reading position is restored after rendering completes.
+Archived scripts, clickable diagram links and external diagram media must
+remain disabled; reader images still need explicit permission.
+
+Real-device results, including the reported iPhone 17 Pro, remain **pending**.
+Simulator WebKit test evidence is recorded separately in the implementation
+test report; it does not establish physical-device behavior.
 
 ## Acceptance record
 

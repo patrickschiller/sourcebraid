@@ -4,7 +4,6 @@ struct SettingsView: View {
     @StateObject private var model = SettingsViewModel()
     @State private var notices = false
     @Environment(\.dismiss) private var dismiss
-    @Environment(\.scenePhase) private var scenePhase
 
     var body: some View {
         NavigationStack {
@@ -77,22 +76,6 @@ struct SettingsView: View {
                 }
                 .listRowBackground(SourceBraidTheme.surface)
 
-                if !model.recentCaptures.isEmpty {
-                    Section(archiveText("Recently saved", "Zuletzt gespeichert")) {
-                        ForEach(model.recentCaptures) { capture in
-                            VStack(alignment: .leading, spacing: 4) {
-                                Text(capture.title)
-                                    .lineLimit(2)
-                                Text(capture.path)
-                                    .font(.caption2.monospaced())
-                                    .foregroundStyle(SourceBraidTheme.secondaryInk)
-                                    .lineLimit(1)
-                            }
-                        }
-                    }
-                    .listRowBackground(SourceBraidTheme.surface)
-                }
-
                 Section {
                     Button(archiveText("Third-party licenses", "Lizenzen von Drittanbietern")) { notices = true }
                 }
@@ -118,11 +101,6 @@ struct SettingsView: View {
                 }
             }
             .toolbar { ToolbarItem(placement: .confirmationAction) { Button(archiveText("Done", "Fertig")) { dismiss() } } }
-            .onChange(of: scenePhase) { _, phase in
-                if phase == .active {
-                    model.refreshRecentCaptures()
-                }
-            }
         }
     }
     private var licenseText: String {

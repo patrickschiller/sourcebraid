@@ -41,6 +41,15 @@ final class ArchiveLibrary: ObservableObject {
     var recent: [ArchiveClip] { Array(clips.prefix(7)) }
     var isConfigured: Bool { identity != nil && client != nil }
 
+    private var needsBootstrap: Bool {
+        guard snapshot != nil else { return true }
+        // A persisted inventory does not imply the initial bodies finished. A
+        // launch interrupted after one body must resume instead of staying at one
+        // visible clip until iOS happens to grant background execution.
+        let seedCount = min(ArchiveRefreshScope.bootstrap.fileLimit, inventoryClipCount)
+        return min(clips.count, indexedCount) < seedCount
+    }
+
     func configure(bootstrapIfEmpty: Bool = true) async {
         guard !isConfiguring else { return }
         isConfiguring = true
@@ -48,7 +57,7 @@ final class ArchiveLibrary: ObservableObject {
         do {
             if injectedReader {
                 try await restoreCachedMetadata()
-                if bootstrapIfEmpty, snapshot == nil { synchronize(scope: .bootstrap) }
+                if bootstrapIfEmpty, needsBootstrap { synchronize(scope: .bootstrap) }
                 return
             }
 #if DEBUG
@@ -57,7 +66,7 @@ final class ArchiveLibrary: ObservableObject {
                 identity = reader.identity; client = reader; cache = ArchiveServices.cache(for: reader.identity)
                 if let cache { searchIndex = ArchiveSearchIndex(directory: cache.directory) }
                 try await restoreCachedMetadata()
-                if bootstrapIfEmpty, snapshot == nil { synchronize(scope: .bootstrap) }
+                if bootstrapIfEmpty, needsBootstrap { synchronize(scope: .bootstrap) }
                 return
             }
 #endif
@@ -84,9 +93,9 @@ final class ArchiveLibrary: ObservableObject {
             guard !token.isEmpty else { throw ArchiveError.missingCredentials }
             client = ArchiveReadClient(identity: next, token: token)
             try await restoreCachedMetadata()
-            // Warm launch and foreground only restore metadata. The first launch seeds
-            // at most seven bodies; scheduled/manual refresh fills the remaining gaps.
-            if bootstrapIfEmpty, snapshot == nil { synchronize(scope: .bootstrap) }
+            // A finished seed restores without network work. An interrupted seed
+            // resumes only its missing slots; scheduled/manual refresh fills the rest.
+            if bootstrapIfEmpty, needsBootstrap { synchronize(scope: .bootstrap) }
         } catch {
             let previousTask = syncTask
             previousTask?.cancel(); generation = UUID()
@@ -144,9 +153,28 @@ final class ArchiveLibrary: ObservableObject {
             status = result.status; lastRefreshReport = result.report
             if let selectedPath, !clips.contains(where: { $0.path == selectedPath }) { self.selectedPath = nil }
             return result.report
+        } catch let failure as ArchiveRefreshFailure {
+            let cancelled = failure.cause is CancellationError
+            let report = ArchiveRefreshReport(state: cancelled ? .cancelled : .failed, processed: 0, remaining: 0)
+            guard generation == epoch else { return report }
+            // Recovery was captured before the coordinator released its job.
+            // Applying these values performs no filesystem work that could race
+            // another scene's removal of local data.
+            if let recovery = failure.recovery, recovery.manifest.snapshot?.identity == identity {
+                snapshot = recovery.manifest.snapshot; clips = recovery.manifest.clips
+                metadataComplete = recovery.manifest.metadataComplete; indexedCount = recovery.indexedCount
+            }
+            lastRefreshReport = report
+            status = cancelled
+                ? archiveText("Refresh stopped. Downloaded clips are available.", "Aktualisierung gestoppt. Geladene Beiträge sind verfügbar.")
+                : failure.cause.localizedDescription + (snapshot == nil ? "" : " · " + archiveText("Showing offline copy", "Lokaler Stand wird angezeigt"))
+            return report
         } catch is CancellationError {
             let report = ArchiveRefreshReport(state: .cancelled, processed: 0, remaining: 0)
-            if generation == epoch { lastRefreshReport = report }
+            if generation == epoch {
+                lastRefreshReport = report
+                status = archiveText("Refresh stopped. Downloaded clips are available.", "Aktualisierung gestoppt. Geladene Beiträge sind verfügbar.")
+            }
             return report
         } catch {
             let report = ArchiveRefreshReport(state: .failed, processed: 0, remaining: 0)
@@ -182,7 +210,9 @@ final class ArchiveLibrary: ObservableObject {
             guard epoch == generation else { throw CancellationError() }
         }
         guard bytes.count <= ArchiveReadClient.markdownLimit else { throw ArchiveError.tooLarge }
-        guard epoch == generation, let raw = String(data: bytes, encoding: .utf8) else { throw CancellationError() }
+        try Task.checkCancellation()
+        guard epoch == generation else { throw CancellationError() }
+        guard let raw = String(data: bytes, encoding: .utf8) else { throw ArchiveError.invalidEncoding }
         let parsed = ClipMetadataReader.read(raw, file: file)
         // Opening a previously uncached current article expands metadata/search coverage.
         // An old pinned citation must never replace metadata from the current inventory.
@@ -232,7 +262,9 @@ final class ArchiveLibrary: ObservableObject {
             if let identity { _ = try await ArchiveRefreshCoordinator.store(identity: identity, cache: cache, index: nil, bytes: bytes, file: file) }
         }
         guard bytes.count <= ArchiveReadClient.markdownLimit else { throw ArchiveError.tooLarge }
-        guard epoch == generation, let raw = String(data: bytes, encoding: .utf8) else { throw CancellationError() }
+        try Task.checkCancellation()
+        guard epoch == generation else { throw CancellationError() }
+        guard let raw = String(data: bytes, encoding: .utf8) else { throw ArchiveError.invalidEncoding }
         pinnedClip = ClipMetadataReader.read(raw, file: file); pinnedSnapshot = inventory
         selectedPath = source.path; sourceFragment = "source-L\(source.line)"
     }

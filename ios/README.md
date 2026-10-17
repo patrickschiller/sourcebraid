@@ -1,10 +1,11 @@
 # SourceBraid for iOS
 
 The iOS project contains a SwiftUI archive reader, configuration screens, and a
-native Share Extension. The maintainer approved the **1.1.0** release candidate
-for publication on October 15, 2026 after a hands-on functional check. Xcode
-Cloud distribution and App Store availability are tracked separately in the
-[release notes](../docs/IOS_RELEASE_1.1.0.md). The Share
+native Share Extension. The next iOS release candidate is **1.1.1/build 12**; its
+[release record](../docs/IOS_RELEASE_1.1.1.md) separates validated local changes
+from the new cloud build and Apple review. **1.1.0/build 11** remains the
+published App Store version; its [earlier release notes](../docs/IOS_RELEASE_1.1.0.md)
+preserve the preflight and publication record. The Share
 Extension saves shared URLs, readable Safari content and its relevant image
 assets, selected text, PDFs, and other files into the same GitHub repository
 and URL-hash-sharded `web-clips/index/*.jsonl` format as the Chrome extension.
@@ -32,13 +33,17 @@ Reader-only use needs `Contents: Read` for the selected GitHub repository. The S
 ## TestFlight
 
 The project uses automatic distribution signing for Apple Developer team
-`H76K2HQUFB`. The approved release candidate is version `1.1.0` (build `11`) for
-both the app and Share Extension. Its planned iOS-only GitHub tag is
-`ios-v1.1.0`; Chrome, the Codex plugin, and hosted MCP remain at `1.0.1`.
+`H76K2HQUFB`. The iOS release candidate is `1.1.1/build 12` for both the app and
+Share Extension, with the iOS-only tag `ios-v1.1.1`. Build 12 was selected after
+checking the existing Xcode Cloud history; its new cloud result is tracked in the
+[release record](../docs/IOS_RELEASE_1.1.1.md). The already published
+`1.1.0/build 11` belongs to the previous release. Chrome, the local Codex plugin,
+and hosted MCP remain at `1.0.1` in this iOS release and use independent
+submission-bundle releases.
 Before every later upload, increment `CURRENT_PROJECT_VERSION` for both targets.
 The maintainer reports that the Xcode Cloud workflow uses Xcode 27.1 RC.
-Cloud archive, distribution, and App Store processing must each be verified
-from their actual results; none is implied by local validation.
+For the new upload, cloud archive, distribution, and App Store processing must
+each be verified from their actual results; none is implied by local validation.
 
 Run the release preflight from the repository root before archiving:
 
@@ -82,10 +87,12 @@ python3 ../scripts/validate_ios_release.py \
 
 ## Use
 
-The app starts at **Latest** with the latest seven clips, ordered by recorded
+The next update starts at **Recent** (called **Latest** in published 1.1.0)
+with the latest seven clips, ordered by recorded
 capture time and documented day/filename fallbacks. Tap a row to open it. Native
 **Search** and **Chat** destinations keep the initial list spacious; Refresh and More live in the
 toolbar. Wider layouts show the chosen destination alongside the reader.
+The separate recently saved list has been removed from Settings.
 Search covers downloaded text and displays index coverage. Warm starts restore
 the local catalog without downloading articles again. An empty cache seeds at
 most seven bodies; the initial filename-based candidates remain explicitly
@@ -111,6 +118,19 @@ are required. Unsupported devices retain reader/search and show the reason
 chat is unavailable. App Shortcuts provide read-only search, recent clips, and
 opening a loaded clip; broader Siri conversation support is not promised.
 
+**Prepared for the next update; not included in the published 1.1.0:** Chat
+diagnostics distinguish device eligibility, disabled Apple Intelligence, a model
+that is not ready, and an unsupported language. They show the language being
+checked and practical steps in Settings, with [Apple's setup and availability
+guide](https://support.apple.com/en-us/121115). For a model that is not ready,
+check that Apple Intelligence is enabled, that the device and Siri use the same
+supported language, and that Wi-Fi, power and free storage are available.
+SourceBraid cannot determine download progress or force a system-model download.
+Availability is checked when entering Chat, returning to the foreground, before
+generation and using **Check availability again**. A status change preserves the
+chat history and draft; sending stays disabled until the model is ready. Reading
+and search remain available. Real-device acceptance is still required.
+
 In Safari, Files, or another app:
 
 1. Tap **Share**.
@@ -118,6 +138,20 @@ In Safari, Files, or another app:
 3. Edit the title, add optional tags or a note, and tap **Save**.
 
 Apps such as Chrome generally share only a URL. SourceBraid loads public web URLs in an isolated web view and converts the readable page content to Markdown before saving, recording the same extraction methods as the browser extension (including specialized DeepMind captures). Safari can additionally supply its already visible page text and relevant article images through the extension's preprocessing script. Images are copied into the clip's asset folder and linked relatively in Markdown. Shared PDFs are queued as `pdf-docling-pending`; the PDF is pushed last so the existing GitHub Actions workflow can safely convert it after its Markdown and index metadata exist. Pages that require an authenticated browser session or block the isolated request are saved as clearly labeled link-only clips.
+
+## Mermaid previews prepared for the next update
+
+Fenced `mermaid` blocks render on device with bundled Mermaid Tiny 12.2.0;
+no CDN, diagram service or runtime download is used. Common flowcharts,
+sequence/state/class/ER diagrams and Gantt charts are supported. Upstream's tiny
+build omits mindmaps, architecture diagrams and KaTeX; ELK layouts fall back to
+Dagre. Unsupported, invalid or oversized diagrams show an explanation and their
+original source. The source is also available below successful previews.
+Archive scripts, diagram links and external diagram media remain disabled;
+ordinary external reader images still require the user's explicit selection.
+Details and license notices are in [the bundled renderer notes](SourceBraid/Resources/Mermaid/README.md).
+These changes are local preparation for the next update, not part of the
+published 1.1.0. Real-device diagram acceptance remains pending.
 
 ## Build without signing
 
@@ -145,20 +179,28 @@ model-quality checks remain documented in the acceptance checklist; this
 approval does not mark the full device matrix as passed. Historical test
 entries retain the version and build that were actually tested.
 
-## Deutsch: Release-Kandidat 1.1.0
+## Deutsch: Veröffentlichung 1.1.1
 
-Der Maintainer hat Version **1.1.0/Build 11** am 15. Oktober 2026 nach eigenem
-Funktionstest zur Veröffentlichung freigegeben. Der geplante iOS-GitHub-Tag
-lautet `ios-v1.1.0`; Chrome, Codex-Plugin und gehosteter MCP bleiben auf `1.0.1`.
-Der Xcode-Cloud-Workflow verwendet laut Maintainer Xcode 27.1 RC. Cloud-Build,
-Distribution und App-Store-Verfügbarkeit werden anhand ihrer tatsächlichen
-Ergebnisse getrennt geprüft. [Release-Hinweise](../docs/IOS_RELEASE_1.1.0.de.md).
+Der nächste iOS-Kandidat ist **1.1.1/Build 12** für App und Share Extension mit
+dem iOS-spezifischen Tag `ios-v1.1.1`. Build 12 wurde nach Prüfung der
+Xcode-Cloud-Historie gewählt; der neue Cloud-Durchlauf wird im
+[Release-Protokoll](../docs/IOS_RELEASE_1.1.1.de.md) dokumentiert. Die bereits
+veröffentlichte **1.1.0/Build 11** gehört zum vorherigen Release. Chrome,
+lokales Codex-Plugin und gehosteter MCP bleiben in diesem iOS-Release auf
+`1.0.1` und verwenden unabhängige Submission-Bundle-Releases. Deren öffentliche
+Freigabe folgt unabhängig.
+Der Xcode-Cloud-Workflow verwendet laut Maintainer Xcode 27.1 RC. Für spätere
+Uploads werden Cloud-Build, Distribution und App-Store-Verarbeitung anhand
+ihrer tatsächlichen Ergebnisse geprüft. Die früheren Testnachweise bleiben
+in den [Release-Hinweisen](../docs/IOS_RELEASE_1.1.0.de.md) erhalten.
 
-Die App startet mit **Neueste** und den neuesten sieben Beiträgen; Antippen
+Im nächsten Update startet die App mit **Zuletzt** (in der veröffentlichten
+1.1.0 **Neueste**) und den neuesten sieben Beiträgen; Antippen
 öffnet den Beitrag direkt. Native Bereiche für **Suche** und **Chat** halten
 die Startliste frei. Aktualisieren und
 weitere Aktionen liegen in der Toolbar. Breite Oberflächen zeigen den gewählten
-Bereich neben dem Reader. Cache-Starts laden keine Artikel erneut. Bei leerem
+Bereich neben dem Reader. Die zusätzliche Liste kürzlich gespeicherter Beiträge
+entfällt aus den Einstellungen. Cache-Starts laden keine Artikel erneut. Bei leerem
 Cache werden höchstens sieben Dateien versucht; die Dateinamens-Kandidaten bleiben
 bis zum weiteren Metadatenabruf als Teilbestand markiert. Begrenzte
 Hintergrundpakete und manuelles Aktualisieren lesen neue/geänderte Dateien.
@@ -173,6 +215,20 @@ bereites Modell in einer unterstützten Sprache. Nicht verfügbare KI wird
 verständlich angezeigt. Quellenlinks verweisen auf gelieferte Auszüge einer
 festen Dateiversion; sachliche Antwortqualität wird separat getestet.
 
+**Für das nächste Update vorbereitet; nicht in der veröffentlichten 1.1.0:**
+Die Chat-Diagnose unterscheidet Geräteberechtigung, ausgeschaltete Apple
+Intelligence, ein noch nicht bereites Modell und eine nicht unterstützte Sprache.
+Sie zeigt die geprüfte Sprache und konkrete Schritte in den Einstellungen mit
+[Apples Hilfe zu Einrichtung und Verfügbarkeit](https://support.apple.com/de-de/121115).
+Bei einem noch nicht bereiten Modell Apple Intelligence, dieselbe unterstützte
+Geräte- und Siri-Sprache sowie WLAN, Strom und freien Speicher prüfen.
+SourceBraid kann weder den Downloadfortschritt erkennen noch einen Download des
+Systemmodells erzwingen. Geprüft wird beim Öffnen von Chat, bei der Rückkehr in
+den Vordergrund, vor der Generierung und über **Verfügbarkeit erneut prüfen**.
+Ein Statuswechsel erhält Chatverlauf und Entwurf; Senden bleibt bis zur
+Bereitschaft gesperrt. Lesen und Suche bleiben verfügbar. Die Abnahme auf echten
+Geräten steht weiterhin aus.
+
 Markdown wird lokal mit `swift-markdown` dargestellt, PDF-Anhänge über Quick
 Look. Externe Bilder werden nur nach bewusster Auswahl geladen. Der Reader
 verändert keine GitHub-Dateien. Für reines Lesen genügen Contents-Leserechte;
@@ -182,3 +238,14 @@ im [Testprotokoll](../docs/IOS_IMPLEMENTATION_TESTING.de.md) und in der
 [Gerätecheckliste](../docs/IOS_DEVICE_ACCEPTANCE.de.md). Die Release-Freigabe
 ersetzt keine offenen Mindest-OS-, Dunkelmodus-, Accessibility- oder echten
 KI-Qualitätsnachweise.
+
+**Mermaid-Vorschauen für das nächste Update:** `mermaid`-Codeblöcke werden mit
+gebündeltem Mermaid Tiny 12.2.0 vollständig auf dem Gerät dargestellt. Gängige
+Fluss-, Sequenz-, Zustands-, Klassen-, ER- und Gantt-Diagramme werden unterstützt.
+Mindmaps, Architekturdiagramme und KaTeX fehlen in der Tiny-Distribution;
+ELK-Layouts verwenden Dagre. Fehlerhafte, nicht unterstützte oder zu große
+Diagramme zeigen einen Hinweis und ihren originalen Quelltext. Auch bei
+erfolgreicher Darstellung bleibt der Quelltext aufklappbar. Archivskripte,
+Diagrammlinks und externe Diagrammmedien bleiben deaktiviert. Es gibt keinen
+CDN-Aufruf und keinen Diagrammdienst. Die Geräteabnahme ist weiterhin offen;
+die veröffentlichte 1.1.0 enthält diese Änderung noch nicht.

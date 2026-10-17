@@ -92,6 +92,37 @@ final class ArchiveTests: XCTestCase {
         XCTAssertTrue(html.contains("script-src 'none'"))
     }
 
+    func testMermaidFencesKeepSourceAndNeverInsertExecutableContent() {
+        let body = """
+        ~~~MeRmAiD extra info
+        flowchart LR
+        A[\"</code><script>globalThis.pwned = true</script>\"] --> B
+        ~~~
+
+        ```swift
+        mermaid is just code here
+        ```
+        """
+        let html = MarkdownRenderer.document(clip("title: Diagram", body: body), root: "clips")
+        XCTAssertEqual(html.components(separatedBy: "data-mermaid").count - 1, 1)
+        XCTAssertTrue(html.contains("id='source-L1'"))
+        XCTAssertTrue(html.contains("&lt;/code&gt;&lt;script&gt;"))
+        XCTAssertTrue(html.contains("<details open>"), "Original source remains available if rendering fails")
+        XCTAssertFalse(html.contains("<script>"))
+        XCTAssertFalse(html.contains("src='https://"))
+        XCTAssertTrue(html.contains("script-src 'none'"))
+    }
+
+    func testBundledMermaidEngineIsPinnedAndAvailableOffline() throws {
+        let bundle = Bundle(for: Self.self)
+        let engine = try XCTUnwrap(bundle.url(forResource: "mermaid.tiny", withExtension: "js", subdirectory: "Mermaid"))
+        let bytes = try Data(contentsOf: engine)
+        let checksum = SHA256.hash(data: bytes).map { String(format: "%02x", $0) }.joined()
+        XCTAssertEqual(checksum, "ea0cdf04eb31907eb20d956a34fe300095365c876887b54ffa29f1f847f56d00")
+        let adapter = try XCTUnwrap(bundle.url(forResource: "sourcebraid-mermaid", withExtension: "js", subdirectory: "Mermaid"))
+        XCTAssertFalse(try Data(contentsOf: adapter).isEmpty)
+    }
+
     func testCacheRebuildAndArchiveIsolation() async throws {
         let base = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString)
         defer { try? FileManager.default.removeItem(at: base) }

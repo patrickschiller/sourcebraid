@@ -450,6 +450,153 @@ iOS-Release. Xcode Cloud 27.1 RC wurde geprüft; nächste Cloud-Buildnummer ist 
 Diese lokalen Ergebnisse behaupten weder erfolgreichen Cloud-Upload noch eine
 App-Store-Veröffentlichung.
 
+### Lokale KI-Diagnose und Store-Dateien: 17. Oktober
+
+Diese Arbeitskopie bereitet ein späteres Update vor; die veröffentlichte
+1.1.0/Build 11 enthält die neue Diagnoseansicht noch nicht. Die Prüfung nutzt
+Apples öffentlichen `SystemLanguageModel`-Status und die Sprachunterstützung.
+Die Hilfe unterscheidet ausgeschaltete Intelligence, ein nicht bereites Modell,
+ungeeignete Hardware und eine nicht unterstützte Sprache, ohne angeblichen
+Downloadfortschritt anzuzeigen. Entwurf, Verlauf und Fragebereich bleiben bei
+erneuter Prüfung erhalten; vor der Generierung wird auch nach dem Abruf der
+Quellenauszüge nochmals geprüft.
+
+Der vorgeschriebene unsignierte generische iOS-Simulator-Build sowie Quell- und
+Bundle-Releaseprüfung bestanden. Im eigens angelegten iPhone-17-Pro-Simulator
+(iOS 27.1) bestanden alle **51 Unit-/Integrations- und 12 UI-Tests**. Dazu
+gehören sieben bestehende Regressionstests, eine zweisprachige Prüfung von
+Diagnose/erneuter Prüfung/Reader und vier ausdrücklich aktivierte Bildfälle.
+Auf iPad Pro 13 Zoll (M5) bestanden ebenfalls die fünf Bild-/Diagnose-UI-Fälle.
+Nach der Sichtprüfung wurden Prüfbutton und Apple-Hilfelink über die langen
+Hinweise verschoben. Die drei betroffenen Diagnose-UI-Fälle bestanden danach
+erneut auf beiden Geräten. Beide Aktionen müssen in beiden Sprachen ohne
+Scrollen erreichbar sein.
+
+Der Store-Ablauf benötigt in einem Debug-Build sowohl `SOURCEBRAID_DEMO=1` als
+auch `SOURCEBRAID_STORE_DEMO=1`. Sieben selbst verfasste fiktive Artikel nutzen
+`example.invalid` und eine ausdrückliche Beispielarchiv-Autorenkennzeichnung;
+private Archive, Zugangsdaten und generierte Modellantworten fehlen. Pro Sprache
+und Gerät sind vier native Produktansichten vorbereitet: Reader, Neueste,
+Offline-Suche und Markdown-Quelltext. Diagnosevorschauen gehören nicht zum
+Produkt-Uploadsatz. Die erweiterten Store-Felder auf
+[Deutsch](IOS_APP_STORE_METADATA.de.md) / [Englisch](IOS_APP_STORE_METADATA.md)
+halten Apples Längenlimits ein.
+Alle 16 nativen Produktaufnahmen wurden gesichtet: iPhone **1206 × 2622** und
+iPad **2064 × 2752**, RGB-PNG ohne Alphakanal. Das empfohlene Upload-ZIP enthält
+**14 Bilder**; die zwei iPad-Neueste-Aufnahmen bleiben wegen des anfangs leeren
+Detailbereichs optional außerhalb davon. PNG-Hashes und ZIP-Integrität sind
+geprüft.
+
+Nachweise außerhalb von Git:
+`/private/tmp/sourcebraid-store-diagnostics-build.log`,
+`/private/tmp/sourcebraid-store-diagnostics-phone-verified.xcresult`,
+`/private/tmp/sourcebraid-store-diagnostics-ipad.xcresult` mit zugehörigen Logs.
+Die endgültige Diagnoseanordnung ist in
+`/private/tmp/sourcebraid-diagnostics-{phone,ipad}-actions.xcresult` mit
+zugehörigen Logs und getrennt ausgelieferten Vorschauen belegt.
+Für CLI-Aufnahmen wird die Runner-Umgebungsvariable
+`TEST_RUNNER_SOURCEBRAID_APP_STORE_CAPTURE=1` gesetzt. Normale Testläufe
+überspringen diese Bildfälle ohne ausdrückliche Aktivierung.
+
+Die Simulator-Injektion prüft Darstellung und Schutz vor Modellaufrufen, nicht
+die echte Modellvorbereitung, Einstellungen, Siri-Sprache oder Antwortqualität
+auf dem iPhone. Physische iPhone-17-Pro-Wiederherstellung und Accessibility
+bleiben in der Gerätecheckliste offen. Version/Build unverändert; keine
+Signierung, Store-Uploads, neuen Einreichungen oder Git-Pushes ausgeführt.
+Neue Standard-Screenshots und Beschreibung benötigen die nächste bearbeitbare
+Store-Version, weil 1.1.0 bereits öffentlich verfügbar ist.
+
+### Store-Entwurf 1.1.1 und Reader-Korrekturen: 17. Oktober
+
+Nach Wiederherstellung der angemeldeten Chrome-Verbindung bestätigte App Store
+Connect 1.1.0/Build 11 als bereit für den Vertrieb. Ein eigener **Entwurf 1.1.1**
+enthält jetzt die erweiterten deutschen/englischen Beschreibungen, Werbetexte,
+Schlüsselwörter, Neuerungen und Untertitel. Alle **22 nativen Produktbilder**
+sind gespeichert und nach erneutem Laden geprüft: je Sprache vier für iPhone
+17 Pro, vier für iPhone Duo und drei für iPad. Die Duo-Aufnahmen sind
+**1398 × 2034** große RGB-PNGs ohne Alpha; beide Produktaufnahme-Tests bestanden.
+Das Gesamtpaket bewahrt die unveränderten Bilddateien und ersetzt die oben
+dokumentierte erste Vorbereitung mit 14 Bildern. Für 1.1.1 wurde kein Build
+ausgewählt, eingereicht oder veröffentlicht; öffentlich bleibt 1.1.0 bestehen.
+Nach der Umbenennung in Recent/Zuletzt wurden alle 22 ausgewählten Bilder neu
+aufgenommen, als unveränderte native PNGs geprüft und in allen sechs
+Sprach-/Gerätegruppen ersetzt. Erneutes Laden bestätigte neue Asset-IDs und
+Bildzahlen. Gespeicherte Beschreibungen und 1.1.1-Neuerungen auf Deutsch und
+Englisch stimmen exakt mit den lokalen Textdateien überein.
+
+Die Ladekorrektur reproduziert einen ersten Abruf, der nach einem gespeicherten
+Beitrag unterbrochen wird. Ein späterer Start ergänzt jetzt nur die fehlenden
+Plätze bis sieben; ausdrückliches Aktualisieren lädt den übrigen Bestand.
+Zuletzt zeigt geladenen/Gesamtbestand und **Übrige Beiträge laden**. Die
+Wiederherstellung nach Abbruch bleibt im überwachten Aktualisierungsjob, damit
+sie keinen Cache nach dessen Entfernung durch ein anderes Fenster erneut
+öffnet. Ein deterministischer Test hält die Abbruchbereinigung an und prüft,
+dass die Entfernung wartet und kein Cache-Verzeichnis wieder entsteht.
+
+Ein eigener Regressionstest reproduziert den präzisierten Gerätebericht in
+der markierten Version 1.1.0: Beitrag 5 öffnet sich, nach Zurück bleibt Beitrag
+6 am nativen Ladekreisel hängen. Synthetische Ablaufmarkierungen zeigen, dass
+die erzwungene äußere Reader-Identität den neuen Detail-Ladevorgang während der
+kompakten Navigation abbricht. Allein das Entfernen dieses `.id(...)` aus dem
+veröffentlichten Code lässt die vollständige Folge 5 → 6 → 7 → 5 bestehen,
+einschließlich eigener Inhalte und Quell-URLs im Markdown-Quelltext. Der neue
+Stand behält den Reader bei, ordnet Ladeaufgaben Pfad/SHA und Generation zu,
+setzt beitragsbezogene Ansichtsoptionen zurück, verhindert veraltete Ergebnisse
+und bietet nach einem Ladeabbruch einen erneuten Versuch an. Ungültiges UTF-8
+meldet jetzt einen Dateifehler statt eines still verschluckten Abbruchs.
+
+Der Startbereich heißt jetzt **Recent** / **Zuletzt**. Die zusätzliche Liste
+kürzlich gespeicherter Beiträge entfällt aus den Einstellungen, ebenso deren
+ungenutzter Ansichtsstatus und Aktualisierungsaufruf. Die gemeinsame
+Capture-Speicherung der Share Extension bleibt unverändert.
+
+Mermaid-Codeblöcke verwenden jetzt die fest gebündelte **Mermaid Tiny 12.2.0**
+in einer isolierten WebKit-Skriptumgebung. Seitenskripte bleiben deaktiviert,
+Diagramme benötigen keinen externen Dienst und externe Artikelbilder weiterhin
+die Freigabe pro Dokument. Gängige Fluss-, Sequenz-, Zustands-, Klassen-, ER-
+und Gantt-Diagramme werden unterstützt. Ungültige, nicht unterstützte oder zu
+große Eingaben behalten ihren Originalquelltext. Nach zehn Sekunden oder einem
+WebKit-Prozessabbruch bleibt eine Quelltextansicht erhalten. Die eingebettete
+WebView wird Beitragspfad, SHA und Bestands-Commit zugeordnet. Lizenzhinweise der
+Abhängigkeiten bleiben in der App enthalten.
+
+Abschließende Prüfung:
+
+- Der generische unsignierte iOS-Simulator-Build bestand.
+- Alle **58 Unit-/Integrationstests bestanden**, einschließlich unterbrochenem
+  Startabruf, ausdrücklichem vollständigem Abruf, ungültigem UTF-8, echten
+  Abbrüchen und Abbruch-/Löschfällen über mehrere Fenster.
+- Der echte WebKit-UI-Test bestand auf **iPhone 17 Pro und iPad Pro 13 Zoll**:
+  drei sichtbare gefüllte SVGs, gültige Darstellung nach einem Syntaxfehler,
+  Quelltext bei Übergröße, keine aktiven/Medien-/Link-Elemente und isolierte
+  JavaScript-Variablen.
+- Alle **sechs gezielten Reader-/Navigationsfälle bestanden** mit dem finalen
+  Stand: aufeinanderfolgende Auswahl aus Zuletzt und Suche, Chatentwurf und
+  Tab-Wechsel, PDF/interne Links, Mermaid/Sicherheit und Rotation. Weitere
+  **acht UI-Fälle** bestanden für deutsche/englische Reader-, Einstellungs- und
+  Suchansichten auf dem iPhone sowie native Produktaufnahmen auf iPhone 17 Pro,
+  iPad Pro 13 Zoll und iPhone Duo. Die Darstellung wird in einer synthetischen
+  Debug-App geprüft, da das Unit-Testziel keinen UIApplication-Host besitzt.
+- Quell-/Bundle-Prüfung, Integrität der gebündelten Ressourcen und
+  `git diff --check` bestanden. Keine echten Archive, Zugangsdaten oder
+  generierten Antworten wurden verwendet.
+
+Nachweise außerhalb von Git: `/private/tmp/sourcebraid-recent-reader-final-build.log`,
+`/private/tmp/sourcebraid-recent-store-phone-v2.xcresult`,
+`/private/tmp/sourcebraid-reader-navigation-fixed.xcresult`,
+`/private/tmp/sourcebraid-recent-store-ipad.xcresult`,
+`/private/tmp/sourcebraid-recent-store-duo.xcresult` mit zugehörigen Logs.
+Der frühere `/private/tmp/sourcebraid-1-1-1-mermaid-ipad.xcresult` enthält den
+WebKit-Test auf dem iPad. Der Vergleich mit dem veröffentlichten Code liegt in
+`/private/tmp/sourcebraid-reader-release-repro.xcresult` und
+`/private/tmp/sourcebraid-reader-release-without-outer-id.xcresult`.
+Dies sind lokale Änderungen, kein auf dem physischen iPhone installiertes
+Update. Version/Build, Signierung und Git-Verlauf bleiben unverändert. Der
+Reader-Wechselfehler wurde unabhängig vom unterbrochenen Startabruf nachgestellt
+und durch den beschriebenen Vergleich mit dem veröffentlichten Code eingegrenzt.
+Das korrigierte Verhalten auf dem physischen iPhone des Nutzers bleibt Teil der
+Geräteabnahme.
+
 ## Nächster Abnahmeschritt
 
 [Gerätecheckliste](IOS_DEVICE_ACCEPTANCE.de.md) lokal in Xcode und auf dem

@@ -4,7 +4,7 @@ enum ArchiveSection: Hashable {
     case recent, search, chat
     var title: LocalizedStringResource {
         switch self {
-        case .recent: "Latest"
+        case .recent: "Recent"
         case .search: "Search"
         case .chat: "Chat"
         }
@@ -32,6 +32,8 @@ struct ContentView: View {
                 _chat = StateObject(wrappedValue: ArchiveChat(service: ArchiveDemoAnswering(), availability: { .ready }))
             } else if ProcessInfo.processInfo.environment["SOURCEBRAID_CHAT_LAYOUT"] == "1" {
                 _chat = StateObject(wrappedValue: ArchiveChat(availability: { .ready }))
+            } else if ProcessInfo.processInfo.environment["SOURCEBRAID_INTELLIGENCE_STATE"] == "modelNotReady" {
+                _chat = StateObject(wrappedValue: ArchiveChat(availability: { .modelNotReady }))
             }
         }
 #endif
@@ -40,7 +42,9 @@ struct ContentView: View {
     var body: some View {
         Group {
 #if DEBUG
-            if ProcessInfo.processInfo.environment["SOURCEBRAID_NATIVE_PREVIEW"] == "1" { ArchiveNativeProbe() }
+            if ProcessInfo.processInfo.environment["SOURCEBRAID_DEMO"] == "1",
+               ProcessInfo.processInfo.environment["SOURCEBRAID_MERMAID_PROBE"] == "1" { ArchiveMermaidProbe() }
+            else if ProcessInfo.processInfo.environment["SOURCEBRAID_NATIVE_PREVIEW"] == "1" { ArchiveNativeProbe() }
             else {
                 ArchiveWorkspace(library: library, chat: chat, section: $section, preferredColumn: $preferredColumn,
                     searchQuery: $searchQuery, searchResults: $searchResults, searchError: $searchError,
@@ -242,7 +246,10 @@ private struct ArchiveRecentList: View {
                 }
             } footer: {
                 ArchiveSyncFooter(isSyncing: library.isSyncing, progress: library.progress, status: library.status,
-                    metadataComplete: library.metadataComplete, checkedAt: library.snapshot?.checkedAt)
+                    metadataComplete: library.metadataComplete, checkedAt: library.snapshot?.checkedAt,
+                    loadedCount: library.clips.count, inventoryCount: library.inventoryClipCount) {
+                        library.synchronize()
+                    }
             }
         }
         .listStyle(.insetGrouped)
@@ -300,11 +307,19 @@ private struct ArchiveSyncFooter: View {
     let status: String
     let metadataComplete: Bool
     let checkedAt: Date?
+    let loadedCount: Int
+    let inventoryCount: Int
+    let loadRemaining: () -> Void
     var body: some View {
         VStack(alignment: .leading, spacing: 6) {
             if isSyncing { Label(progress, systemImage: "arrow.triangle.2.circlepath") }
-            if !metadataComplete && checkedAt != nil {
-                Text(archiveText("Showing loaded clips. More update in the background.", "Geladene Beiträge. Weitere werden im Hintergrund aktualisiert."))
+            if !metadataComplete && checkedAt != nil && inventoryCount > loadedCount {
+                Text(archiveText("\(loadedCount) of \(inventoryCount) clips loaded.",
+                    "\(loadedCount) von \(inventoryCount) Beiträgen geladen."))
+                if !isSyncing {
+                    Button(archiveText("Load remaining clips", "Übrige Beiträge laden"), action: loadRemaining)
+                        .accessibilityIdentifier("archive.loadRemaining")
+                }
             }
             if !status.isEmpty { Text(status) }
         }
@@ -376,7 +391,6 @@ private struct ArchiveDetail: View {
     var body: some View {
         if let clip = library.selected {
             ArchiveReaderView(library: library, clip: clip, askAboutClip: ask)
-                .id(clip.path + clip.sha + library.generation.uuidString)
         } else {
             ContentUnavailableView(archiveText("Select a clip", "Beitrag auswählen"), systemImage: "doc.richtext",
                 description: Text(archiveText("Your Markdown archive, with its original sources.", "Dein Markdown-Archiv mit seinen Originalquellen.")))

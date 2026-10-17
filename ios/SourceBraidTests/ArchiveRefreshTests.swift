@@ -10,6 +10,10 @@ private actor RefreshFixtureReader: ArchiveReading {
     private(set) var inventoryWalks = 0
     private(set) var inventoryLimits: [Int?] = []
     var suspended = false
+    private var suspendAfterReads: Int?
+    private var holdCancelledRead = false
+    private var cancelledReadContinuation: CheckedContinuation<Void, Never>?
+    private(set) var cancelledReadIsHeld = false
 
     init(identity: ArchiveIdentity, count: Int) {
         self.identity = identity
@@ -32,13 +36,28 @@ private actor RefreshFixtureReader: ArchiveReading {
 
     func read(_ file: ArchiveFile, limit: Int) async throws -> Data {
         reads.append(file.path)
-        while suspended { try await Task.sleep(nanoseconds: 10_000_000) }
+        while suspended || suspendAfterReads.map({ reads.count > $0 }) == true {
+            do { try await Task.sleep(nanoseconds: 10_000_000) }
+            catch {
+                if holdCancelledRead {
+                    cancelledReadIsHeld = true
+                    await withCheckedContinuation { cancelledReadContinuation = $0 }
+                }
+                throw error
+            }
+        }
         try Task.checkCancellation()
         guard let bytes = documents[file.path], bytes.count <= limit else { throw ArchiveError.tooLarge }
         return bytes
     }
 
     func setSuspended(_ value: Bool) { suspended = value }
+    func setSuspendAfterReads(_ value: Int?) { suspendAfterReads = value }
+    func setHoldCancelledRead(_ value: Bool) { holdCancelledRead = value }
+    func releaseCancelledRead() {
+        holdCancelledRead = false
+        cancelledReadContinuation?.resume(); cancelledReadContinuation = nil
+    }
     func resetReads() { reads = [] }
     func currentSnapshot() -> ArchiveSnapshot { inventory }
     func changeAndDelete() {
@@ -81,6 +100,16 @@ private actor FailingBudgetReader: ArchiveReading {
     }
 }
 
+private struct DocumentBytesReader: ArchiveReading {
+    let inventory: ArchiveSnapshot
+    let bytes: Data
+    func snapshot() async throws -> ArchiveSnapshot { inventory }
+    func read(_ file: ArchiveFile, limit: Int) async throws -> Data {
+        guard bytes.count <= limit else { throw ArchiveError.tooLarge }
+        return bytes
+    }
+}
+
 @MainActor
 final class ArchiveRefreshTests: XCTestCase {
     private var temporary: URL!
@@ -96,12 +125,57 @@ final class ArchiveRefreshTests: XCTestCase {
         return (reader, cache, ArchiveLibrary(reader: reader, cache: cache, identity: identity))
     }
 
-    private func waitForRead(_ reader: RefreshFixtureReader) async throws {
+    private func waitForRead(_ reader: RefreshFixtureReader, count: Int = 1) async throws {
         for _ in 0..<100 {
-            if await !reader.reads.isEmpty { return }
+            if await reader.reads.count >= count { return }
             try await Task.sleep(nanoseconds: 10_000_000)
         }
         XCTFail("The synthetic body request did not start")
+    }
+
+    private func documentFixture(bytes: Data, cached: Bool) async throws -> (ArchiveLibrary, ArchiveClip, ArchiveSnapshot) {
+        let identity = try ArchiveIdentity(configuration: .init(owner: "synthetic", repository: "encoding-\(UUID().uuidString)", branch: "main", rootFolder: "clips"))
+        let sha = Insecure.SHA1.hash(data: Data("blob \(bytes.count)\0".utf8) + bytes).map { String(format: "%02x", $0) }.joined()
+        let file = ArchiveFile(path: "clips/synthetic-encoding.md", sha: sha, size: bytes.count)
+        let inventory = ArchiveSnapshot(identity: identity, commit: String(repeating: "a", count: 40), files: [file], checkedAt: Date())
+        let clip = ClipMetadataReader.read("", file: file)
+        let cache = ArchiveCache(identity: identity, base: temporary)
+        try await cache.begin(inventory); try await cache.addMetadata(clip)
+        if cached { try await cache.store(bytes, sha: sha) }
+        let library = ArchiveLibrary(reader: DocumentBytesReader(inventory: inventory, bytes: bytes), cache: cache, identity: identity)
+        await library.configure(bootstrapIfEmpty: false)
+        library.select(clip.path)
+        return (library, clip, inventory)
+    }
+
+    func testInvalidUTF8DocumentAndCitationProduceVisibleErrorRatherThanCancellation() async throws {
+        for cached in [false, true] {
+            let (library, clip, inventory) = try await documentFixture(bytes: Data([0x23, 0x20, 0xC3, 0x28]), cached: cached)
+            do { _ = try await library.document(clip); XCTFail("Invalid UTF-8 must not leave a reader silently loading") }
+            catch { XCTAssertEqual(error as? ArchiveError, .invalidEncoding, "Cached and network bytes need the same visible encoding error") }
+            XCTAssertEqual(library.selectedPath, clip.path)
+            XCTAssertNotNil(inventory.githubURL(for: clip.path), "The invalid file remains available through GitHub fallback")
+            let source = SourceExcerpt(id: "S1", path: clip.path, sha: clip.sha, title: clip.title, line: 1, text: "Synthetic encoding fixture")
+            do { try await library.openCitation(source, snapshot: inventory); XCTFail("Invalid citation bytes must report their encoding") }
+            catch { XCTAssertEqual(error as? ArchiveError, .invalidEncoding) }
+            XCTAssertNil(library.pinnedClip, "An invalid citation must not become the current pinned document")
+        }
+    }
+
+    func testActualCancellationOfCachedDocumentAndCitationRemainsCancellation() async throws {
+        let (library, clip, inventory) = try await documentFixture(bytes: Data("# Valid synthetic UTF-8\n".utf8), cached: true)
+        let document = Task { try await library.document(clip) }
+        document.cancel()
+        do { _ = try await document.value; XCTFail("A cancelled read must not finish") }
+        catch { XCTAssertTrue(error is CancellationError) }
+        let source = SourceExcerpt(id: "S1", path: clip.path, sha: clip.sha, title: clip.title, line: 1, text: "Synthetic cancellation fixture")
+        let citation = Task { try await library.openCitation(source, snapshot: inventory) }
+        citation.cancel()
+        do { try await citation.value; XCTFail("A cancelled citation must not become pinned") }
+        catch { XCTAssertTrue(error is CancellationError) }
+        XCTAssertNil(library.pinnedClip)
+        let (_, raw) = try await library.document(clip)
+        XCTAssertEqual(raw, "# Valid synthetic UTF-8\n", "A cancelled request must not poison a later valid read")
     }
 
     func testColdLaunchSeedsAtMostSevenAndForegroundDoesNotRepeatDownload() async throws {
@@ -135,6 +209,56 @@ final class ArchiveRefreshTests: XCTestCase {
         XCTAssertEqual(restored.recent.count, 7)
         XCTAssertTrue(restored.metadataComplete)
         XCTAssertEqual(restored.recent.map(\.path), original.recent.map(\.path))
+    }
+
+    func testInterruptedFirstLaunchKeepsCommittedClipAndResumesOnlyMissingSeedSlots() async throws {
+        let (reader, _, original) = try fixture(count: 31)
+        await reader.setSuspendAfterReads(1)
+        await original.configure()
+        try await waitForRead(reader, count: 2)
+        original.stopSync(); await original.waitForSync()
+        XCTAssertEqual(original.lastRefreshReport?.state, .cancelled)
+        XCTAssertEqual(original.clips.count, 1, "A stopped refresh must expose its atomically committed progress")
+        XCTAssertEqual(original.indexedCount, 1)
+        XCTAssertEqual(original.inventoryClipCount, 31)
+
+        await reader.setSuspendAfterReads(nil); await reader.resetReads()
+        let restoredCache = ArchiveCache(identity: reader.identity, base: temporary)
+        let restored = ArchiveLibrary(reader: reader, cache: restoredCache, identity: reader.identity)
+        await restored.configure(); await restored.waitForSync()
+        let resumedReads = await reader.reads
+        XCTAssertEqual(resumedReads.count, 6, "An interrupted one-clip seed must fill six slots, without an automatic full download")
+        XCTAssertEqual(restored.clips.count, 7)
+        XCTAssertEqual(restored.indexedCount, 7)
+        XCTAssertEqual(restored.lastRefreshReport?.remaining, 24)
+        XCTAssertFalse(restored.metadataComplete)
+        XCTAssertEqual(Set(resumedReads).count, 6)
+        XCTAssertFalse(resumedReads.contains(original.clips[0].path), "The committed first body must be reused")
+
+        await reader.resetReads()
+        await restored.configure(); await restored.waitForSync()
+        let foregroundReads = await reader.reads
+        XCTAssertTrue(foregroundReads.isEmpty, "A completed seed restores without further foreground downloads")
+
+        restored.synchronize(); await restored.waitForSync()
+        let explicitReads = await reader.reads
+        XCTAssertEqual(explicitReads.count, 24)
+        XCTAssertEqual(restored.clips.count, 31)
+        XCTAssertEqual(restored.indexedCount, 31)
+        XCTAssertTrue(restored.metadataComplete)
+        XCTAssertEqual(restored.lastRefreshReport?.remaining, 0)
+    }
+
+    func testInventorySavedBeforeAnyBodyStillResumesBootstrap() async throws {
+        let (reader, cache, library) = try fixture(count: 10)
+        let inventory = await reader.currentSnapshot()
+        try await cache.begin(inventory)
+        await library.configure(); await library.waitForSync()
+        let reads = await reader.reads
+        XCTAssertEqual(reads.count, 7)
+        XCTAssertEqual(library.clips.count, 7)
+        XCTAssertEqual(library.lastRefreshReport?.remaining, 3)
+        XCTAssertFalse(library.metadataComplete)
     }
 
     func testUnchangedCommitSkipsTreesBodiesAndPreservesIndex() async throws {
@@ -228,11 +352,40 @@ final class ArchiveRefreshTests: XCTestCase {
         try await waitForRead(reader)
         await foreground.removeLocalData(broadcast: false)
         let report = await task.value
+        XCTAssertFalse(FileManager.default.fileExists(atPath: cache.directory.path), "Cancellation recovery must not recreate the deleted cache directory")
         let manifest = try await cache.load(), count = try await foreground.searchIndex?.count()
         XCTAssertEqual(report.state, .cancelled)
         XCTAssertNil(manifest.snapshot)
         XCTAssertTrue(manifest.clips.isEmpty)
         XCTAssertEqual(count, 0)
+    }
+
+    func testLocalRemovalWaitsForCancelledReadCleanupAndDoesNotRecreateCache() async throws {
+        let (reader, cache, foreground) = try fixture(count: 8)
+        let background = ArchiveLibrary(reader: reader, cache: cache, identity: reader.identity)
+        await foreground.configure(bootstrapIfEmpty: false)
+        await background.configure(bootstrapIfEmpty: false)
+        await reader.setSuspended(true); await reader.setHoldCancelledRead(true)
+        let refresh = Task { await background.refreshInBackground() }
+        try await waitForRead(reader)
+        let removal = Task { await foreground.removeLocalData(broadcast: false) }
+        for _ in 0..<100 {
+            if await reader.cancelledReadIsHeld { break }
+            try await Task.sleep(nanoseconds: 10_000_000)
+        }
+        let cancellationHeld = await reader.cancelledReadIsHeld
+        XCTAssertTrue(cancellationHeld, "The synthetic reader must hold cancellation cleanup until explicitly released")
+        XCTAssertTrue(FileManager.default.fileExists(atPath: cache.directory.appendingPathComponent("catalog.json").path),
+            "Removal must wait for the tracked reader cleanup before deleting the catalog")
+        await reader.releaseCancelledRead()
+        await removal.value
+        let report = await refresh.value
+        XCTAssertEqual(report.state, .cancelled)
+        XCTAssertFalse(FileManager.default.fileExists(atPath: cache.directory.path), "No late recovery read may recreate a removed cache")
+        let manifest = try await cache.load()
+        XCTAssertNil(manifest.snapshot)
+        XCTAssertTrue(manifest.clips.isEmpty)
+        XCTAssertTrue(foreground.clips.isEmpty)
     }
 
     func testConfigurationInvalidationCancelsWriterAndNoOldResultIsApplied() async throws {

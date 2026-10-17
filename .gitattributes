@@ -1,0 +1,2 @@
+# Retain the exact pinned upstream bundle, including whitespace in template literals.
+ios/SourceBraid/Resources/Mermaid/mermaid.tiny.js -whitespace linguist-vendored

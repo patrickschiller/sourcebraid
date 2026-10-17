@@ -12,13 +12,13 @@ approval remain pending; no commit, push or upload is authorized.
 The [app brand-color concept](IOS_BRAND_APPEARANCE.md) defines the restrained
 paper/green palette inspired by the SourceBraid website.
 
-The initial destination is **Latest** and shows the latest seven clips. Its
+The initial destination is **Recent** and shows the latest seven clips. Its
 native grouped list fills the available content area. A row opens its document
 directly; the system Back
 control returns to the list. Dates use the current locale rather than raw ISO
 timestamps; day-only capture dates retain their UTC calendar day.
 
-On OS 18 and later, a system tab bar separates **Latest**, **Search**, and
+On OS 18 and later, a system tab bar separates **Recent**, **Search**, and
 **Chat**. OS 17 uses the corresponding bottom toolbar actions. The upper
 toolbar contains Refresh/Stop and a More menu for Settings, local-data removal,
 and sign-out. Reader actions remain in the reader toolbar, including an action
@@ -54,8 +54,9 @@ outside this repository.
 
 | Trigger | Work |
 | --- | --- |
-| Warm launch / foreground | Restore the protected local metadata catalog and index coverage. No automatic GitHub inventory or article request. |
+| Warm launch / foreground after a completed initial seed | Restore the protected local metadata catalog and index coverage. No automatic GitHub inventory or article request. |
 | Empty local cache | Read a pinned, request-bounded inventory and attempt at most seven Markdown bodies. Show partial coverage. |
+| Interrupted initial seed | Restore committed clips, recheck the bounded inventory and resume only the missing slots up to seven loaded/indexed clips. |
 | Scheduled background refresh | Check the latest commit, reconcile inventory changes and process a bounded batch of missing/changed bodies or index rows. |
 | Pull to refresh / toolbar Refresh | Run an explicit incremental refresh; finish pending articles within existing per-file/cache limits. Stop remains available. |
 | Open a missing document | Download that document on demand and add its current-version metadata/search row. |
@@ -66,6 +67,18 @@ fallbacks. The UI labels this as partial. Further batches establish the actual
 capture-time ordering; the app cannot claim the definitive newest seven before
 reading the necessary metadata. Previously cached full metadata can show the
 correct newest seven immediately.
+
+The next update also recovers a partially saved initial seed. Previously, a
+snapshot saved before a launch interruption could suppress all later startup
+downloads even if only one clip had finished. The resume check now counts
+loaded/indexed clips as well as the inventory; completed clips are reused.
+Stopping or cancelling a refresh restores its atomically committed progress in
+the visible library. The startup still stops at seven total clips, and explicit
+Refresh remains the way to complete the rest of a large archive. These fixes do
+not change the archive format, permissions or cache budgets.
+The Recent footer shows the loaded count against the full inventory while
+coverage is partial. **Load remaining clips** starts the explicit incremental
+refresh directly from that footer, with the existing progress and Stop action.
 
 The catalog records the pinned commit and each file's SHA. A complete,
 unchanged inventory/index requires only the commit request during a refresh.

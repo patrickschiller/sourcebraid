@@ -192,12 +192,13 @@ enum ClipMetadataReader {
 }
 
 enum ArchiveError: LocalizedError, Equatable {
-    case invalidPath, invalidResponse, tooLarge, incompleteTree, missingCredentials, noEvidence, unavailable, rateLimited, previewUnavailable
+    case invalidPath, invalidResponse, invalidEncoding, tooLarge, incompleteTree, missingCredentials, noEvidence, unavailable, rateLimited, previewUnavailable
     case http(Int)
     var errorDescription: String? {
         switch self {
         case .invalidPath: return archiveText("Invalid archive path or link.", "Ungültiger Archivpfad oder Link.")
         case .invalidResponse: return archiveText("Invalid GitHub response.", "Ungültige GitHub-Antwort.")
+        case .invalidEncoding: return archiveText("This Markdown file is not valid UTF-8. Open it on GitHub or save it as UTF-8.", "Diese Markdown-Datei ist kein gültiges UTF-8. Auf GitHub öffnen oder als UTF-8 speichern.")
         case .tooLarge: return archiveText("The local file or context limit was reached. Try a smaller file or question.", "Das lokale Datei- oder Kontextlimit wurde erreicht. Kleinere Datei oder Frage versuchen.")
         case .incompleteTree: return archiveText("Archive inventory is incomplete.", "Archivbestand ist unvollständig.")
         case .missingCredentials: return archiveText("Configure GitHub in Settings first.", "Zuerst GitHub in den Einstellungen konfigurieren.")
