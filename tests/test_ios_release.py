@@ -45,7 +45,7 @@ class IOSReleaseTests(unittest.TestCase):
         report = ios_release.validate_source(REPOSITORY_ROOT)
 
         self.assertEqual(report.marketing_version, "1.1.1")
-        self.assertEqual(report.build_number, "12")
+        self.assertEqual(report.build_number, "13")
         self.assertEqual(
             report.icon_sha256,
             "3adcbd818e547ae7da3f5df26111631aa86f39549d07480bbce959f760731b93",

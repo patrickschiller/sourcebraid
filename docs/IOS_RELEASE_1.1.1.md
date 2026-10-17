@@ -10,9 +10,10 @@ and submitting the matching app version for Apple's review. This record
 describes the validated candidate; authorization alone does not establish a
 successful cloud archive, upload, review submission or App Store publication.
 
-The candidate is **1.1.1/build 12** for both the app and Share Extension.
-Build 12 was selected after checking the Xcode Cloud history, whose latest
-existing build was 11. A successful cloud result for build 12 remains to be
+The candidate is **1.1.1/build 13** for both the app and Share Extension.
+Build 12 failed before compilation because its configured Xcode 27.1 RC/macOS
+environment was no longer available. Build 13 is prepared for a new run with
+the supported Xcode 27.1 environment; a successful cloud result remains to be
 verified. **1.1.0/build 11** is the
 previous, already published App Store version. Its successful cloud build
 does not validate this candidate. The Chrome extension, Codex plugin and hosted
