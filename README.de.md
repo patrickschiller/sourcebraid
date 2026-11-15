@@ -216,6 +216,11 @@ gespeichert werden, aktualisiert der Workflow seinen Branch vor dem Push erneut
 und wiederholt einen abgelehnten Push bis zu fünfmal. Dadurch gehen parallele
 SourceBraid-Uploads nicht durch einen kurzzeitigen Git-Ref-Konflikt verloren.
 
+Die automatische PDF-Konvertierung läuft bei Branch-Pushes, nicht bei
+Release-Tags. Entfernt ein Force-Push den vorherigen Commit aus dem Checkout,
+prüft der Workflow die aktuellen PDF-Quellen, ohne die entfernte Historie erneut
+zu laden. Ein Checkout ohne passende PDFs endet erfolgreich ohne Konvertierung.
+
 ## Wikis und Gists mit Bildern
 
 ### Azure DevOps Wiki

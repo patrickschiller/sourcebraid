@@ -39,7 +39,25 @@ def main() -> int:
 
 
 def discover_sources(before: str, after: str, process_all: bool) -> list[Path]:
-    if process_all or not before or before == ZERO_SHA:
+    scan_all = process_all or not before or before == ZERO_SHA
+    if not scan_all:
+        previous = subprocess.run(
+            ["git", "cat-file", "-e", f"{before}^{{commit}}"],
+            check=False,
+            capture_output=True,
+        )
+        if previous.returncode:
+            # A force-push can remove the previous history from a fresh checkout.
+            # Validate the current revision, then scan locally without fetching it back.
+            subprocess.run(
+                ["git", "cat-file", "-e", f"{after}^{{commit}}"],
+                check=True,
+                capture_output=True,
+            )
+            print("Previous commit is unavailable locally; scanning current source.pdf files.")
+            scan_all = True
+
+    if scan_all:
         candidates = Path(".").glob("**/assets/*/source.pdf")
     else:
         result = subprocess.run(
