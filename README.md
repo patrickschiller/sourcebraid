@@ -199,6 +199,11 @@ If another clip is saved to the same branch during conversion, the workflow
 refreshes its branch and retries a rejected push up to five times. Concurrent
 SourceBraid uploads are therefore not lost to a temporary Git ref race.
 
+Automatic PDF conversion runs on branch pushes, not release tags. If a
+force-push removes the previous commit from the checkout, the workflow scans
+the current PDF sources instead of fetching the removed history. A checkout
+without matching PDFs finishes successfully without converting anything.
+
 ## Wikis and Gists with images
 
 ### Azure DevOps Wiki
