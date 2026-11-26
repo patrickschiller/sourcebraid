@@ -25,10 +25,11 @@ clients start from the same customer-facing version.
 
 ## Version alignment
 
-Before creating the first release candidate, align these customer-facing
-versions:
+Before creating a coordinated release candidate, review these customer-facing
+versions. Firefox uses its own version for Mozilla Add-ons.
 
 - Chrome: `version` in `chrome-extension/sourcebraid/manifest.json`.
+- Firefox: `version` in `firefox-extension/manifest-overrides.json`.
 - Local Codex/optional skills package: `version` in
   `codex-plugin/sourcebraid/.codex-plugin/plugin.json`.
 - Hosted ChatGPT MCP: `version` in `chatgpt-mcp/package.json` and its server
@@ -91,6 +92,43 @@ The script prints the package path, version, SHA-256 digest, and file count. The
 ZIP must contain `manifest.json` at its root and must not contain source archives,
 the private website, plugin configuration, iOS sources, tests, Git metadata, or
 local settings.
+
+## Firefox package and Mozilla Add-ons
+
+From the repository root, build the add-on and its matching reviewer source ZIP
+with Python 3.10 or later. Use the clean public release commit for submission.
+
+```bash
+python3 scripts/build_firefox_package.py --require-clean \
+  --source-output dist/sourcebraid-firefox-source-v1.1.1.zip
+unzip -t dist/sourcebraid-firefox-v1.1.1.zip
+unzip -t dist/sourcebraid-firefox-source-v1.1.1.zip
+```
+
+Validate the add-on ZIP with Mozilla's `web-ext`.
+
+```bash
+web-ext lint --source-dir dist/sourcebraid-firefox-v1.1.1.zip
+```
+
+The linter can report an [Android version warning](https://github.com/mozilla/web-ext/issues/3561)
+for the data consent declaration in this desktop build. The two bundled Python
+files are reviewable source copied to GitHub when installing the PDF workflow.
+
+Open `about:debugging#/runtime/this-firefox` in Firefox 140 or later and load the
+add-on ZIP temporarily. Follow the test cases in the [Mozilla Add-ons listing
+kit](firefox-extension/STORE_LISTING.md#reviewer-testing) and check that the
+browser identifies SourceBraid as `@sourcebraid`. Preserve that ID for updates.
+
+Open [Submit a New Add-on](https://addons.mozilla.org/developers/addon/submit/)
+in the Mozilla developer account. Choose **On this site**, upload the add-on
+ZIP, select Firefox desktop, and complete the listing details. Use the
+[listing kit](firefox-extension/STORE_LISTING.md) for the English and German
+copy, privacy policy, and private reviewer instructions. Attach the matching
+source ZIP in the source code step after the listing form. To attach it later,
+open the version under **Manage Status & Versions** and use **Source code**. Verify the signed add-on from its public listing
+before sharing the install link. See Mozilla's [submission guide](https://extensionworkshop.com/documentation/publish/submitting-an-add-on/)
+and [source upload instructions](https://extensionworkshop.com/documentation/publish/source-code-submission/#upload-source-for-an-existing-version).
 
 ## Optional local skills package
 

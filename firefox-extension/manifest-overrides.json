@@ -1,0 +1,21 @@
+{
+  "version": "1.1.1",
+  "background": {
+    "scripts": ["capture-utils.js", "background.js"]
+  },
+  "permissions": ["activeTab", "scripting"],
+  "host_permissions": ["https://*/*"],
+  "content_security_policy": {
+    "extension_pages": "script-src 'self'; object-src 'self'; connect-src 'self' https:"
+  },
+  "incognito": "not_allowed",
+  "browser_specific_settings": {
+    "gecko": {
+      "id": "@sourcebraid",
+      "strict_min_version": "140.0",
+      "data_collection_permissions": {
+        "required": ["authenticationInfo", "browsingActivity", "websiteContent"]
+      }
+    }
+  }
+}

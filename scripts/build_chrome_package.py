@@ -41,8 +41,24 @@ PACKAGE_FILES = (
 VERSION_PATTERN = re.compile(r"^(?:0|[1-9]\d*)(?:\.(?:0|[1-9]\d*)){0,3}$")
 
 
+SECRET_PATTERNS = (
+    ("GitHub credential", re.compile(rb"(?:gh[pousr]_[A-Za-z0-9]{30,}|github_pat_[A-Za-z0-9_]{40,})")),
+    ("private key", re.compile(rb"-----BEGIN (?:RSA |EC |OPENSSH |DSA )?PRIVATE KEY-----")),
+    ("personal absolute path", re.compile(rb"/(?:Users|home)/[A-Za-z0-9_.-]+/")),
+)
+
+
 class PackageError(RuntimeError):
     """Raised when a safe release archive cannot be created."""
+
+
+
+def private_content_reason(content: bytes) -> str | None:
+    for label, pattern in SECRET_PATTERNS:
+        if pattern.search(content):
+            # Never include the matching secret in diagnostics.
+            return label
+    return None
 
 
 def package_source(root: Path, relative: PurePosixPath) -> Path:
@@ -85,9 +101,7 @@ def validated_package_files(repository_root: Path) -> list[tuple[Path, str]]:
     return files
 
 
-def build_package(repository_root: Path, output_path: Path) -> tuple[str, str]:
-    manifest = validated_manifest(repository_root)
-    files = validated_package_files(repository_root)
+def write_package(output_path: Path, files: dict[str, bytes]) -> str:
     output_path.parent.mkdir(parents=True, exist_ok=True)
 
     with zipfile.ZipFile(
@@ -96,21 +110,26 @@ def build_package(repository_root: Path, output_path: Path) -> tuple[str, str]:
         compression=zipfile.ZIP_DEFLATED,
         compresslevel=9,
     ) as archive:
-        for source, archive_name in files:
+        for archive_name, content in files.items():
             info = zipfile.ZipInfo(archive_name, date_time=(1980, 1, 1, 0, 0, 0))
             info.compress_type = zipfile.ZIP_DEFLATED
             info.external_attr = 0o100644 << 16
-            archive.writestr(info, source.read_bytes())
+            archive.writestr(info, content)
 
     with zipfile.ZipFile(output_path) as archive:
         packaged_names = tuple(sorted(archive.namelist()))
-    expected_names = tuple(sorted(PACKAGE_FILES))
+    expected_names = tuple(sorted(files))
     if packaged_names != expected_names:
         output_path.unlink(missing_ok=True)
         raise PackageError("release archive does not match the explicit allowlist")
 
-    digest = hashlib.sha256(output_path.read_bytes()).hexdigest()
-    return str(manifest["version"]), digest
+    return hashlib.sha256(output_path.read_bytes()).hexdigest()
+
+
+def build_package(repository_root: Path, output_path: Path) -> tuple[str, str]:
+    manifest = validated_manifest(repository_root)
+    files = {name: path.read_bytes() for path, name in validated_package_files(repository_root)}
+    return str(manifest["version"]), write_package(output_path, files)
 
 
 def parser() -> argparse.ArgumentParser:

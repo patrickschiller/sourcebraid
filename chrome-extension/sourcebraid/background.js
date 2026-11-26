@@ -1,6 +1,10 @@
-importScripts("capture-utils.js");
+if (typeof importScripts === "function") {
+  importScripts("capture-utils.js");
+}
 
 const Core = globalThis.SourceBraidCore;
+const WebExtension = globalThis.browser ?? globalThis.chrome;
+const isFirefox = WebExtension.runtime?.getURL?.("").startsWith("moz-extension:");
 const MAX_TEXT_RESPONSE_BYTES = 5 * 1024 * 1024;
 const MAX_PDF_BYTES = 25 * 1024 * 1024;
 const PDF_WORKFLOW_FILES = [
@@ -10,15 +14,15 @@ const PDF_WORKFLOW_FILES = [
   ".github/workflows/convert-pdfs.yml"
 ];
 
-// Content scripts need the capture APIs, but never direct access to saved tokens.
-chrome.storage?.local?.setAccessLevel?.({ accessLevel: "TRUSTED_CONTEXTS" });
+// Firefox stores credentials in extension-origin localStorage. Chrome can restrict storage.local.
+WebExtension.storage?.local?.setAccessLevel?.({ accessLevel: "TRUSTED_CONTEXTS" });
 
-chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
-  if (sender.id !== chrome.runtime.id) {
+WebExtension.runtime.onMessage.addListener((message, sender, sendResponse) => {
+  if (sender.id !== WebExtension.runtime.id) {
     return false;
   }
   if (["save-to-github", "save-pdf-to-github"].includes(message?.type)
-      && (sender.tab || sender.url !== chrome.runtime.getURL("popup.html"))) {
+      && (sender.tab || sender.url !== WebExtension.runtime.getURL("popup.html"))) {
     sendResponse({ ok: false, error: "GitHub saves must be started from the SourceBraid popup." });
     return false;
   }
@@ -69,11 +73,14 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
 
 async function fetchResource(request) {
   const url = validateRemoteUrl(request?.url);
+  if (request?.authenticated && !url.startsWith("https:")) {
+    throw new Error("Source API credentials require HTTPS.");
+  }
   const headers = sanitizeFetchHeaders(request?.headers);
   const response = await fetch(url, {
     method: "GET",
     credentials: "omit",
-    redirect: "follow",
+    redirect: request?.authenticated ? "error" : "follow",
     cache: "no-store",
     headers
   });
@@ -170,7 +177,7 @@ async function fetchGist(value, revisionValue) {
 
 async function fetchGistRaw(value) {
   const url = new URL(validateRemoteUrl(value));
-  if (url.hostname.toLowerCase() !== "gist.githubusercontent.com") {
+  if (url.origin !== "https://gist.githubusercontent.com") {
     throw new Error("Unsupported GitHub Gist raw-content host.");
   }
 
@@ -193,11 +200,16 @@ async function fetchGistRaw(value) {
 }
 
 async function gistRequestHeaders(accept, includeToken = true) {
-  const stored = await chrome.storage.local.get({ githubToken: "" });
+  let token;
+  if (includeToken) {
+    token = isFirefox
+      ? localStorage.getItem("githubToken")
+      : (await WebExtension.storage.local.get({ githubToken: "" })).githubToken;
+  }
   return {
     Accept: accept,
     "X-GitHub-Api-Version": "2022-11-28",
-    ...(includeToken && stored.githubToken ? { Authorization: `Bearer ${stored.githubToken}` } : {})
+    ...(token ? { Authorization: `Bearer ${token}` } : {})
   };
 }
 
@@ -217,6 +229,9 @@ function validateRemoteUrl(value) {
   const url = new URL(String(value || ""));
   if (!["http:", "https:"].includes(url.protocol)) {
     throw new Error(`Unsupported URL protocol: ${url.protocol}`);
+  }
+  if (isFirefox && url.protocol !== "https:") {
+    throw new Error("Firefox capture requests require HTTPS.");
   }
   return url.href;
 }
@@ -273,16 +288,19 @@ async function saveToGitHub(settings, clip) {
 
 async function savePdfToGitHub(settings, pdf) {
   validatePdfSave(settings, pdf);
-  await ensureGitHubRepository(settings);
-  await ensurePdfWorkflow(settings);
 
   const source = Core.parsePdfSourceUrl(pdf.url);
   if (!source || (source.isLocal && !source.hasPdfExtension)) {
     throw new Error("Unsupported PDF URL. Use an HTTP(S) URL or a local file ending in .pdf.");
   }
+  if (isFirefox && !source.url.startsWith("https:")) {
+    throw new Error("Firefox captures PDFs from HTTPS addresses. Open the HTTPS URL of this PDF and try again.");
+  }
   if (source.isLocal) {
     await requireLocalFileAccess();
   }
+  await ensureGitHubRepository(settings);
+  await ensurePdfWorkflow(settings);
 
   let response;
   try {
@@ -442,7 +460,7 @@ async function ensurePdfWorkflow(settings) {
       continue;
     }
 
-    const packaged = await fetch(chrome.runtime.getURL(path));
+    const packaged = await fetch(WebExtension.runtime.getURL(path));
     if (!packaged.ok) {
       throw new Error(`Bundled PDF workflow file is unavailable: ${path}`);
     }
@@ -471,8 +489,7 @@ function validatePdfSave(settings, pdf) {
 }
 
 async function requireLocalFileAccess() {
-  const checker = chrome.extension?.isAllowedFileSchemeAccess;
-  const allowed = typeof checker === "function" && await checker.call(chrome.extension);
+  const allowed = await WebExtension.extension?.isAllowedFileSchemeAccess?.();
   if (!allowed) {
     throw new Error(`Local PDF access is disabled. ${localFileAccessHint()}`);
   }
@@ -559,7 +576,7 @@ async function fetchImageAsset(image, clip) {
     if (!Number.isInteger(clip?.tabId)) {
       throw new Error("The source tab is unavailable for authenticated image capture.");
     }
-    const result = await chrome.tabs.sendMessage(clip.tabId, {
+    const result = await WebExtension.tabs.sendMessage(clip.tabId, {
       type: "fetch-authenticated-image",
       url
     });
@@ -806,6 +823,8 @@ async function ensureGitHubRepository(settings) {
 function githubFetch(settings, url, options = {}) {
   return fetch(url, {
     ...options,
+    credentials: "omit",
+    redirect: options.body === undefined ? "follow" : "error",
     headers: {
       Accept: "application/vnd.github+json",
       Authorization: `Bearer ${settings.token}`,
