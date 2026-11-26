@@ -392,6 +392,56 @@ test("a login page returned from a PDF URL is rejected before archive writes", a
   }), /not a PDF document/);
 });
 
+test("Firefox background starts without a worker and reads Gist credentials from its extension origin", async () => {
+  const context = backgroundContext({
+    importScripts: undefined,
+    browser: {
+      runtime: {
+        getURL: (file) => `moz-extension://sourcebraid-test/${file}`,
+        onMessage: { addListener() {} }
+      }
+    },
+    localStorage: { getItem: (key) => key === "githubToken" ? "test-token" : null }
+  });
+
+  const headers = await context.gistRequestHeaders("application/vnd.github+json");
+  assert.equal(headers.Authorization, "Bearer test-token");
+  const anonymousHeaders = await context.gistRequestHeaders("application/vnd.github+json", false);
+  assert.equal(anonymousHeaders.Authorization, undefined);
+
+  await assert.rejects(context.fetchResource({ url: "http://example.com/" }), /Firefox capture requests require HTTPS/);
+  const settings = { owner: "example", repo: "archive", branch: "main", rootFolder: "web-clips", token: "test-token" };
+  for (const url of ["file:///synthetic-paper.pdf", "http://example.com/synthetic-paper.pdf"]) {
+    await assert.rejects(context.savePdfToGitHub(settings, { url, title: "Paper" }), /Firefox captures PDFs from HTTPS addresses/);
+  }
+});
+
+test("source API keys require HTTPS and GitHub uploads reject redirects", async () => {
+  const requests = [];
+  const context = backgroundContext({
+    fetch: async (url, options) => {
+      requests.push({ url, options });
+      return {
+        url,
+        headers: { get() { return null; } },
+        async text() { return "{}"; }
+      };
+    }
+  });
+
+  await assert.rejects(context.fetchResource({ url: "http://example.com/api", authenticated: true }), /require HTTPS/);
+  await assert.rejects(context.fetchGistRaw("http://gist.githubusercontent.com/example/test/raw/file.txt"), /Unsupported GitHub Gist/);
+  assert.equal(requests.length, 0);
+  await context.fetchResource({ url: "https://example.com/api", authenticated: true });
+  await context.fetchResource({ url: "http://example.com/" });
+  await context.githubFetch({ token: "test-token" }, "https://api.github.com/repos/example/archive", {
+    method: "PUT", body: '{"content":"synthetic"}'
+  });
+
+  assert.deepEqual(requests.map(({ options }) => options.redirect), ["error", "follow", "error"]);
+  assert.equal(requests[1].options.credentials, "omit");
+});
+
 test("first capture requires consent before tab access or capture requests", async () => {
   const elements = new Map();
   const requests = [];

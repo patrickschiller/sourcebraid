@@ -6,7 +6,6 @@ from __future__ import annotations
 import argparse
 import hashlib
 import json
-import re
 import subprocess
 import sys
 import tempfile
@@ -38,11 +37,6 @@ KIT_FILES = (
 )
 MANIFEST_NAME = "RELEASE_MANIFEST.json"
 CHECKSUMS_NAME = "SHA256SUMS"
-SECRET_PATTERNS = (
-    ("GitHub credential", re.compile(rb"(?:gh[pousr]_[A-Za-z0-9]{30,}|github_pat_[A-Za-z0-9_]{40,})")),
-    ("private key", re.compile(rb"-----BEGIN (?:RSA |EC |OPENSSH |DSA )?PRIVATE KEY-----")),
-    ("personal absolute path", re.compile(rb"/(?:Users|home)/[A-Za-z0-9_.-]+/")),
-)
 
 
 class ReleaseError(RuntimeError):
@@ -68,10 +62,9 @@ def safe_source(root: Path, relative: str) -> Path:
 
 
 def scan_content(name: str, content: bytes) -> None:
-    for label, pattern in SECRET_PATTERNS:
-        if pattern.search(content):
-            # Never include the matching secret itself in diagnostics.
-            raise ReleaseError(f"potential {label} in {name}")
+    reason = chrome.private_content_reason(content)
+    if reason:
+        raise ReleaseError(f"potential {reason} in {name}")
 
 
 def artifact_names(version: str) -> dict[str, str]:

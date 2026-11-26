@@ -1,5 +1,6 @@
 import importlib.util
 import json
+import subprocess
 import sys
 import tempfile
 import unittest
@@ -9,6 +10,8 @@ from pathlib import Path, PurePosixPath
 
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "scripts"))
+import build_chrome_package as chrome
+import build_firefox_package as firefox
 import build_release as release
 import build_review_fixture as review
 sys.path.pop(0)
@@ -133,6 +136,59 @@ class ReleaseBundleTests(unittest.TestCase):
             with self.assertRaisesRegex(release.mcp.MCPPackageError, "lockfile version"):
                 release.mcp.build_package(root, root / "mismatched.zip")
             self.assertFalse((root / "mismatched.zip").exists())
+
+
+class FirefoxPackageTests(unittest.TestCase):
+    def test_reviewer_source_reproduces_the_allowlisted_firefox_package(self):
+        with tempfile.TemporaryDirectory() as temporary:
+            root = Path(temporary)
+            addon = root / "firefox.zip"
+            source = root / "source.zip"
+            subprocess.run(
+                [
+                    sys.executable, str(ROOT / "scripts/build_firefox_package.py"),
+                    "--output", str(addon), "--source-output", str(source),
+                ],
+                check=True, capture_output=True,
+            )
+            with zipfile.ZipFile(addon) as archive:
+                self.assertEqual(set(archive.namelist()), set(firefox.PACKAGE_FILES))
+                manifest = json.loads(archive.read("manifest.json"))
+                version = json.loads((ROOT / firefox.MANIFEST_OVERRIDES).read_bytes())["version"]
+                self.assertEqual(manifest["version"], version)
+                self.assertEqual(manifest["background"], {"scripts": ["capture-utils.js", "background.js"]})
+                self.assertEqual(manifest["incognito"], "not_allowed")
+                self.assertEqual(manifest["host_permissions"], ["https://*/*"])
+                self.assertIn("connect-src 'self' https:", manifest["content_security_policy"]["extension_pages"])
+                self.assertNotIn("gecko_android", manifest["browser_specific_settings"])
+                self.assertEqual(manifest["browser_specific_settings"]["gecko"], {
+                    "id": "@sourcebraid",
+                    "strict_min_version": "140.0",
+                    "data_collection_permissions": {
+                        "required": ["authenticationInfo", "browsingActivity", "websiteContent"],
+                    },
+                })
+
+            reviewer = root / "reviewer-source"
+            with zipfile.ZipFile(source) as archive:
+                self.assertEqual(set(archive.namelist()), set(firefox.SOURCE_FILES))
+                archive.extractall(reviewer)
+            chrome_manifest = reviewer / firefox.EXTENSION_FILES["manifest.json"]
+            original_chrome = json.loads(chrome_manifest.read_bytes())
+            original_chrome["version"] = "0.0.0"
+            chrome_manifest.write_text(json.dumps(original_chrome), encoding="utf-8")
+            rebuilt = reviewer / "dist" / "sourcebraid-firefox.zip"
+            subprocess.run(
+                [sys.executable, "scripts/build_firefox_package.py", "--output", str(rebuilt)],
+                cwd=reviewer, check=True, capture_output=True,
+            )
+            self.assertEqual(rebuilt.read_bytes(), addon.read_bytes())
+
+            synthetic_secret = b"github_pat_" + b"x" * 50
+            (reviewer / firefox.EXTENSION_FILES["background.js"]).write_bytes(synthetic_secret)
+            with self.assertRaisesRegex(chrome.PackageError, "potential GitHub credential") as raised:
+                firefox.read_sources(reviewer)
+            self.assertNotIn(synthetic_secret.decode(), str(raised.exception))
 
 
 if __name__ == "__main__":

@@ -1,4 +1,6 @@
 const Core = globalThis.SourceBraidCore;
+const WebExtension = globalThis.browser ?? globalThis.chrome;
+const isFirefox = WebExtension?.runtime?.getURL?.("").startsWith("moz-extension:");
 const saveButton = document.querySelector("#save");
 const downloadButton = document.querySelector("#download");
 const saveSettingsButton = document.querySelector("#save-settings");
@@ -75,7 +77,7 @@ async function saveCurrentTab() {
     pdfMode = await isPdfTab(tab);
     if (pdfMode) {
       setBusy(true, "Uploading PDF and queuing Docling conversion...");
-      const result = await chrome.runtime.sendMessage({
+      const result = await WebExtension.runtime.sendMessage({
         type: "save-pdf-to-github",
         settings,
         pdf: {
@@ -98,7 +100,7 @@ async function saveCurrentTab() {
     if (clip.pdfFallback) {
       pdfMode = true;
       setBusy(true, "arXiv HTML unavailable; uploading PDF for Docling conversion...");
-      const result = await chrome.runtime.sendMessage({
+      const result = await WebExtension.runtime.sendMessage({
         type: "save-pdf-to-github",
         settings,
         pdf: clip.pdfFallback
@@ -112,11 +114,11 @@ async function saveCurrentTab() {
     lastClip = clip;
 
     setBusy(true, `Uploading ${clip.path}...`);
-    if (!hasChromeApi("runtime", "sendMessage")) {
-      throw new Error("Chrome runtime API is unavailable. Reload the extension in chrome://extensions.");
+    if (!hasWebExtensionApi("runtime", "sendMessage")) {
+      throw new Error("Extension runtime API is unavailable. Reload SourceBraid from your browser's extension manager.");
     }
 
-    const result = await chrome.runtime.sendMessage({
+    const result = await WebExtension.runtime.sendMessage({
       type: "save-to-github",
       settings,
       clip
@@ -215,14 +217,14 @@ function downloadBlobFile(filename, content, type) {
 }
 
 async function ensureContentScript(tabId) {
-  if (!hasChromeApi("scripting", "executeScript")) {
-    throw new Error("Chrome scripting API is unavailable. Reload the extension in chrome://extensions.");
+  if (!hasWebExtensionApi("scripting", "executeScript")) {
+    throw new Error("Extension scripting API is unavailable. Reload SourceBraid from your browser's extension manager.");
   }
 
   try {
     await sendTabMessage(tabId, { type: "ping" });
   } catch (_error) {
-    await chrome.scripting.executeScript({
+    await WebExtension.scripting.executeScript({
       target: { tabId },
       files: ["capture-utils.js", "content.js"]
     });
@@ -230,22 +232,22 @@ async function ensureContentScript(tabId) {
 }
 
 function sendTabMessage(tabId, message) {
-  if (!hasChromeApi("tabs", "sendMessage")) {
-    throw new Error("Chrome tabs API is unavailable. Open the clipper from the extension toolbar, not as a standalone HTML file.");
+  if (!hasWebExtensionApi("tabs", "sendMessage")) {
+    throw new Error("Extension tabs API is unavailable. Open SourceBraid from the browser toolbar.");
   }
 
-  return chrome.tabs.sendMessage(tabId, message);
+  return WebExtension.tabs.sendMessage(tabId, message);
 }
 
 async function getActiveTab(options = {}) {
-  if (!hasChromeApi("tabs", "query")) {
+  if (!hasWebExtensionApi("tabs", "query")) {
     if (options.optional) {
       return null;
     }
-    throw new Error("Chrome tabs API is unavailable. Open the clipper from the extension toolbar, not as a standalone HTML file.");
+    throw new Error("Extension tabs API is unavailable. Open SourceBraid from the browser toolbar.");
   }
 
-  const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
+  const [tab] = await WebExtension.tabs.query({ active: true, currentWindow: true });
   return tab;
 }
 
@@ -255,7 +257,7 @@ async function isPdfTab(tab) {
     return false;
   }
 
-  if (source.isLocal) {
+  if (source.isLocal || (isFirefox && !source.url.startsWith("https:"))) {
     return source.hasPdfExtension;
   }
 
@@ -263,7 +265,7 @@ async function isPdfTab(tab) {
     if (source.hasPdfExtension) {
       return true;
     }
-    const result = await chrome.runtime.sendMessage({ type: "probe-resource", url: source.url });
+    const result = await WebExtension.runtime.sendMessage({ type: "probe-resource", url: source.url });
     return Boolean(result?.contentType?.toLowerCase().startsWith("application/pdf"));
   } catch (_error) {
     return false;
@@ -283,7 +285,7 @@ async function loadSettings() {
     dataDisclosureAcceptedVersion: ""
   };
   const settings = await storageGet(defaults);
-  if (settings.githubRepo === "codex-knowledge") {
+  if (!isFirefox && settings.githubRepo === "codex-knowledge") {
     settings.githubRepo = "sourcebraid-private";
     await storageSet({ githubRepo: settings.githubRepo });
   }
@@ -393,8 +395,9 @@ function validateSettings(settings) {
 }
 
 async function storageGet(defaults) {
-  if (hasChromeApi("storage", "local") && typeof chrome.storage.local.get === "function") {
-    return chrome.storage.local.get(defaults);
+  // Firefox storage.local is also exposed to content scripts. Use the extension origin instead.
+  if (!isFirefox && typeof WebExtension?.storage?.local?.get === "function") {
+    return WebExtension.storage.local.get(defaults);
   }
 
   return {
@@ -411,8 +414,8 @@ async function storageGet(defaults) {
 }
 
 async function storageSet(values) {
-  if (hasChromeApi("storage", "local") && typeof chrome.storage.local.set === "function") {
-    await chrome.storage.local.set(values);
+  if (!isFirefox && typeof WebExtension?.storage?.local?.set === "function") {
+    await WebExtension.storage.local.set(values);
     return;
   }
 
@@ -421,17 +424,8 @@ async function storageSet(values) {
   }
 }
 
-function hasChromeApi(namespace, member) {
-  const root = globalThis.chrome?.[namespace];
-  if (!root) {
-    return false;
-  }
-
-  if (member === "local") {
-    return Boolean(root.local);
-  }
-
-  return member ? Boolean(root[member]) : true;
+function hasWebExtensionApi(namespace, member) {
+  return typeof WebExtension?.[namespace]?.[member] === "function";
 }
 
 function normalizeRootFolder(value) {

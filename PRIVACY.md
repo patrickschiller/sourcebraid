@@ -1,25 +1,34 @@
 # SourceBraid Privacy
 
-Last updated: October 12, 2026
+Last updated: November 26, 2026
 
 SourceBraid is open-source software that stores captured sources in a GitHub
-repository selected and controlled by the user. The Chrome/iOS capture clients,
-local Codex plugin, and prepared hosted ChatGPT service have different data
-flows, described below. The hosted service is not yet deployed; this notice
+repository selected and controlled by the user. The browser and iOS capture
+clients, local Codex plugin, and prepared hosted ChatGPT service have different
+data flows, described below. The hosted service is not yet deployed; this notice
 describes the implementation prepared for its release.
 
 ## Data handled by SourceBraid
 
-- The Chrome extension and iOS app process the page, document, selected text,
-  notes, tags, and images that the user chooses to save.
-- The Chrome extension reads the active page only after the user starts a Save
-  or Download capture and accepts the first-use disclosure. A fallback download
-  remains on the user's device.
+- The Chrome and Firefox extensions and iOS app process the page, document,
+  selected text, notes, tags, and images that the user chooses to save.
+- The browser extension reads the active page content after the user starts a
+  Save or Download capture and accepts the first-use disclosure. A fallback
+  download stores the resulting Markdown on the user's device. Source requests
+  may still be needed to prepare it.
 - Captured Markdown, metadata, original PDFs, and related assets are sent
   directly to the GitHub repository configured by the user.
-- Chrome/iOS credentials and configuration are stored by the relevant client
-  using browser storage or iOS Keychain. Users should restrict each fine-grained
-  GitHub token to the intended archive repository.
+- The browser extensions store credentials and configuration in the local
+  browser profile. The iOS client uses Keychain for credentials. Users should
+  restrict each fine-grained GitHub token to the intended archive repository.
+- Firefox shows its data permissions during installation. Authentication
+  information covers the configured account and credentials. Browsing activity
+  covers the URL of the page the user chooses to capture. Website content covers
+  the selected page or PDF and its assets. A GitHub save sends these captured
+  materials, source metadata, and user-entered tags or notes over HTTPS to the
+  configured repository through GitHub's API. Capture starts from a user action.
+  Firefox extension requests for source APIs, PDFs, and assets also use HTTPS.
+  SourceBraid servers receive no browser captures or telemetry.
 - The local Codex plugin reads the configured archive, stores cached Markdown
   and a disposable SQLite index locally, and can perform explicitly confirmed
   deletion or metadata migration through GitHub. Its credentials come from the
@@ -111,8 +120,9 @@ OpenAI. These providers process connection or requested content data according
 to their respective service terms and privacy policies. The GitHub repository
 and Git history remain the authoritative archive.
 
-If the user configures Ghost or Blogger source APIs, the Chrome extension sends
-the necessary request and configured API credential directly to that service.
+If the user configures Ghost or Blogger source APIs, the browser extension sends
+the necessary request and configured API credential directly to that service over
+HTTPS. Some protected sources use the browser's existing session with that site.
 SourceBraid does not include GitHub tokens or optional API credentials in its
 exported plugin configuration.
 
@@ -134,10 +144,27 @@ public issue.
 ## Deutsch
 
 SourceBraid speichert Captures in einem vom Nutzer kontrollierten
-GitHub-Repository. Chrome und iOS schreiben direkt dorthin; ihre Zugangsdaten
-liegen im Browser-Speicher beziehungsweise iOS-Schlüsselbund. Das lokale
-Codex-Plugin nutzt lokale Zugangsdaten, Markdown-Kopien und einen neu
-aufbaubaren SQLite-Index. Es kann nach Vorschau und neuer ausdrücklicher
+GitHub-Repository. Die Erweiterungen für Chrome und Firefox sowie die iOS-App
+schreiben direkt dorthin. Die Zugangsdaten liegen lokal im Browserprofil
+beziehungsweise im iOS-Schlüsselbund.
+
+Firefox zeigt bei der Installation die Datenberechtigungen an. Dazu gehören
+Authentifizierungsdaten für Konto und Zugangsdaten, Browsing-Aktivität für die
+URL der zur Erfassung ausgewählten Seite und Website-Inhalte für den gewählten
+Seiteninhalt oder das PDF und zugehörige Dateien. Beim Speichern sendet die
+Erweiterung die erfassten Inhalte, Quellmetadaten, Tags und Notizen über die
+GitHub-API per HTTPS an das konfigurierte Repository. Die Erfassung beginnt
+durch eine Nutzeraktion. Die Firefox-Erweiterung lädt auch PDFs und zugehörige
+Dateien per HTTPS und nutzt HTTPS für Quell-APIs. SourceBraid-Server erhalten
+keine Captures oder Telemetrie aus dem Browser. Der Fallback speichert die
+Markdown-Datei lokal.
+Zum Erstellen der Datei können Quellabfragen erforderlich sein. Wenn Ghost
+oder Blogger konfiguriert ist, sendet SourceBraid die nötigen Anfragen und
+API-Zugangsdaten direkt per HTTPS an den jeweiligen Dienst. Manche geschützte
+Quellen nutzen die bestehende Browser-Sitzung mit der Website.
+
+Das lokale Codex-Plugin nutzt lokale Zugangsdaten, Markdown-Kopien und einen
+neu aufbaubaren SQLite-Index. Es kann nach Vorschau und neuer ausdrücklicher
 Bestätigung Clips löschen oder Metadaten migrieren.
 
 Der noch unveröffentlichte iOS-Reader liest Markdown und Assets per

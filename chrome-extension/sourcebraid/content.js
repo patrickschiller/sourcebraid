@@ -1,10 +1,11 @@
 const Core = globalThis.SourceBraidCore;
+const WebExtension = globalThis.browser ?? globalThis.chrome;
 
 if (!Core) {
   throw new Error("SourceBraidCore was not loaded before content.js.");
 }
 
-chrome.runtime.onMessage.addListener((message, _sender, sendResponse) => {
+WebExtension.runtime.onMessage.addListener((message, _sender, sendResponse) => {
   if (message?.type === "ping") {
     sendResponse({ ok: true });
     return true;
@@ -283,22 +284,24 @@ async function tryAzureDevOpsWiki(metadata) {
   let revision = "";
   let captureMethod = "azure-devops-wiki-api";
   const editor = document.querySelector("textarea[aria-label*='supports markdown']");
-  try {
-    const response = await fetch(apiUrl.href, {
-      method: "GET",
-      credentials: "include",
-      cache: "no-store",
-      headers: { Accept: "application/json" }
-    });
-    if (response.ok) {
-      const result = await response.json();
-      if (typeof result?.content === "string" && result.content.trim()) {
-        markdown = result.content;
-        revision = (response.headers.get("etag") || "").replace(/^W\//, "").replace(/^"|"$/g, "");
+  if (apiUrl.protocol === "https:") {
+    try {
+      const response = await fetch(apiUrl.href, {
+        method: "GET",
+        credentials: "include",
+        cache: "no-store",
+        headers: { Accept: "application/json" }
+      });
+      if (response.ok) {
+        const result = await response.json();
+        if (typeof result?.content === "string" && result.content.trim()) {
+          markdown = result.content;
+          revision = (response.headers.get("etag") || "").replace(/^W\//, "").replace(/^"|"$/g, "");
+        }
       }
+    } catch (_error) {
+      // The editor or rendered wiki body below are fallbacks for restricted sessions.
     }
-  } catch (_error) {
-    // The editor or rendered wiki body below are fallbacks for restricted sessions.
   }
   if (!markdown && editor?.value?.trim()) {
     markdown = editor.value;
@@ -366,7 +369,7 @@ async function tryGitHubGist(metadata) {
   }
 
   try {
-    const response = await chrome.runtime.sendMessage({
+    const response = await WebExtension.runtime.sendMessage({
       type: "fetch-gist",
       gistId: parsed.id,
       revision: parsed.revision
@@ -380,7 +383,7 @@ async function tryGitHubGist(metadata) {
     for (const file of Object.values(gist.files)) {
       let content = typeof file.content === "string" ? file.content : "";
       if (file.truncated && file.raw_url) {
-        const raw = await chrome.runtime.sendMessage({ type: "fetch-gist-raw", url: file.raw_url });
+        const raw = await WebExtension.runtime.sendMessage({ type: "fetch-gist-raw", url: file.raw_url });
         if (raw?.ok) {
           content = raw.text;
         }
@@ -698,7 +701,7 @@ async function tryGhostApi(metadata, settings) {
     const response = await fetchResource(endpoint, {
       Accept: "application/json",
       "Accept-Version": "v5.0"
-    });
+    }, { authenticated: true });
     if (!response.ok) {
       return null;
     }
@@ -743,7 +746,7 @@ async function tryBloggerApi(metadata, settings) {
       endpoint.searchParams.set("key", settings.bloggerApiKey);
     }
 
-    const response = await fetchResource(endpoint.href, { Accept: "application/json" });
+    const response = await fetchResource(endpoint.href, { Accept: "application/json" }, { authenticated: true });
     if (!response.ok) {
       return null;
     }
@@ -1031,7 +1034,7 @@ async function fetchAuthenticatedImage(value) {
     "user-images.githubusercontent.com",
     "private-user-images.githubusercontent.com"
   ].includes(targetHost);
-  if (!isAzureWikiAsset && !isGitHubGistAsset) {
+  if (location.protocol !== "https:" || url.protocol !== "https:" || (!isAzureWikiAsset && !isGitHubGistAsset)) {
     throw new Error("Authenticated image host is not allowed for this source page.");
   }
 
@@ -1074,10 +1077,10 @@ function bytesToBase64(bytes) {
   return btoa(binary);
 }
 
-async function fetchResource(url, headers = {}) {
-  const response = await chrome.runtime.sendMessage({
+async function fetchResource(url, headers = {}, { authenticated = false } = {}) {
+  const response = await WebExtension.runtime.sendMessage({
     type: "fetch-resource",
-    request: { url, headers }
+    request: { url, headers, authenticated }
   });
   if (!response || response.error) {
     throw new Error(response?.error || "Resource fetch failed.");

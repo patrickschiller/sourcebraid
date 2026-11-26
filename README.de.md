@@ -23,7 +23,7 @@ SourceBraid verbindet Capture-Clients, ein privates GitHub-Repository als
 dauerhaft maßgebliche Datenquelle und zwei Zugriffswege. Das lokale Codex-Plugin
 unterstützt Suche und Archivverwaltung. Die gehostete ChatGPT-Integration mit
 reinem Lesezugriff ist für Bereitstellung und Prüfung vorbereitet; sie ist noch
-kein öffentlich verfügbarer Dienst. Chrome-Erweiterung und iOS-App schreiben
+kein öffentlich verfügbarer Dienst. Die Erweiterungen für Chrome und Firefox sowie die iOS-App schreiben
 Captures direkt in das konfigurierte GitHub-Repository. Gehostete
 ChatGPT-Anfragen laufen künftig über den SourceBraid-Worker bei Cloudflare,
 ohne eine dauerhafte Inhaltsdatenbank anzulegen.
@@ -34,7 +34,7 @@ Maßgeblich bleiben die Markdown-Dateien und die Git-Historie.
 ```mermaid
 flowchart TD
     A["Webseite, Wiki, Gist, arXiv-Paper oder PDF"] --> B{"Capture-Client"}
-    B -->|Chrome| C["Browser-Erweiterung"]
+    B -->|Chrome oder Firefox| C["Browser-Erweiterung"]
     B -->|iOS| D["App und Share Extension"]
     C --> E["Besten Extraktionsadapter wählen"]
     D --> E
@@ -99,7 +99,7 @@ Rebuild oder eine Indexreparatur nötig.
 | Quelle oder Format | Bevorzugte Extraktion | Ergebnis in Markdown | Bilder und Anhänge | Fallback |
 | --- | --- | --- | --- | --- |
 | **arXiv-Paper** | Experimentelle arXiv-HTML-Version des vollständigen Papers | Gliederung, Fließtext, Tabellen, Zitate und LaTeX-Formeln; Autoren, arXiv-ID/-Version, DOI, Fachgebiete und Journalreferenz im Frontmatter | Abbildungen werden in den Asset-Ordner kopiert und relativ verlinkt | PDF herunterladen und mit Docling konvertieren |
-| **PDF über HTTP(S) oder lokale Datei** | Original-PDF plus asynchroner Docling-Workflow in GitHub Actions | Lesereihenfolge, Tabellen, OCR-Text und referenzierte Abbildungen; zunächst Status `pending`, danach fertiges Markdown | Original bleibt als `source.pdf` erhalten; extrahierte Abbildungen liegen daneben | Lokale PDFs benötigen in Chrome **Zugriff auf Datei-URLs zulassen**; verschlüsselte oder sitzungsgebundene PDFs werden nicht unterstützt |
+| **Web-PDF oder lokale PDF-Datei in Chrome** | Original-PDF plus asynchroner Docling-Workflow in GitHub Actions | Lesereihenfolge, Tabellen, OCR-Text und referenzierte Abbildungen; zunächst Status `pending`, danach fertiges Markdown | Original bleibt als `source.pdf` erhalten; extrahierte Abbildungen liegen daneben | Firefox benötigt eine HTTPS-PDF-URL. Lokale PDFs benötigen in Chrome **Zugriff auf Datei-URLs zulassen**. Verschlüsselte oder sitzungsgebundene PDFs werden nicht unterstützt. |
 | **Azure DevOps Wiki** | Authentifizierte Wiki-REST-API liefert das Quell-Markdown | Azure-Makros werden normalisiert, Mermaid bleibt als `mermaid`-Codeblock erhalten, interne Wiki-Links werden absolut | Geschützte Anhänge werden über den weiterhin authentifizierten Quell-Tab geladen und lokal abgelegt | Gerenderter `.markdown-content`-Bereich, falls die API nicht erreichbar ist |
 | **GitHub Gist** | GitHub Gist API, bei privaten Gists mit dem konfigurierten Token | Einzelne Markdown-Datei direkt; mehrere Dateien als Abschnitte; Quellcode in Codeblöcken mit Sprachkennung | Öffentliche Bilder direkt, geschützte GitHub-Bilder über den Gist-Tab mit aktiver GitHub-Sitzung | Die Revision einer revisionsspezifischen URL bleibt erhalten |
 | **Natives Markdown** | HTTP-Antwort auf `Accept: text/markdown`, z. B. bei Hashnode oder entsprechend konfigurierten Cloudflare-Seiten | Quell-Frontmatter und doppeltes H1 werden entfernt; relative Links werden absolut | Relevante Bilder werden lokal gespeichert und relativ verlinkt | Danach greifen die spezifischen APIs oder die DOM-Extraktion |
@@ -183,9 +183,9 @@ Konvertierung.
 
 ### Allgemeine PDFs
 
-SourceBraid unterstützt sowohl PDF-URLs über HTTP(S) als auch lokale, in Chrome
-geöffnete `.pdf`-Dateien. Für lokale Dateien muss unter `chrome://extensions` in
-den Details von SourceBraid einmalig **Zugriff auf Datei-URLs zulassen**
+SourceBraid unterstützt in Firefox PDFs über HTTPS und in Chrome PDFs über
+HTTP(S) oder lokale `.pdf`-Dateien. Für lokale Dateien muss unter
+`chrome://extensions` in den Details von SourceBraid einmalig **Zugriff auf Datei-URLs zulassen**
 aktiviert sein. Ist die Berechtigung nicht gesetzt, zeigt die Erweiterung eine
 konkrete Anleitung an und legt keinen leeren HTML-Clip an.
 
@@ -249,7 +249,34 @@ zusätzlich den konfigurierten GitHub-Token, sofern dieser Leserechte für Gists
 besitzt. Zugriffsgeschützte GitHub-Bilder können über den weiterhin geöffneten
 Gist-Tab mit aktiver GitHub-Sitzung geladen werden.
 
-## Chrome-Installation aus dem Quellcode
+## Browser-Erweiterung installieren
+
+### Firefox für Desktop
+
+SourceBraid läuft ab Version **140** in regulären Firefox-Desktopfenstern. Vor
+der Veröffentlichung auf Mozilla Add-ons kannst du das ZIP aus diesem Checkout bauen.
+
+```bash
+python3 scripts/build_firefox_package.py
+```
+
+1. `about:debugging#/runtime/this-firefox` in einem regulären Firefox-Fenster öffnen.
+2. **Temporäres Add-on laden** wählen und `dist/sourcebraid-firefox-v1.1.1.zip` auswählen.
+3. Eine Webseite öffnen und im Erweiterungsmenü **SourceBraid** wählen. Im
+   Popup das private GitHub-Repository und den Token eintragen, dann **Save to
+   GitHub** wählen. Auf HTML-Seiten lädt **Download Fallback** eine lokale
+   Markdown-Datei herunter.
+
+Firefox entfernt das temporäre Add-on beim Neustart. Sobald der Eintrag auf
+Mozilla Add-ons verfügbar ist, installiere für die reguläre Nutzung die von
+Mozilla signierte Version. Firefox zeigt bei dieser Installation die
+erforderlichen Datenberechtigungen an. SourceBraid kann in Firefox Text aus
+einer geöffneten HTTP-Seite erfassen. Anfragen für PDFs, Quell-APIs und
+Dateien stellt die Firefox-Erweiterung per HTTPS. Die
+[Release-Anleitung](RELEASING.md#firefox-package-and-mozilla-add-ons) beschreibt
+die Einreichung.
+
+### Chrome-Installation aus dem Quellcode
 
 Bis der Eintrag im Chrome Web Store live ist, lässt sich die geprüfte
 Erweiterung aus diesem Checkout laden:
@@ -312,7 +339,7 @@ Workflows: Read and write
 PDF-Upload installiert SourceBraid den mitgelieferten Docling-Workflow, das
 Konvertierungsskript und die Requirements-Datei, sofern diese Pfade noch nicht
 existieren. Bestehende Dateien werden nicht überschrieben. Der Token wird lokal
-im Chrome-Erweiterungsspeicher abgelegt.
+im Browserprofil für die Erweiterung abgelegt.
 
 Optionale API-Einstellungen:
 
@@ -469,11 +496,10 @@ Plugin und gehostetem Dienst sowie die Lizenzgrenzen.
 
 ## Technische Hinweise
 
-Der Quellcode der Chrome-Erweiterung liegt unter
-[`chrome-extension/sourcebraid`](chrome-extension/sourcebraid). Die Erweiterung
-benötigt keinen Build-Schritt und bindet keine Laufzeitkomponenten von
-Drittanbietern ein. Docling läuft ausschließlich in der GitHub Action des
-Ziel-Repositorys. Die
-HTML-Konvertierung erfolgt lokal in der Erweiterung; API- und Bildzugriffe
-nutzen je nach Quelle entweder normale HTTP-Anfragen oder die bestehende
-authentifizierte Browser-Sitzung.
+Chrome und Firefox verwenden den gemeinsamen Quellcode unter
+[`chrome-extension/sourcebraid`](chrome-extension/sourcebraid). Das Firefox-Paket
+verwendet eigene Manifest-Einstellungen. Beide Pakete enthalten lesbaren
+Erweiterungscode und kommen ohne Laufzeitkomponenten von Drittanbietern aus.
+Docling läuft ausschließlich in der GitHub Action des Ziel-Repositorys.
+Die HTML-Konvertierung erfolgt lokal in der Erweiterung. Quellabfragen können
+bei Bedarf die bestehende Browser-Sitzung nutzen.
